@@ -1,0 +1,45 @@
+{
+  "main": {
+    "meta": {
+      "back": "Tilbake",
+      "cancel": "Avbryt",
+      "confirm": "Bekreft",
+      "copyright": "© LAFT Software AS",
+      "error": "En feil har skjedd.",
+      "errorReason": "Dette er hva vi vet:",
+      "loading": "Laster...",
+      "logoutConfirm": "Logg ut",
+      "logoutNow": "Logg ut nå",
+      "logoutNowQuestion": "Sikker på at du ønsker å logge ut?",
+      "noBuilding": "Ingen bygg",
+      "noDeadline": "Ingen frist",
+      "noHour": "Ingen tid",
+      "tryAgain": "Prøv igjen senere",
+      "tryAgainButton": "Prøv igjen"
+    },
+    "login":{
+      "username": "E-post",
+      "password": "Passord",
+      "login": "Logg inn",
+      "register": "Registrer",
+      "loginError": "Feil brukernavn eller passord",
+      "loginErrorReason": "Kontroller at du har skrevet riktig brukernavn og passord.",
+      "loginErrorTryAgain": "Prøv igjen",
+      "title": "laserHenrik",
+    },
+    "navigation":{
+      "home": "Hjem",
+    },
+    "screens":{
+        "home": {
+          "tab": "Hjem",
+        },
+        "newOrder": {
+          "tab": "Ny ordre",
+        },
+        "orders": {
+          "tab": "Ordre",
+        }
+    }
+  }
+}
