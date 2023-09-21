@@ -28,10 +28,9 @@ import { localize } from '@translations/localize';
 import Styles from '@styles/Main';
 import { useNavigation } from '@react-navigation/native';
 
-export const OrdersScreen = () => {
+export const DogsScreen = () => {
 
   navigator = useNavigation();
-  navigator.setOptions({ title: 'Ordre' })
 
   const [username, setUsername] = useState('');
 
@@ -60,13 +59,16 @@ export const OrdersScreen = () => {
 
   const readMeasures = async function () {
     // Reading parse objects is done by using Parse.Query
-    const parseQuery = new Parse.Query('LaserJob');
+    const parseQuery = new Parse.Query('dogs');
     try {
       let todos = await parseQuery.find();
 
       // Be aware that empty or invalid queries return as an empty array
       // Set results to state variable
       setReadResults(todos);
+      if (todos.length >= 2) {
+        navigator.setOptions({ title: localize('main.screens.dogs.tabMultiple') })
+      }
       return true;
     } catch (error) {
 
@@ -78,7 +80,7 @@ export const OrdersScreen = () => {
 
   const updateMeasure = async function (todoId, done) {
     // Create a new todo parse object instance and set todo id
-    let Job = new Parse.Object('LaserJob');
+    let Job = new Parse.Object('dogs');
         Job.set('objectId', todoId);
         // Set new done value and save Parse Object changes
         Job.set('done', done);
@@ -98,7 +100,7 @@ export const OrdersScreen = () => {
 
   const deleteTodo = async function (todoId) {
     // Create a new todo parse object instance and set todo id
-    let Measure = new Parse.Object('LaserJob');
+    let Measure = new Parse.Object('dogs');
     Measure.set('objectId', todoId);
     // .destroy should be called to delete a parse object
     try {
@@ -123,22 +125,16 @@ export const OrdersScreen = () => {
                   readResults.map((todo) => (<View  style={Styles.todo_item_container}>
                      <TouchableOpacity  style={Styles.todo_item}>
                   
-                        <Text style={Styles.todo_text_header}>{todo.get('title')}</Text>
-                        <Text style={Styles.todo_text}>{todo.get('desc')}</Text>
+                        <Text style={Styles.list_text_header}>{todo.get('title')}</Text>
+                        <Text style={Styles.list_text}>{todo.get('breed')}</Text>
                            {/* Todo update button */}
                            {todo.get('done') !== true && (
-                            <TouchableOpacity style={Styles.todo_update_button} onPress={() => updateMeasure(todo.id, true)}>
-                                 <FontAwesome5 name="check" size={16} color={"#4CAF50"} />
+                            <TouchableOpacity style={Styles.list_arrow} onPress={() => updateMeasure(todo.id, true)}>
+                                 <FontAwesome5 name="chevron-right" size={22} color={"#333"} />
                             </TouchableOpacity>
                           )}
 
-                          {todo.get('delivered') !== false && (
-                        
-                          <TouchableOpacity onPress={() => deleteTodo(todo.id)} style={Styles.todo_update_button}>
-                               <FontAwesome5 name="trash-alt" size={16} color={"#ef5350"} />
-                          </TouchableOpacity>
-                                       )}
-    
+                  
 
                      </TouchableOpacity>
 

@@ -1,10 +1,27 @@
 {
   "main": {
+    "dates":{
+      "day": "Dag",
+      "days": "dager",
+      "month": "måneder",
+      "weeks": "uker",
+      "year": "år",
+      "hour": "Time",
+      "minute": "Minutt",
+      "second": "Sekund",
+
+    },
     "meta": {
       "back": "Tilbake",
+      "search": "Søk..",
       "cancel": "Avbryt",
+      "close": "Lukk",
       "confirm": "Bekreft",
-      "copyright": "© LAFT Software AS",
+      "delete": "Slett",
+      "deleteForever": "Slett for alltid",
+      "deleteTitle": "Slette?",
+      "deleteQuestion": "Sikker på at du ønsker å slette dette?",
+      "copyright": "© Henrik Brendhagen",
       "error": "En feil har skjedd.",
       "errorReason": "Dette er hva vi vet:",
       "loading": "Laster...",
@@ -25,21 +42,111 @@
       "loginError": "Feil brukernavn eller passord",
       "loginErrorReason": "Kontroller at du har skrevet riktig brukernavn og passord.",
       "loginErrorTryAgain": "Prøv igjen",
-      "title": "laserHenrik",
+      "title": "Velkommen til myDog",
     },
     "navigation":{
-      "home": "Hjem",
+      "menu":{
+        "home": "Hjem",
+        "orders": "Hund",
+        "newOrder": "Ny hund",
+        "settings": "Innstillinger",
+        "help": "Hjelp",
+        "logout": "Logg ut"
+      }
     },
     "screens":{
-        "home": {
-          "tab": "Hjem",
+        "newDog": {
+          "tab": "Ny hund",
         },
-        "newOrder": {
-          "tab": "Ny ordre",
+        "dogs": {
+          "tab": "Min hund",
+          "tabMultiple": "Mine hunder",
+          "title": "Min hund",
         },
-        "orders": {
-          "tab": "Ordre",
-        }
+        "dogDetail": {
+          "formals": {
+            "title": "Formalia",
+          },
+          "rewards":{
+            "title": "Merker",
+            "createReward": "Legg til merke",
+            "form":{
+              "title": "Navn",
+              "description": "Beskrivelse",
+              "date": "Dato",
+              "create": "Legg til",
+              "close":"Avbryt",
+            }
+          },
+          "training":{
+            "title": "Trening",
+            "info": "Informasjon om trening",
+            "trainingTitle": "Tittel",
+            "description": "Beskrivelse",
+            "noDescription": "Ingen",
+            "done": "Utført",
+            "createTraining": "Legg til trening",
+            "empty": "Ingen trening lagt til",
+            "form":{
+              "title": "Tittel",
+              "description": "Beskrivelse",
+              "date": "Dato",
+              "create": "Legg til",
+              "close":"Avbryt",
+            },
+            "trainingTypes":{
+              "BasicPuppy": "Grunnleggende valpetrening",
+              "HouseTraining": "Husrenhetstrening",
+              "Socialization": "Sosialisering",
+              "BasicObedience": "Grunnleggende lydighet",
+              "RecallTraining": "Innkallingstrening",
+              "LeashWalking": "Gå pent i bånd",
+              "SitStay": "Sitt og bli",
+              "DownStay": "Ligg og bli",
+              "StandStay": "Stå og bli",
+              "HandSignals": "Håndsignal-trening",
+              "ClickerTraining": "Klikkertrening",
+              "Agility": "Agility trening",
+              "Tracking": "Sporsøk",
+              "NoseWork": "Neseprøve",
+              "RallyObedience": "Rally-lydighet",
+              "FreestyleTricks": "Freestyle og triks",
+              "WaterRescue": "Vannredning",
+              "TherapyDog": "Terapihundtrening",
+              "GuardProtection": "Vakt- og beskyttelsestrening",
+              "HuntTraining": "Jakttrening",
+              "AdvancedObedience": "Avansert lydighet"
+            }
+          },
+          "history": {
+            "title": "Minner",
+            "timeline": "Tidslinje",
+            "gallery": "Galleri",
+            "add": "Legg til minne",
+            "delete": "Slett minne",
+            "createHistory": "Legg til minne",
+            "form":{
+              "title": "Tittel",
+              "description": "Beskrivelse",
+              "date": "Dato",
+              "create": "Legg til",
+              "close":"Avbryt",
+            }
+          },
+          "desc": "Beskrivelse",
+          "gender": "Kjønn",
+          "name": "Navn",
+          "breed": "Rase",
+          "age": "Alder",
+          "kennel": "Kennel",
+          "dateAquired": "Anskaffet",
+          "dateOfBirth": "Fødselsdato",
+           "showHistory": "Minner",
+           "showMedicine": "Medisinering",
+           "showTraining": "Trening",
+           "showRewards": "Merker",
+           "showFormals": "Formalia",
+          },
     }
   }
 }

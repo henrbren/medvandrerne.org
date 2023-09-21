@@ -174,16 +174,21 @@ const Styles = StyleSheet.create({
     
     elevation: 3,
   },
-  todo_update_button:{
+  list_arrow:{
     position: 'absolute',
-    right: 10,
-    top: 10,
+    right: 15,
+    top: 15,
 
   },
-  todo_text_header:{
+  list_text_header:{
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FF7100',
+  },
+  list_text:{
+    fontSize: 14,
+    color: '#333',
+    paddingTop: 5,
   },
   todo_item_container:{
     paddingLeft: 10,

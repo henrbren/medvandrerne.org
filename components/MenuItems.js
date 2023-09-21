@@ -41,10 +41,10 @@ export function MenuItems(props){
         <View style={styles.mainMenu}>
               
               
-        <Text style={{ paddingLeft: 10, paddingBottom: 20, textAlign: "left", fontSize: 16, color: "#2A334A", marginTop: 10 }} > laserHenrik</Text>
+        <Text style={{ paddingLeft: 10, paddingBottom: 20, textAlign: "left", fontSize: 16, color: "#2A334A", marginTop: 10 }} > myDog</Text>
       
         <DrawerItem
-                                        label={localize('main.navigation.home')}
+                                        label={localize('main.navigation.menu.home')}
                                         onPress={() => { navigation.navigate('TabNavigator'); }}
                                         icon={({ focused, color, size }) => <Ionicons name="clipboard-outline" size={size} color={color} />}
                                     />

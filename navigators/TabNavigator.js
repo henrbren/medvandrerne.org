@@ -5,9 +5,9 @@ import { Linking } from "react-native";
 
 import { FontAwesome5 } from "@expo/vector-icons";
 
-import { NewOrders } from "@screens/orders/NewOrders";
-import { OrdersScreen } from "@screens/orders/Orders";
+import { NewDog } from "@screens/dogs/NewDog";
 
+import { DogNavigator } from "@navigators/DogNavigator";
 import { localize } from '@translations/localize';
 
 /**
@@ -26,14 +26,33 @@ export function TabNavigator() {
     
                 <Tab.Navigator  >
 
+                                                    
                             <Tab.Screen
 
-                                name="NewOrders"
-                                component={NewOrders}
+                                name="DogNavigator"
+                                component={DogNavigator}
+
+                                options={({ navigation }) => ({
+                                    tabBarActiveTintColor: activeColor,
+                                    title: localize('main.screens.dogs.tab'),
+                                    tabBarInactiveTintColor: inactiveColor,
+                                    tabBarIcon: ({ size, color }) => (
+                                        <FontAwesome5 name="dog" size={size} color={color} />
+                                    ),
+                                    headerShown: false,
+
+                                })}
+
+                                />
+
+                            <Tab.Screen
+
+                                name="NewDog"
+                                component={NewDog}
                             
                                 options={({ navigation }) => ({
                                     tabBarActiveTintColor: activeColor,
-                                    title: localize('main.screens.newOrder.tab'),
+                                    title: localize('main.screens.newDog.tab'),
                                     tabBarInactiveTintColor: inactiveColor,
                                     tabBarIcon: ({ size, color }) => (
                                         <FontAwesome5 name="plus" size={size} color={color} />
@@ -44,23 +63,7 @@ export function TabNavigator() {
 
                             />
 
-                                <Tab.Screen
-
-                                name="OrdersTab"
-                                component={OrdersScreen}
-                            
-                                options={({ navigation }) => ({
-                                    tabBarActiveTintColor: activeColor,
-                                    title: localize('main.screens.orders.tab'),
-                                    tabBarInactiveTintColor: inactiveColor,
-                                    tabBarIcon: ({ size, color }) => (
-                                        <FontAwesome5 name="bars" size={size} color={color} />
-                                    ),
-                                    headerShown: false,
-
-                                })}
-
-                            />
+                      
             
                 </Tab.Navigator>
 

@@ -15,11 +15,13 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { localize, } from '@translations/localize';
+import { AuthContext } from "@components/helpers/auth/AuthContext";
 
 
 export const UserLoginScreen = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const { signIn } = React.useContext(AuthContext);
 
   const goToUserRegistration = () => {
     navigation.navigate('UserRegistrationScreen')
@@ -57,6 +59,7 @@ export const UserLoginScreen = ({navigation}) => {
             'Success!',
             `User ${loggedInUser.get('username')} has successfully signed in!`,
           );
+          signIn()
           // To verify that this is in fact the current user, currentAsync can be used
           const currentUser = await Parse.User.currentAsync();
           console.log(loggedInUser === currentUser);
@@ -87,11 +90,8 @@ export const UserLoginScreen = ({navigation}) => {
     const passwordValue = password;
     return await Parse.User.logIn(usernameValue, passwordValue)
       .then(async (loggedInUser) => {
-        // logIn returns the corresponding ParseUser object
-        Alert.alert(
-          'Success!',
-          `User ${loggedInUser.get('username')} has successfully signed in!`,
-        );
+
+        signIn()
         // To verify that this is in fact the current user, currentAsync can be used
         const currentUser = await Parse.User.currentAsync();
         console.log(loggedInUser === currentUser);
@@ -108,7 +108,7 @@ export const UserLoginScreen = ({navigation}) => {
   return (
     <View style={Styles.login_wrapper}>
       <View>
-      <LottieView style={{width: 250}}  source={require('@animations/laser.json')} autoPlay loop={false}   />
+      <LottieView style={{width: 350}}  source={require('@animations/dog.json')} autoPlay loop={true}   />
       <Text style={Styles.login_title}>{localize('main.login.title')}</Text>
 
       </View>

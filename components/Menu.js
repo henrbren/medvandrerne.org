@@ -10,7 +10,6 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 import { MenuItems } from '@components/MenuItems';
 import { doUserLogOut } from "@components/login/UserLogOut";
 
-
   
 export function DrawerContent(props){
 
@@ -54,7 +53,6 @@ export function DrawerContent(props){
                 />
 
 
-         
                 <DrawerItem
                     label={localize('main.navigation.menu.logout')}
                     style={styles.footerItem}

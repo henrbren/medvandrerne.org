@@ -20,18 +20,20 @@ export function MainNavigator({ navigation }) {
     return (
         <NavigationContainer>
                 <Drawer.Navigator initialRouteName={initialRouteName}
-                screenOptions={{ headerShown: true,   swipeEdgeWidth: 0,  }}
+                screenOptions={{ headerShown: false,   swipeEdgeWidth: 0,  }}
                 drawerContent={(props) => <DrawerContent {...props} />}
                 >
 
                 <Drawer.Screen
                     name="TabNavigator"
                     options={{ 
-                        title: 'Ordre' ,
+                        title: 'Hund' ,
                       }}
                     component={TabNavigator}
                 
                 />
+
+     
 
             
             </Drawer.Navigator>

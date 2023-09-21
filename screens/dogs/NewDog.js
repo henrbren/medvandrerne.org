@@ -3,8 +3,8 @@ import {
   Alert,
   View,
   SafeAreaView,
+  Text,
   Image,
-  ScrollView,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Parse from 'parse/react-native';
+import LottieView from 'lottie-react-native';
+
 import {
   List,
   Title,
@@ -22,9 +24,12 @@ import {
 } from 'react-native-paper';
 
 import { localize } from '@translations/localize';
+
+import CameraView from "@components/helpers/camera/CameraView";
+
 import Styles from '@styles/Main';
 
-export const HomeScreen = () => {
+export const NewDog = () => {
 
   navigator = useNavigation();
 
@@ -48,22 +53,26 @@ export const HomeScreen = () => {
 
 
   // State variables
-  const [readResults, setReadResults] = useState([]);
-  const [newJobTitle, setNewJobTitle] = useState('');
-  const [newJobDesc, setNewJobDesc] = useState('');
+  const [image, setImage] = useState('');
+  const [newDogTitle, setNewDogTitle] = useState('');
+  const [newDogDesc, setNewDgDesc] = useState('');
+  const [breed, setBreed] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
 
   // Functions used by the screen components
-  const createMeasure = async function () {
+  const createDog = async function () {
     // Creates a new Todo parse object instance
-    let Measure = new Parse.Object('LaserJob');
-    Measure.set('title', newJobTitle);
-    Measure.set('desc', newJobDesc);
-    Measure.set('done', false);
-    Measure.set('owner', Parse.User.current());
-    Measure.setACL(new Parse.ACL(Parse.User.current()))
+    let Dog = new Parse.Object('dogs');
+    Dog.set('title', newDogTitle);
+    Dog.set('dateOfBirth', dateOfBirth);
+    Dog.set('desc', newDogDesc);
+    Dog.set('breed', breed);
+    Dog.set('done', false);
+    Dog.set('owner', Parse.User.current());
+    Dog.setACL(new Parse.ACL(Parse.User.current()))
     // After setting the todo values, save it on the server
     try {
-      await Measure.save();
+      await Dog.save();
       // Success
       Alert.alert('Lagret!', 'Oppgave lagret.');
       navigator.navigate('OrdersTab');
@@ -80,16 +89,25 @@ export const HomeScreen = () => {
 
   return (
     <>
+    {image ? (<CameraView setImage={setImage} image={image} />) : (
+
       <SafeAreaView style={Styles.container}>
         <View style={Styles.wrapper}>
+
+        {/*<View style={{backgroundColor: '#f2f2f2', borderRadius: 6}}>
+          {image ? (<Image style={{width: '100%', height: 200, borderRadius: 6}} source={{uri: image}} />) : (<> 
+           <LottieView style={{width: '100%'}}  source={require('@animations/imageSelect.json')} autoPlay loop={true}   />
+                <Text style={Styles.selectImageText}>Trykk for å velge bilde</Text></>)}
+              
+        </View>*/}
 
           <View style={Styles.create_todo_container}>
             {/* Todo create text input */}
             <PaperTextInput
-              value={newJobTitle}
+              value={newDogTitle}
             
-              onChangeText={text => setNewJobTitle(text)}
-              label="Ny oppgave"
+              onChangeText={text => setNewDogTitle(text)}
+              label="Tittel"
               mode="outlined"
               style={Styles.create_todo_input}
             />
@@ -97,8 +115,8 @@ export const HomeScreen = () => {
         <View style={Styles.create_todo_container}>
 
                   <PaperTextInput
-                    value={newJobDesc}
-                    onChangeText={text => setNewJobDesc(text)}
+                    value={newDogDesc}
+                    onChangeText={text => setNewDogDesc(text)}
                     label="Oppgave"
                     multiline={true}
                     mode="outlined"
@@ -107,21 +125,47 @@ export const HomeScreen = () => {
 
           </View>
           <View style={Styles.create_todo_container}>
+
+                  <PaperTextInput
+                    value={breed}
+                    onChangeText={text => setBreed(text)}
+                    label="Rase"
+                  
+                    mode="outlined"
+                    style={Styles.create_todo_input_desc}
+                  />
+
+            </View>
+
+            <View style={Styles.create_todo_container}>
+
+            <PaperTextInput
+              value={dateOfBirth}
+              onChangeText={text => setDateOfBirth(text)}
+              label="Fødselsdato"
+
+              mode="outlined"
+              style={Styles.create_todo_input_desc}
+            />
+
+            </View>
+
+          <View style={Styles.create_todo_container}>
                       {/* Todo create button */}
                       <PaperButton
-                        onPress={() => createMeasure()} 
+                        onPress={() => createDog()} 
                         icon="plus"
                         mode="outlined"
 
                         color={'#208AEC'}
                         style={Styles.create_todo_button}>
-                        {'Legg til '}
+                        {'Opprett '}
                       </PaperButton>
           </View>
         
         </View>
       </SafeAreaView>
-    </>
-  );
+   )}
+  </> );
 };
 
