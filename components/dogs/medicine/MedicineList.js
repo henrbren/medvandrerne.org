@@ -1,12 +1,12 @@
 import React from 'react';
 import { FlatList, View, Text } from 'react-native';
-import TrainingListItem from './TrainingListItem';  // Importer din TrainingListItem komponent
+import MedicineListItem from './MedicineListItem';  // Importer din TrainingListItem komponent
 import EmptyView from '@components/helpers/loading/EmptyView';  // Importer din EmptyView komponent
 
-const TrainingList = ({ data, refreshing, onRefresh, onSelectItem, onDeleteItem, isLoading }) => {
+const MedicineList = ({ data, refreshing, onRefresh, onSelectItem, onDeleteItem, isLoading }) => {
 
   const renderItem = ({ item }) => {
-    return (<TrainingListItem 
+    return (<MedicineListItem 
         item={item} 
         onSelect={() => onSelectItem(item)} 
         onDelete={() => onDeleteItem(item.id)}
@@ -18,11 +18,11 @@ const TrainingList = ({ data, refreshing, onRefresh, onSelectItem, onDeleteItem,
       data={data}
       renderItem={renderItem}
       keyExtractor={(item, index) => index.toString()}
-      ListEmptyComponent={() => <EmptyView text="Ingen treninger tilgjengelige" isLoading={isLoading}  />}  // Bruk din egen lokaliseringsfunksjon her
+      ListEmptyComponent={() => <EmptyView text="Ingenting loggført" isLoading={isLoading}  />}  // Bruk din egen lokaliseringsfunksjon her
       refreshing={refreshing}
       onRefresh={onRefresh}
     />
   );
 };
 
-export default TrainingList;
+export default MedicineList;

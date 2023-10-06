@@ -31,7 +31,7 @@
     "ios": {
       "supportsTablet": true,
       "usesAppleSignIn": true,
-      "bundleIdentifier": "no.vixon.myDog"
+      "bundleIdentifier": "no.vixon.dyremappa"
     },
     "android": {
       "adaptiveIcon": {
@@ -41,7 +41,7 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "no.vixon.myDog"
+      "package": "no.vixon.dyremappa"
     },
     "web": {
       "favicon": "./assets/favicon.png"

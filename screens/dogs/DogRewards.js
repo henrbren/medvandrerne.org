@@ -16,9 +16,11 @@ import { localize } from "@translations/localize";
 
 import ReusableBottomSheet from '@ui/ReusableBottomSheet';  // Importer ReusableBottomSheet
 import SystemModal from '@ui/SystemModal';
+import SearchFieldAccessory from '@ui/SearchFieldAccessory';
 import { deleteItem } from '@parse/deleteItem';
 
 import createAndSharePDF from '@components/dogs/rewards/createAndSharePDF';
+
 
 export const DogRewardsScreen = ({ route, navigation }) => {
 
@@ -27,7 +29,9 @@ export const DogRewardsScreen = ({ route, navigation }) => {
  const [isVisible, setIsVisible] = useState(false);
  const [selectedItem, setSelectedItem] = useState(null);
  const bottomSheetRef = useRef(null);
-  const [username, setUsername] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   const dogName = route.params?.dogName;
   const imageUrl = route.params?.imageUrl;
@@ -54,7 +58,7 @@ const onRefresh = React.useCallback(() => {
 
   useEffect(() => {
     readDogData();
-  }, [username]);
+  }, []);
 
 
   // State variables
@@ -70,13 +74,28 @@ const onRefresh = React.useCallback(() => {
     try {
       let dogs = await parseQuery.find();
       setReadResults(dogs);
-  
+      setIsLoading(false)
+
+      const pointsSum = dogs.reduce((acc, dog) => acc + (dog.get('points') || 0), 0);
+      setTotalPoints(pointsSum);
+
       return true;
     } catch (error) {
       Alert.alert('Error!', error.message);
       return false;
     }
   };
+
+  const filteredResults = useMemo(() => {
+    return readResults.filter(item => {
+      const title = item.get('title').toLowerCase();
+      const description = item.get('desc').toLowerCase();
+      const date = formatDateWithTime(item.get('date')).toLowerCase();
+      const query = searchQuery.toLowerCase();
+  
+      return title.includes(query) || description.includes(query) || date.includes(query);
+    });
+  }, [readResults, searchQuery]);
 
   const showBottomSheet = () => {
     bottomSheetRef.current.open();
@@ -116,40 +135,59 @@ const onRefresh = React.useCallback(() => {
 
     return (
       <TouchableOpacity  style={styles.gridItem} onPress={() => { setSelectedItem(item); setIsVisible(true); }}>
+         {item.get('isCustom') != true && 
+              <View style={styles.ribbon}>
+                <Text style={styles.ribbonText}>Diplom</Text>
+              </View>
+            }
+         {item.get('isRare') == true && 
+              <View style={[styles.ribbon, {top: 90, backgroundColor: 'purple'}]}>
+                <Text style={styles.ribbonText}>Sjelden</Text>
+              </View>
+            } 
           {badgeIcon}
           <Text style={styles.titleGrid}>{item.get('title')}</Text>
+          
           <Text style={styles.date}>{formattedDate}</Text>
       </TouchableOpacity>
     );
   };
 
 
-  return (<>
-    <SafeAreaView style={styles.container}>
+  return (
+    <View style={styles.container}>
+
       <FlatList
-        data={readResults}
+        data={filteredResults}
+        ListHeaderComponent={() => (
+          <View style={styles.headerCard}>
+            <Text style={styles.totalPointsText}>{totalPoints} poeng</Text>
+          </View>
+        )}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={2}
         refreshing={refreshing}
-        ListEmptyComponent={() => <EmptyView text="Ingen merker tilgjengelige" />}  
+        ListEmptyComponent={() => <EmptyView text="Ingen merker tilgjengelige" isLoading={isLoading}/>}  
         onRefresh={onRefresh}
         contentContainerStyle={styles.gridContainer}
       />
+      
       <SystemModal isVisible={isVisible} closeModal={closeModal} backdrop={true} backdropToValue={1.0} celebration={true} onShare={shareDiploma} >
             {selectedItem && (
               <>
                 <FontAwesome5 name={selectedItem.get('badge')} size={100} color="#DAA520" style={{margin: 10}}/>
-                {imageUrl && (
-              <Image
-                style={[styles.image]} // Increased size
-                source={{ uri: imageUrl }}
-                cachePolicy={'disk'}
-                blurRadius={5}
-              />
-            )}
+                          {imageUrl &&  (
+                        <Image
+                          style={[styles.image]} // Increased size
+                          source={{ uri: imageUrl }}
+                          cachePolicy={'disk'}
+                          blurRadius={5}
+                        />
+                      )}
                  
-                    <Text style={styles.diplomaHeader}>Diplom</Text>
+                    <Text style={styles.diplomaHeader}>{selectedItem.get('isCustom') == true ? 'Merke' : 'Diplom'}</Text>
+                    
                     <Text style={styles.dividerText}>TILDELES</Text>
                     <Text style={styles.recipientName}>{dogName}</Text>
                     <Text style={styles.dividerText}>FOR</Text>
@@ -158,7 +196,10 @@ const onRefresh = React.useCallback(() => {
     
                     <View style={styles.dateContainer} >
                          <Text style={styles.date}>{formatDateWithTime(selectedItem.get('date'))}</Text>
+      
                     </View>
+                    <Text style={styles.points}>{selectedItem.get('points') ? selectedItem.get('points') : '0'} poeng</Text>
+                 
              
              
               </>
@@ -169,7 +210,6 @@ const onRefresh = React.useCallback(() => {
 
            
       </SystemModal>
-    </SafeAreaView>
       <ReusableBottomSheet
       sheetRef={bottomSheetRef}
       height={500}
@@ -177,8 +217,9 @@ const onRefresh = React.useCallback(() => {
 >
       <DogRewardForm dog={route.params?.id} close={closeSheet} />
     </ReusableBottomSheet>
+    <SearchFieldAccessory searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
- </> );
+    </View> );
 
 };
 
@@ -187,10 +228,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7', // iOS background color
+    
   },
+  headerCard:{
+    padding: 5,
+    alignItems: 'center',
 
+  },
+  totalPointsText: {
+    fontSize: 16, // Juster etter behov
+    fontWeight: 'bold', // Juster etter behov
+    color: '#333', // Juster etter behov
+
+  },
   titleGrid: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     marginTop: 10,
     color: '#333',
@@ -249,15 +301,23 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     color: '#000',
   },
+  points: {
+    fontSize: 12,
+    marginTop: 10,
+    fontFamily: 'System',
+    color: '#333',
+  },
   gridContainer: {
-    flex: 1,
+
     padding: 16,
+
   },
   gridItem: {
     flex: 1,
     margin: 15,
     padding: 20,
     alignItems: 'center',
+    position: 'relative',
     justifyContent: 'center',
     borderRadius: 12,
     backgroundColor: '#fff',
@@ -267,7 +327,24 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 3,
   },
-
+  ribbon: {
+    position: 'absolute',
+    top: 30,
+    right: -34,  // Adjust as needed
+    backgroundColor: '#007AFF',  // Apple's default blue
+    borderTopEndRadius: 3,
+    borderTopLeftRadius: 3,
+    paddingHorizontal: 8,  // Horizontal padding
+    paddingVertical: 2,  // Vertical padding
+    transform: [{ rotate: '90deg' }],
+    overflow: 'hidden',
+    zIndex: 1,
+  },
+  ribbonText: {
+    color: 'white',
+    fontSize: 10,  // Adjust as needed
+    fontWeight: '600',  // Semi-bold
+  },
   deleteButton: {
     width: 200,
     padding: 20,

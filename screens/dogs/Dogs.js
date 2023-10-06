@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   Alert,
   View,
@@ -15,17 +15,20 @@ import { Image } from 'expo-image';
 
 import { FontAwesome5 } from '@expo/vector-icons'; 
 import { localize } from '@translations/localize';
-
+import SearchFieldAccessory from '@ui/SearchFieldAccessory';
 import { useNavigation } from '@react-navigation/native';
+import EmptyView from '@components/helpers/loading/EmptyView';  // Importer din EmptyView komponent
 
 export const DogsScreen = () => {
 
   const navigator = useNavigation();
   const [readResults, setReadResults] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     readMeasures();
+    console.log('DogsScreen useEffect')
   }, []);
 
   const readMeasures = async () => {
@@ -41,6 +44,16 @@ export const DogsScreen = () => {
     }
   };
 
+  const filteredResults = useMemo(() => {
+    return readResults.filter(item => {
+      const title = item.get('title').toLowerCase();
+      const lastname = item.get('lastname').toLowerCase();
+      const breed = item.get('breed').toLowerCase();
+      const query = searchQuery.toLowerCase();
+  
+      return title.includes(query) || lastname.includes(query) || breed.includes(query);
+    });
+  }, [readResults, searchQuery]);
 
   const renderItem = ({ item }) => {
     const profileImageFile = item.get('profileImage');
@@ -72,8 +85,9 @@ export const DogsScreen = () => {
   return (
     <SafeAreaView style={Styles.container}>
       <FlatList
-        data={readResults}
+        data={filteredResults}
         renderItem={renderItem}
+        ListEmptyComponent={() => <EmptyView text="Her er det ingen hunder" />}  
         keyExtractor={item => item.id}
         refreshControl={
           <RefreshControl
@@ -82,6 +96,7 @@ export const DogsScreen = () => {
           />
         }
       />
+      <SearchFieldAccessory searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
     </SafeAreaView>
   );
 };

@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createSharedElementStackNavigator } from 'react-navigation-shared-element';
 
 import { localize } from "@translations/localize";
 import { navigationHeader } from "@styles/navigation";
@@ -11,9 +10,15 @@ import { FontAwesome } from "@expo/vector-icons";
 import { DogsScreen } from "@screens/dogs/Dogs";
 import { DogDetailScreen } from "@screens/dogs/DogDetail";
 import { DogHistoryScreen } from "@screens/dogs/DogHistory";
+import { DogGalleryScreen } from "@screens/dogs/DogGallery";
 import { DogFormaliaScreen } from "@screens/dogs/DogFormalia";
 import { DogRewardsScreen } from "@screens/dogs/DogRewards";
 import { DogTrainingScreen } from "@screens/dogs/DogTraining";
+import { DogMedicineScreen } from "@screens/dogs/DogMedicine";
+import { PuppySchoolScreen } from "@screens/dogs/PuppySchool";
+import { DogHealthScreen } from "@screens/dogs/DogHealth";
+import { DogWeightScreen } from "@screens/dogs/DogWeight";
+
 
 
 //Navigator
@@ -91,6 +96,25 @@ export function DogNavigator({ route, navigation }) {
               }}
             />
 
+      <Stack.Screen
+                    name="DogGalleryScreen"
+                    component={DogGalleryScreen}
+                    options={{
+                      headerTitleAlign: "center",
+                      title: localize("main.screens.dogs.title"),
+                      headerStyle: {
+                        backgroundColor: colors.card
+                      },
+                      headerTintColor: colors.text,
+                    
+                      /*headerRight: () => (
+                                                <FontAwesome backgroundColor={"#FBFCFD"} color={"#2A334A"} name="th" size={24} onPress={() => navigation.navigate("MyFiltersScreen")}></FontAwesome>
+                                            ),*/
+                    }}
+                  />
+
+
+
         <Stack.Screen
               name="DogFormaliaScreen"
               component={DogFormaliaScreen}
@@ -150,6 +174,78 @@ export function DogNavigator({ route, navigation }) {
                                       ),*/
               }}
             />
+
+
+
+<Stack.Screen
+              name="PuppySchoolScreen"
+              component={PuppySchoolScreen}
+              options={{
+                headerTitleAlign: "center",
+                title: localize("main.screens.dogs.title"),
+                headerStyle: {
+                  backgroundColor: colors.card
+                },
+                headerTintColor: colors.text,
+            
+                /*headerRight: () => (
+                                          <FontAwesome backgroundColor={"#FBFCFD"} color={"#2A334A"} name="th" size={24} onPress={() => navigation.navigate("MyFiltersScreen")}></FontAwesome>
+                                      ),*/
+              }}
+            />
+
+          <Stack.Screen
+              name="DogMedicineScreen"
+              component={DogMedicineScreen}
+              options={{
+                headerTitleAlign: "center",
+                title: localize("main.screens.dogs.title"),
+                headerStyle: {
+                  backgroundColor: colors.card
+                },
+                headerTintColor: colors.text,
+            
+                /*headerRight: () => (
+                                          <FontAwesome backgroundColor={"#FBFCFD"} color={"#2A334A"} name="th" size={24} onPress={() => navigation.navigate("MyFiltersScreen")}></FontAwesome>
+                                      ),*/
+              }}
+            />
+
+
+          <Stack.Screen
+              name="DogHealthScreen"
+              component={DogHealthScreen}
+              options={{
+                headerTitleAlign: "center",
+                title: localize("main.screens.dogs.title"),
+                headerStyle: {
+                  backgroundColor: colors.card
+                },
+                headerTintColor: colors.text,
+            
+                /*headerRight: () => (
+                                          <FontAwesome backgroundColor={"#FBFCFD"} color={"#2A334A"} name="th" size={24} onPress={() => navigation.navigate("MyFiltersScreen")}></FontAwesome>
+                                      ),*/
+              }}
+            />
+
+        <Stack.Screen
+              name="DogWeightScreen"
+              component={DogWeightScreen}
+              options={{
+                headerTitleAlign: "center",
+                title: localize("main.screens.dogDetail.medicine.weight.title"),
+                headerStyle: {
+                  backgroundColor: colors.card
+                },
+                headerTintColor: colors.text,
+            
+                /*headerRight: () => (
+                                          <FontAwesome backgroundColor={"#FBFCFD"} color={"#2A334A"} name="th" size={24} onPress={() => navigation.navigate("MyFiltersScreen")}></FontAwesome>
+                                      ),*/
+              }}
+            />
+
 
     </Stack.Navigator>
 

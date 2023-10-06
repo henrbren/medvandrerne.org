@@ -7,21 +7,20 @@ import Parse from 'parse/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { localize } from "@translations/localize";
 
-import { DogTrainingForm } from '@components/dogs/DogTrainingForm'; 
+import { DogMedicineForm } from '@components/dogs/DogMedicineForm'; 
 
 
-import getActivityName from '@components/dogs/training/getActivityName';
 
 import HeaderRightButton from '@components/dogs/training/HeaderRightButton';
-import TrainingList from '@components/dogs/training/TrainingList';
-import TrainingModal from '@components/dogs/training/TrainingModal';
+import MedicineList from '@components/dogs/medicine/MedicineList';
+import MedicineModal from '@components/dogs/medicine/MedicineModal';
 
 import ReusableBottomSheet from '@ui/ReusableBottomSheet';  // Importer ReusableBottomSheet
 import SearchFieldAccessory from '@ui/SearchFieldAccessory';
 import SystemModal from '@ui/SystemModal';
 import { deleteItem } from '@parse/deleteItem';
 
-export const DogTrainingScreen = ({ route, navigation }) => {
+export const DogMedicineScreen = ({ route, navigation }) => {
 
   navigator = useNavigation();
 
@@ -35,7 +34,7 @@ export const DogTrainingScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     navigation.setOptions({
-      title: localize('main.screens.dogDetail.training.title'),
+      title: localize('main.screens.dogDetail.medicine.title'),
       headerRight: () => <HeaderRightButton onPress={showBottomSheet} />
     });
   }, [navigation]);
@@ -52,13 +51,15 @@ export const DogTrainingScreen = ({ route, navigation }) => {
 
   const readDogData = async function () {
 
-    const parseQuery = new Parse.Query('dogTraining');
+    const parseQuery = new Parse.Query('dogMedicine');
     const dogPointer = Parse.Object.extend('dogs').createWithoutData(route.params?.id);
     parseQuery.equalTo('dogOwner', dogPointer);
     parseQuery.descending('createdAt');
   
+
     try {
       let dogs = await parseQuery.find();
+      console.log(dogs);
       setReadResults(dogs);
       setIsLoading(false)
       return true;
@@ -83,7 +84,7 @@ export const DogTrainingScreen = ({ route, navigation }) => {
   };
 
   const onDeleteItem = (objectId) => {
-    deleteItem(objectId, 'dogTraining', readDogData, closeModal);
+    deleteItem(objectId, 'dogMedicine', readDogData, closeModal);
   };
 
   const closeModal = () => {
@@ -96,18 +97,16 @@ export const DogTrainingScreen = ({ route, navigation }) => {
     return readResults.filter(item => {
       const title = item.get('title').toLowerCase();
       const description = item.get('desc').toLowerCase();
-      const trainingType = getActivityName(item.get('trainingType'))?.toLowerCase();
       const date = formatDateWithTime(item.get('date')).toLowerCase();
       const query = searchQuery.toLowerCase();
   
-      return title.includes(query) || description.includes(query) || date.includes(query) || trainingType.includes(query);
+      return title.includes(query) || description.includes(query) || date.includes(query)
     });
   }, [readResults, searchQuery]);
   
   return (<>
     <SafeAreaView style={styles.container}>
-
-        <TrainingList 
+        <MedicineList 
             data={filteredResults} 
             refreshing={refreshing} 
             onRefresh={onRefresh}
@@ -117,7 +116,7 @@ export const DogTrainingScreen = ({ route, navigation }) => {
           />
 
       <SystemModal  isVisible={isVisible} closeModal={closeModal} backdrop={true} >
-            <TrainingModal selectedItem={selectedItem} closeModal={closeModal} />
+            <MedicineModal selectedItem={selectedItem}  />
         </SystemModal>
 
         <SearchFieldAccessory searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
@@ -130,7 +129,7 @@ export const DogTrainingScreen = ({ route, navigation }) => {
             dragFromTopOnly={true}
             colors={{background: '#F9F9F9'}}
         >
-          <DogTrainingForm dog={route.params?.id} close={closeSheet} />
+          <DogMedicineForm dog={route.params?.id} close={closeSheet} />
       </ReusableBottomSheet>
 
  </> );

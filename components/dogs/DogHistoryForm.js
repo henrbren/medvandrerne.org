@@ -4,13 +4,13 @@ import {
 } from 'react-native';
 import Parse from 'parse/react-native';
 import * as ImagePicker from 'expo-image-picker';
-import LoadingModal from '@components/helpers/LoadingModal';
+import LoadingModal from '@ui/LoadingModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { localize } from "@translations/localize";
 
 export const DogHistoryForm = ({dog, close}) => {
 
-  const [formData, setFormData] = useState({ title: '', desc: '', date: new Date()  });
+  const [formData, setFormData] = useState({ title: null, desc: null, date: new Date()  });
   const [selectedImages, setSelectedImages] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -107,12 +107,12 @@ export const DogHistoryForm = ({dog, close}) => {
     DogHistory.set('hasImages', hasImages);
     DogHistory.set('dogOwner', dogPointer);
     DogHistory.set('owner', Parse.User.current());
-    DogHistory.setACL(new Parse.ACL(Parse.User.current()))
+    //DogHistory.setACL(new Parse.ACL(Parse.User.current()))
     // After setting the todo values, save it on the server
     try {
       await DogHistory.save();
       await uploadImages(DogHistory.id);
-     close()
+      close()
       // Refresh todos list to show the new one (you will create this function later)
 
       return true;
@@ -151,7 +151,7 @@ export const DogHistoryForm = ({dog, close}) => {
           />
      <ActionButton text={localize('main.screens.dogDetail.history.form.create')}   onPress={createDogHistory} />
      <ActionButton text={localize('main.screens.dogDetail.history.form.close')} textColor="black" onPress={close} style={styles.closeButton} />
-      <LoadingModal isVisible={isUploading} onRequestClose={() => setIsUploading(false)} />
+     <LoadingModal isVisible={isUploading} backgroundColor={'transparent'} onRequestClose={() => setIsUploading(false)} />
     </View>
   );
 };

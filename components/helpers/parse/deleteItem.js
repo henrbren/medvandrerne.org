@@ -14,7 +14,8 @@ export const deleteItem = async (objectId, parseClass, readData, closeModal) => 
            style: 'cancel',
          },
          {
-           text: 'OK',
+           text: 'Slett nå',
+           style: 'destructive',
            onPress: async () => {
              const PARSE_CLASS = Parse.Object.extend(parseClass);
              const query = new Parse.Query(PARSE_CLASS);

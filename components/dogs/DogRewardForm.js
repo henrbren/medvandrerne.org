@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import Parse from 'parse/react-native';
 
-import LoadingModal from '@components/helpers/LoadingModal';
+import LoadingModal from '@ui/LoadingModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { localize } from "@translations/localize";
 
@@ -31,11 +31,14 @@ export const DogRewardForm = ({dog, close}) => {
   
   // Functions used by the screen components
   const createDogReward = async function () {
+    setIsUploading(true)
     // Creates a new Todo parse object instance
     let DogHistory = new Parse.Object('dogRewards');
     DogHistory.set('title', formData.title);
     DogHistory.set('desc', formData.desc);
     DogHistory.set('badge', formData.badge);
+    DogHistory.set('isCustom', true);
+    DogHistory.set('points', 20);
     const dogPointer = Parse.Object.extend('dogs').createWithoutData(dog);
 
     let dateForm = new Date(formData.date);
@@ -48,7 +51,9 @@ export const DogRewardForm = ({dog, close}) => {
     // After setting the todo values, save it on the server
     try {
       await DogHistory.save();
-     close()
+      setIsUploading(false)
+      close()
+
       // Refresh todos list to show the new one (you will create this function later)
 
       return true;
@@ -85,7 +90,7 @@ export const DogRewardForm = ({dog, close}) => {
           />
       <ActionButton text={localize('main.screens.dogDetail.rewards.form.create')}  onPress={createDogReward} />
       <ActionButton text={localize('main.screens.dogDetail.rewards.form.close')} textColor="black" onPress={close} style={styles.closeButton} />
-      <LoadingModal isVisible={isUploading} onRequestClose={() => setIsUploading(false)} />
+      <LoadingModal isVisible={isUploading} backgroundColor={'transparent'} onRequestClose={() => setIsUploading(false)} />
     </View>
   );
 };

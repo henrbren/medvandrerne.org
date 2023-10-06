@@ -12,7 +12,8 @@ import { AuthContext } from "@components/helpers/auth/AuthContext";
 import { LoginNavigator } from "@navigators/LoginNavigator";
 import { MainNavigator } from "@navigators/MainNavigator";
 
-
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import FlashMessage from "react-native-flash-message";
 
 
 // Your Parse initialization configuration goes here
@@ -112,14 +113,17 @@ if (loading) {
 
 
 return (<AuthContext.Provider value={authContext}>
-  {state.loggedin ? (<>
-         <MainNavigator />
-       </>) : 
-       (<>
-         <LoginNavigator />
-       </>)}
+                  <ActionSheetProvider>
+                      {state.loggedin ? (<>
+                              <MainNavigator />
+                            </>) : 
+                            (<>
+                              <LoginNavigator />
+                            </>)}
+                  </ActionSheetProvider>
+                  <FlashMessage position="top" />
       </AuthContext.Provider>
- );
+     );
 };
 
 export default App;

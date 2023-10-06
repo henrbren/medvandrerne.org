@@ -32,11 +32,12 @@ const SystemModal = ({ isVisible, closeModal, children, backdrop, backdropToValu
     onRequestClose={closeModal}
   >
     <View style={styles.centeredView}>
-      <Animated.View style={{ ...styles.backdrop, opacity: backdrop ? backdropOpacity : 0.0 }} />
+      <Animated.View style={{ ...styles.backdrop, opacity: backdrop ? backdropOpacity : 0.01 }} />
       {celebration && <LottieView style={styles.backdropConfetti}  source={require('@animations/confetti.json')} autoPlay loop={false}   />}
       {celebration && <LottieView style={styles.backdropFirework}  source={require('@animations/firework.json')} autoPlay loop={true}   />}
   
       <View style={styles.modalView}>
+        
         <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                     <Ionicons name="close" size={30} color="black" />
         </TouchableOpacity>
@@ -44,7 +45,6 @@ const SystemModal = ({ isVisible, closeModal, children, backdrop, backdropToValu
         {onShare && <TouchableOpacity style={styles.shareButton} onPress={onShare}>
                     <Ionicons name="share-outline" size={30} color="black" />
         </TouchableOpacity>}
-
         {children}
       </View>
     </View>
@@ -92,6 +92,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 15,
     right: 15,
+    zIndex: 99,
+
     
   },
   shareButton:{

@@ -19,7 +19,7 @@
       "confirm": "Bekreft",
       "delete": "Slett",
       "deleteForever": "Slett for alltid",
-      "deleteTitle": "Slette?",
+      "deleteTitle": "Slette for alltid?",
       "deleteQuestion": "Sikker på at du ønsker å slette dette?",
       "copyright": "© Henrik Brendhagen",
       "error": "En feil har skjedd.",
@@ -64,6 +64,10 @@
           "title": "Min hund",
         },
         "dogDetail": {
+          "noDescription": "Ingen beskrivelse",
+          "birthdayTitle": "har bursdag!",
+          "birthdayDesc": "Din hund er",
+          "birthdayDesc2": "gammel i dag 🎉 Gratulerer med dagen 🥳",
           "formals": {
             "title": "Formalia",
           },
@@ -78,6 +82,56 @@
               "close":"Avbryt",
             }
           },
+          "medicine":{
+            "title": "Helse",
+            "createEntry": "Legg til innlegg",
+            "info":"Informasjon om innlegg",
+            "weight":{
+              "title": "Vektlogg",
+
+            },
+            "medicineLog":{
+              "title": "Medisinlogg",
+
+            },
+            "form":{
+              "title": "Navn",
+              "description": "Beskrivelse",
+              "date": "Dato",
+              "create": "Legg til",
+              "weight":"Vekt i gram",
+              "close":"Avbryt",
+            },
+            "medicineTypes": {
+              "Deworming": "Ormekur",
+              "Vaccination": "Vaksinasjon",
+              "AntiFleasTicks": "Anti-Lopper og Flått",
+              "PainReliever": "Smertestillende",
+              "Antibiotics": "Antibiotika",
+              "AntiInflammatory": "Antiinflammatorisk",
+              "SkinOintment": "Hudsalve",
+              "EarDrops": "Øredråper",
+              "EyeDrops": "Øyedråper",
+              "AllergyMedicine": "Allergimedisin",
+              "VitaminsSupplements": "Vitaminer og Tilskudd",
+              "HeartwormPrevention": "Hjerteormforebygging",
+              "AntiParasitic": "Anti-parasitt",
+              "AntiFungal": "Anti-sopp",
+              "Hormonal": "Hormonell",
+              "Sedatives": "Beroligende",
+              "AntiEpileptic": "Antiepileptika",
+              "Gastrointestinal": "Fordøyelses",
+              "AntiAnxiety": "Angstdempende",
+              "MuscleRelaxants": "Muskelavslappende",
+              "Insulin": "Insulin",
+              "Diuretics": "Vanndrivende",
+              "Chemotherapy": "Kjemoterapi",
+              "Immunosuppressant": "Immunosuppressiva",
+              "DentalCare": "Tannpleie",
+              "Supplements": "Tilskudd",
+              "Other": "Annet"
+            }
+          },
           "training":{
             "title": "Trening",
             "info": "Informasjon om trening",
@@ -86,6 +140,7 @@
             "noDescription": "Ingen",
             "done": "Utført",
             "createTraining": "Legg til trening",
+            "tips": "Tips",
             "empty": "Ingen trening lagt til",
             "form":{
               "title": "Tittel",
@@ -138,14 +193,17 @@
           "name": "Navn",
           "breed": "Rase",
           "age": "Alder",
+          "week": "Uke",
           "kennel": "Kennel",
           "dateAquired": "Anskaffet",
           "dateOfBirth": "Fødselsdato",
            "showHistory": "Minner",
-           "showMedicine": "Medisinering",
+           "showGallery": "Galleri",
+           "showMedicine": "Helse",
            "showTraining": "Trening",
            "showRewards": "Merker",
-           "showFormals": "Formalia",
+           "showFormals": "Vis hos NKK",
+           "puppySchool": "Valpeskole",
           },
     }
   }

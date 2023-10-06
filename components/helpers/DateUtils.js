@@ -81,6 +81,38 @@ export function formatDateWithTime(date) {
     return ageString;
   }
 
+  export function generateAgeStringInYears(dateOfBirth) {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+
+    let years = today.getFullYear() - dob.getFullYear();
+
+    // Check whether the birthday for the current year has passed or not
+    const hasBirthdayPassed = (today.getMonth() > dob.getMonth()) ||
+                              (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+
+    if (!hasBirthdayPassed) years--;
+
+    let ageString = `${years} ${years === 1 ? 'år' : 'år'}`;
+
+    return ageString;
+}
+
+
+  export function isBirthdayOrHalfBirthday(dateOfBirth) {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+
+    let isBirthday = (dob.getDate() === today.getDate()) && (dob.getMonth() === today.getMonth());
+
+    // Calculate half-birthday month, considering overflow (i.e., if month > 11)
+    let halfBirthdayMonth = (dob.getMonth() + 6) % 12;
+    let isHalfBirthday = (dob.getDate() === today.getDate()) && (halfBirthdayMonth === today.getMonth());
+
+    return { isBirthday, isHalfBirthday };
+}
+
+
   export function calculateAgeInWeeks(birthDate, currentDate = new Date()) {
     if (!birthDate) return null;
   

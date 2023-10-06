@@ -7,15 +7,17 @@ import * as ImagePicker from 'expo-image-picker';
 import LoadingModal from '@ui/LoadingModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import getActivityIconName from './training/getActivityIconName';
+
 import { localize } from "@translations/localize";
 
-export const DogTrainingForm = ({dog, close}) => {
+import getMedicineIconName from './medicine/getMedicineIconName';
 
-  const [formData, setFormData] = useState({ title: '', desc: '', badge: 'dog', trainingType: 'BasicPuppy', date: new Date() });
+export const DogMedicineForm = ({dog, close}) => {
+
+  const [formData, setFormData] = useState({ title: '', desc: '', badge: 'dog', medicineType: 'Deworming', date: new Date() });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTrainingType, setSelectedTrainingType] = useState('Basic');
+  const [selectedMedicineType, setSelectedMedicineType] = useState('Basic');
 
 
   const handleChange = (key, value) => {
@@ -33,16 +35,14 @@ export const DogTrainingForm = ({dog, close}) => {
   
   // Functions used by the screen components
   const createDogReward = async function () {
-    setIsUploading(true)
+    setIsUploading(true);
     // Creates a new Todo parse object instance
-    let DogHistory = new Parse.Object('dogTraining');
+    let DogHistory = new Parse.Object('dogMedicine');
     DogHistory.set('title', formData.title);
     DogHistory.set('desc', formData.desc);
-    DogHistory.set('badge', getActivityIconName(formData.trainingType));
-    DogHistory.set('trainingType', formData.trainingType);
+    DogHistory.set('badge', getMedicineIconName(formData.medicineType));
+    DogHistory.set('medicineType', formData.medicineType);
 
-    console.log(getActivityIconName(formData.badge))
-    
     const dogPointer = Parse.Object.extend('dogs').createWithoutData(dog);
 
     let dateForm = new Date(formData.date);
@@ -54,14 +54,14 @@ export const DogTrainingForm = ({dog, close}) => {
     // After setting the todo values, save it on the server
     try {
       await DogHistory.save();
-      setIsUploading(false)
+      setIsUploading(false);
       close()
-
+    
       // Refresh todos list to show the new one (you will create this function later)
 
       return true;
     } catch (error) {
-      close()
+      setIsUploading(false);
       // Error can be caused by lack of Internet connection
       Alert.alert('Error!', error.message);
       return false;
@@ -71,38 +71,45 @@ export const DogTrainingForm = ({dog, close}) => {
 
   return (
     <View style={styles.container}>
-          <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 20 }}>{localize('main.screens.dogDetail.training.createTraining')}</Text>
+          <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 20 }}>{localize('main.screens.dogDetail.medicine.createEntry')}</Text>
       <View style={styles.pickerContainer}>
         <Picker
-          selectedValue={selectedTrainingType}
+          selectedValue={selectedMedicineType}
           moxde="dialog"
           onValueChange={(itemValue) => {
-            setSelectedTrainingType(itemValue);
-            handleChange('trainingType', itemValue);
+            setSelectedMedicineType(itemValue);
+            handleChange('medicineType', itemValue);
           }}
           style={styles.picker}
         >
-       <Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.BasicPuppy')} value="BasicPuppy" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.HouseTraining')} value="HouseTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.Socialization')} value="Socialization" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.BasicObedience')} value="BasicObedience" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.RecallTraining')} value="RecallTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.LeashWalking')} value="LeashWalking" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.SitStay')} value="SitStay" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.DownStay')} value="DownStay" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.StandStay')} value="StandStay" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.HandSignals')} value="HandSignals" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.ClickerTraining')} value="ClickerTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.Agility')} value="Agility" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.Tracking')} value="Tracking" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.NoseWork')} value="NoseWork" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.RallyObedience')} value="RallyObedience" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.FreestyleTricks')} value="FreestyleTricks" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.WaterRescue')} value="WaterRescue" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.TherapyDog')} value="TherapyDog" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.GuardProtection')} value="GuardProtection" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.HuntTraining')} value="HuntTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.AdvancedObedience')} value="AdvancedObedience" />
+              <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Deworming')} value="Deworming" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Vaccination')} value="Vaccination" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AntiFleasTicks')} value="AntiFleasTicks" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.PainReliever')} value="PainReliever" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Antibiotics')} value="Antibiotics" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AntiInflammatory')} value="AntiInflammatory" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.SkinOintment')} value="SkinOintment" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.EarDrops')} value="EarDrops" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.EyeDrops')} value="EyeDrops" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AllergyMedicine')} value="AllergyMedicine" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.VitaminsSupplements')} value="VitaminsSupplements" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AntiParasitic')} value="AntiParasitic" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AntiFungal')} value="AntiFungal" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Hormonal')} value="Hormonal" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Sedatives')} value="Sedatives" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AntiEpileptic')} value="AntiEpileptic" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Gastrointestinal')} value="Gastrointestinal" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.AntiAnxiety')} value="AntiAnxiety" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.MuscleRelaxants')} value="MuscleRelaxants" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Insulin')} value="Insulin" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Diuretics')} value="Diuretics" />
+          <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.HeartwormPrevention')} value="HeartwormPrevention" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Chemotherapy')} value="Chemotherapy" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Immunosuppressant')} value="Immunosuppressant" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.DentalCare')} value="DentalCare" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Supplements')} value="Supplements" />
+        <Picker.Item label={localize('main.screens.dogDetail.medicine.medicineTypes.Other')} value="Other" />
+
 
           {/* Add more training types here */}
         </Picker>

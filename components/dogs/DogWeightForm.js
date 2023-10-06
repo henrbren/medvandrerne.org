@@ -7,61 +7,75 @@ import * as ImagePicker from 'expo-image-picker';
 import LoadingModal from '@ui/LoadingModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import getActivityIconName from './training/getActivityIconName';
+
 import { localize } from "@translations/localize";
 
-export const DogTrainingForm = ({dog, close}) => {
+import getMedicineIconName from './medicine/getMedicineIconName';
 
-  const [formData, setFormData] = useState({ title: '', desc: '', badge: 'dog', trainingType: 'BasicPuppy', date: new Date() });
+export const DogWeightForm = ({dog, close}) => {
+
+  const [formData, setFormData] = useState({ weight: '', date: new Date() });
   const [isUploading, setIsUploading] = useState(false);
+  const [statusText, setStatusText] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTrainingType, setSelectedTrainingType] = useState('Basic');
-
-
-  const handleChange = (key, value) => {
-    setFormData({ ...formData, [key]: value });
+ 
+  const handleChange = (field, value) => {
+    let newValue = parseFloat(value);
+  
+    // Sjekk om verdien er et nummer, en punktum, eller et tomt felt
+    if (!isNaN(newValue) || value === "") {
+      if (value === "") {
+        newValue = '';  // Setter til null hvis feltet er tomt
+      }
+      // Oppdaterer formData
+      setFormData({ ...formData, [field]: newValue });
+      setStatusText('');
+    } else {
+      setStatusText("Vennligst skriv inn et nummer");
+    }
   };
+
+  const handleDate = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
+  
+  
 
   const onDateChange = (event, selectedDate) => {
     if (selectedDate) {
       setSelectedDate(selectedDate);
       // Convert to your desired format
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      handleChange('date', selectedDate);
+      handleDate('date', selectedDate);
     }
   };
   
   // Functions used by the screen components
   const createDogReward = async function () {
-    setIsUploading(true)
+    setIsUploading(true);
     // Creates a new Todo parse object instance
-    let DogHistory = new Parse.Object('dogTraining');
-    DogHistory.set('title', formData.title);
+    let DogHistory = new Parse.Object('dogWeight');
+    DogHistory.set('weight', formData.weight);
     DogHistory.set('desc', formData.desc);
-    DogHistory.set('badge', getActivityIconName(formData.trainingType));
-    DogHistory.set('trainingType', formData.trainingType);
 
-    console.log(getActivityIconName(formData.badge))
-    
     const dogPointer = Parse.Object.extend('dogs').createWithoutData(dog);
-
     let dateForm = new Date(formData.date);
     DogHistory.set('date', dateForm)
 
     DogHistory.set('dogOwner', dogPointer);
     DogHistory.set('owner', Parse.User.current());
-    DogHistory.setACL(new Parse.ACL(Parse.User.current()))
+
     // After setting the todo values, save it on the server
     try {
       await DogHistory.save();
-      setIsUploading(false)
+      setIsUploading(false);
       close()
-
+    
       // Refresh todos list to show the new one (you will create this function later)
 
       return true;
     } catch (error) {
-      close()
+      setIsUploading(false);
       // Error can be caused by lack of Internet connection
       Alert.alert('Error!', error.message);
       return false;
@@ -71,53 +85,16 @@ export const DogTrainingForm = ({dog, close}) => {
 
   return (
     <View style={styles.container}>
-          <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 20 }}>{localize('main.screens.dogDetail.training.createTraining')}</Text>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedTrainingType}
-          moxde="dialog"
-          onValueChange={(itemValue) => {
-            setSelectedTrainingType(itemValue);
-            handleChange('trainingType', itemValue);
-          }}
-          style={styles.picker}
-        >
-       <Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.BasicPuppy')} value="BasicPuppy" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.HouseTraining')} value="HouseTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.Socialization')} value="Socialization" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.BasicObedience')} value="BasicObedience" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.RecallTraining')} value="RecallTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.LeashWalking')} value="LeashWalking" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.SitStay')} value="SitStay" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.DownStay')} value="DownStay" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.StandStay')} value="StandStay" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.HandSignals')} value="HandSignals" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.ClickerTraining')} value="ClickerTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.Agility')} value="Agility" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.Tracking')} value="Tracking" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.NoseWork')} value="NoseWork" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.RallyObedience')} value="RallyObedience" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.FreestyleTricks')} value="FreestyleTricks" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.WaterRescue')} value="WaterRescue" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.TherapyDog')} value="TherapyDog" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.GuardProtection')} value="GuardProtection" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.HuntTraining')} value="HuntTraining" />
-<Picker.Item label={localize('main.screens.dogDetail.training.trainingTypes.AdvancedObedience')} value="AdvancedObedience" />
+          <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 20 }}>{localize('main.screens.dogDetail.medicine.createEntry')}</Text>
 
-          {/* Add more training types here */}
-        </Picker>
-      </View>
-      <InputField
-        value={formData.title}
-        onChange={(value) => handleChange('title', value)}
-        placeholder={localize('main.screens.dogDetail.training.form.title')}
-      />
-      <InputField
-        value={formData.desc}
-        onChange={(value) => handleChange('desc', value)}
-        placeholder={localize('main.screens.dogDetail.training.form.description')}
-        multiline
-      />
+          <InputField
+              value={String(formData.weight)}  // Konverterer til streng
+              onChange={(value) => handleChange('weight', value)}
+              placeholder={localize('main.screens.dogDetail.medicine.form.weight')}
+              keyboardType="numeric"
+            />
+
+          <Text>{statusText}</Text>
         <DateTimePicker
             value={selectedDate}
             mode="date"

@@ -1,0 +1,301 @@
+[{
+    "week8": {
+        "title": "Uke 8: Velkommen til familien, lille venn!",
+        "topics": [
+          {
+            "title": "Valpens nye hjem",
+            "description": "Gjør hjemmet trygt og innbydende. Fjern farlige gjenstander, og gi den et eget område.",
+            "tips": "Legg en klokke med tikking under valpens seng for å etterligne hjerteslagene til moren.",
+            "animation":"newHome"
+          },
+          {
+            "title": "Håndtering",
+            "description": "Begynn med myk håndtering av valpen for å bygge tillit.",
+            "tips": "Bruk godbiter som belønning når du trener på å holde valpen i bånd.",
+            "animation":"fetch"
+          },
+          {
+            "title": "Navnetrening",
+            "description": "Si valpens navn ofte, spesielt i positive situasjoner.",
+            "tips": "Bruk navnet bare i positive sammenhenger, så det blir assosiert med gode ting.",
+            "animation":"calling"
+          },
+          {
+            "title": "Mating",
+            "description": "Hold deg til fôringsrutinene valpen er vant med, og juster sakte om nødvendig.",
+            "tips": "Introduser nye matvarer gradvis for å unngå mageproblemer.",
+            "animation":"feeding"
+          },
+          {
+            "title": "Sosialisering",
+            "description": "Intro for andre familiemedlemmer skal være rolig og kontrollert.",
+            "tips": "La valpen lukte på en klut eller et klesplagg fra nye mennesker før møtet.",
+            "animation":"social"
+          },
+          {
+            "title": "Utendørs tid",
+            "description": "Hold valpen i bånd utendørs til den er trygg og vaksinert.",
+            "tips": "Ha alltid med deg en flaske vann og en reisebolle på lange turer.",
+            "animation":"outside"
+          },
+          {
+            "title": "Nødvendige ting",
+            "description": "Skaff mat- og vannskåler, seng, leker, og grooming-utstyr.",
+            "tips": "Invester i en god børste for å unngå floker og holde pelsen sunn."
+          }
+        ]
+        
+    }
+},
+{
+    "week9": {
+      "title": "Uke 9: Oppdagelsesferd og læring!",
+      "topics": [
+        {
+          "title": "Stuerenhet",
+          "description": "Begynn stuerenhetsopplæringen med regelmessige tissepauser.",
+          "tips": "Bruk positiv forsterkning. Ros valpen hver gang den gjør fra seg ute.",
+          "animation":"clean"
+        },
+        {
+          "title": "Valpetenner",
+          "description": "Sjekk tennene for korrekt utvikling og begynn med enkle tannpleierutiner.",
+          "tips": "Tyggeleker kan hjelpe valpen med å lindre tannfrembruddssmerter."
+        },
+        {
+          "title": "Innkalling",
+          "description": "Tren på innkalling med valpen i et trygt og inngjerdet område.",
+          "tips": "Begynn med korte avstander og bruk en godbit som belønning.",
+          "animation":"calling"
+        },
+        {
+          "title": "Fôrvalg",
+          "description": "Finn et høykvalitets valpefôr som valpen liker.",
+          "tips": "Introduser nytt fôr gradvis over flere dager for å unngå mageproblemer.",
+          "animation":"reward"
+        },
+        {
+          "title": "Hundevenner",
+          "description": "La valpen møte vaksinerte, vennlige hunder for sosialisering.",
+          "tips": "Start med rolige hunder som du vet er godt sosialisert."
+        },
+        {
+          "title": "Møte med andre hunder",
+          "description": "Hold off på møter med uvaksinerte hunder til valpen er fullt vaksinert.",
+          "tips": "Sosialiseringstimer for valper er en trygg måte å introdusere valpen for nye hunder."
+        }
+      ]
+    
+    }
+  },
+  {
+    "week10": {
+      "title": "Uke 10: Tid for litt uavhengighet",
+      "topics": [
+        {
+          "title": "Alenetid",
+          "description": "Begynn med korte perioder alene og gradvis øke tiden.",
+          "tips": "Ha på radioen for å dempe følelsen av ensomhet for valpen.",
+          "animation":"alone"
+        },
+        {
+          "title": "Klør",
+          "description": "Få valpen vant til klippeklør-rutinen.",
+          "tips": "Klipp litt og ofte, så valpen blir vant til prosessen."
+        },
+        {
+          "title": "Trening",
+          "description": "Introduser grunnleggende kommandoer som sit, stay og down.",
+          "tips": "Korte, hyppige treningsøkter er mer effektive enn lange.",
+          "animation":"calling"
+        },
+        {
+          "title": "Aktivisering",
+          "description": "Hold valpen engasjert med mentale og fysiske aktiviteter.",
+          "tips": "Interaktive leker som gir godbiter kan være en god måte å aktivisere valpen på.",
+          "animation":"fetch"
+        },
+        {
+          "title": "Nye miljøer",
+          "description": "Ta valpen til nye steder for sosialisering og utforskning.",
+          "tips": "Begynn med rolige steder og jobb deg opp til mer stimulerende miljøer.",
+          "animation":"disturb"
+        },
+        {
+          "title": "Biting",
+          "description": "Riktig tyggeleker og trening kan hjelpe med valpebiting.",
+          "tips": "Hvis valpen biter, gi den noe akseptabelt å tygge på, som en leke eller en frossen godbit."
+        },
+        {
+          "title": "Huskeliste",
+          "description": "Lag en liste over nødvendigheter som mat, leker, og vaksinasjonsavtaler.",
+          "tips": "Ha alltid et lite førstehjelpssett tilgjengelig for valpen."
+        }
+      ]
+    
+    }
+  },
+  {
+    "week11": {
+      "title": "Uke 11: Tid for litt ekstra omsorg",
+      "topics": [
+        {
+          "title": "Å reise i bil med valp",
+          "description": "Start med korte turer og sørge for at valpen er sikker og komfortabel i bilen.",
+          "tips": "Ha alltid med vann og en reisebolle, samt en favorittleke for å roe valpen."
+        },
+        {
+          "title": "Tid for ormekur",
+          "description": "Snakk med veterinæren din om riktig tidspunkt og produkt for valpens første ormekur.",
+          "tips": "Merk av i kalenderen for fremtidige ormekurer, så du ikke glemmer det."
+        },
+        {
+          "title": "Sitting og selvbeherskelse for valpen",
+          "description": "Trening på kommandoer som \"sit\" og \"stay\" vil hjelpe valpen med å utvikle god selvbeherskelse.",
+          "tips": "Bruk positive forsterkninger som godbiter eller lek som belønning."
+        },
+        {
+          "title": "Når maten ikke smaker for valpen",
+          "description": "Sjekk med veterinæren hvis valpen plutselig mister appetitten eller er kresen med maten.",
+          "tips": "Prøv å varme opp maten litt for å frigjøre aromaen, noe som kan tiltrekke valpen."
+        },
+        {
+          "title": "Sosialisering av valpen - spiss ørene",
+          "description": "Fortsett med sosialisering ved å introdusere valpen for nye lyder, lukter og miljøer.",
+          "tips": "Lag en sosialiseringsliste og kryss av for hver nye erfaring valpen får."
+        }
+      ]
+    
+    }
+  },
+  {
+    "week12": {
+      "title": "Uke 12: Sosialisering og helse",
+      "topics": [
+        {
+          "title": "Egnet mosjon for din valp",
+          "description": "Introduser valpen for varierte, men milde treningsformer for å bygge styrke og kondisjon.",
+          "tips": "Bland mellom korte turer og lek i hagen. Unngå for intens trening da valpens ledd fortsatt utvikler seg.",
+          "animation":"fetch"
+        },
+        {
+          "title": "Den første vaksineringen for valpen",
+          "description": "Kontakt veterinæren for å planlegge valpens første vaksinasjonsrunde.",
+          "tips": "Ta med valpens helsebok for å holde styr på vaksinasjonene. Ha godbiter klare for å belønne valpen etterpå."
+        },
+        {
+          "title": "Trening med valpen",
+          "description": "Fortsett med daglig trening for å bygge en god forståelse mellom deg og valpen.",
+          "tips": "Korte, hyppige treningsøkter er ofte mer effektive enn lange. Ikke overstig 5-10 minutter per økt for en valp."
+        },
+        {
+          "title": "Server mat på en ny måte",
+          "description": "Prøv nye matserveringsteknikker som pusseskåler eller interaktive leker for å gjøre måltidene mer engasjerende.",
+          "tips": "Porsjonere maten i et eggekartong for en enkel DIY puslespillmater.",
+          "animation":"feeding"
+        },
+        {
+          "title": "Sosialisering sluttspurt",
+          "description": "Fortsett med sosialisering, og introduser valpen for en rekke mennesker, steder og andre dyr.",
+          "tips": "Besøk venner med vennlige hunder for å hjelpe valpen med å lære gode sosiale ferdigheter."
+        },
+        {
+          "title": "Glade til hundeskolen vi går",
+          "description": "Bli med i en lokal hundeskole for å starte grunnleggende lydighetstrening og sosialisering.",
+          "tips": "Sjekk ut skolens metoder og lærere på forhånd. En god hundeskole bruker positiv forsterkning."
+        }
+      ]
+    
+    }
+  },
+  {
+    "week13": {
+      "title": "Uke 13: Grunnleggende lydighet og utstyrsvalg",
+      "topics": [
+        {
+          "title": "Valpen lærer for livet",
+          "description": "Kontinuerlig læring og positiv forsterkning er nøkkelen til en veloppdragen valp.",
+          "tips": "Bruk høyt verdsatte godbiter eller leker som belønning under trening. Variasjon hjelper med å holde valpen engasjert."
+        },
+        {
+          "title": "Helse og velvære for valpen",
+          "description": "Fortsett med regelmessige veterinærbesøk for å sikre at valpen er sunn og vokser som den skal.",
+          "tips": "Lag en helsekalender for å holde styr på vaksinasjoner, ormekurer og andre viktige datoer.",
+          "animation":"grooming"
+        },
+        {
+          "title": "Få valpen til å gå i bånd",
+          "description": "Begynn båndtrening med korte økter, og belønn valpen for god oppførsel.",
+          "tips": "Bruk et bånd med litt vekt for å få valpen vant til følelsen, selv innendørs."
+        },
+        {
+          "title": "Valpen vokter maten sin, hva gjør jeg?",
+          "description": "Ta kontakt med en hundetrener hvis valpen viser tegn til ressursvokting.",
+          "tips": "Prøv å bytte ut maten eller leken valpen vokter med noe enda bedre, for å lære den at det er OK å gi fra seg ressurser.",
+          "animation":"feeding"
+        },
+        {
+          "title": "Meld deg inn på hundeskolen",
+          "description": "Hundeskolen er en flott arena for både trening og sosialisering.",
+          "tips": "Spør om å observere en klasse før du melder deg inn, for å forsikre deg om at det er riktig miljø for deg og valpen."
+        },
+        {
+          "title": "Hvilket friluftsutstyr passer til valpen min?",
+          "description": "Velg komfortabelt og sikkert utstyr som passer til valpens størrelse og aktivitetsnivå.",
+          "tips": "Se etter utstyr med justerbare stropper for å imøtekomme valpens voksende kropp."
+        },
+        {
+          "title": "Hvorfor skal jeg plukke opp valpens bæsj",
+          "description": "Det er viktig for både miljøet og samfunnet at du plukker opp etter valpen.",
+          "tips": "Hold alltid en ekstra rull med poser i lommen eller vesken. Du vet aldri når du trenger en!"
+        }
+      ]    
+    }
+  },
+  {
+    "week14": {
+      "title": "Uke 14: Lek og omsorg",
+      "topics": [
+        {
+          "title": "Lek med valpen",
+          "description": "Utforsk forskjellige typer lek og finn ut hva valpen din liker best.",
+          "tips": "Bytt leker ofte for å holde valpen engasjert. Gammel leke blir som ny etter et par dager i 'lekeskuffen'."
+        },
+        {
+          "title": "Stell av valpens ører og øyne",
+          "description": "Regelmessig sjekk og rengjøring kan hjelpe med å forhindre infeksjoner.",
+          "tips": "Bruk myke bomullsballer for rengjøring, og belønn valpen etterpå så den forbinder stellet med noe positivt."
+        },
+        {
+          "title": "Hvordan lære valpen \"på plass\"",
+          "description": "Introduser kommandoen \"på plass\" med positiv forsterkning.",
+          "tips": "Begynn treningen i et miljø med få distraksjoner. Så kan du gradvis øke vanskelighetsgraden."
+        },
+        {
+          "title": "Gi bein til hundevalpen",
+          "description": "Velg trygge og passende bein for å tilfredsstille valpens tyggebehov.",
+          "tips": "Unngå små bein som kan kveles på, og alltid overvåk valpen når den tygger.",
+          "animation":"reward"
+        },
+        {
+          "title": "Trening av valpen under forstyrrelser",
+          "description": "Praktiser grunnleggende kommandoer i forskjellige miljøer med forstyrrelser.",
+          "tips": "Bruk en 'focus-kommando' som 'se på meg' for å få valpens oppmerksomhet tilbake på deg."
+        },
+        {
+          "title": "Hunden har fått flått - hva skal jeg gjøre?",
+          "description": "Lær hvordan du trygt fjerner flått og når du skal kontakte veterinæren.",
+          "tips": "Ha alltid en flåttfjerner lett tilgjengelig, enten på nøkkelknippet eller i førstehjelpsskrinet."
+        },
+        {
+          "title": "Flåttmidler som passer til valper",
+          "description": "Snakk med veterinæren om trygge og effektive flåttmidler for valpen din.",
+          "tips": "Hold en kalender for når du sist behandlet mot flått, så du ikke glemmer neste dose."
+        }
+      ]
+    
+    }
+  }
+        
+  
+  ]

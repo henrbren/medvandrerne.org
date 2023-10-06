@@ -9,7 +9,7 @@ const LoadingModal = ({ isVisible, onRequestClose, text, backgroundColor }) => {
       visible={isVisible}
       onRequestClose={onRequestClose}
     >
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: backgroundColor ? backgroundColor : "rgba(0,0,0,0.5)" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: backgroundColor ? backgroundColor : "rgba(0,0,0,0.0)" }}>
         <View style={{  backgroundColor:  'rgba(0,0,0,0.7)',
         borderRadius: 8,
         padding: 35,
