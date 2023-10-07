@@ -3,19 +3,18 @@ import { StyleSheet, FlatList, Image, Platform, Pressable } from 'react-native';
 
 export default function EmojiList({ onSelect, onCloseModal }) {
   const [emoji] = useState([
-    require('@stickers/circle.png'),
-    require('@stickers/square.png'),
-    require('@stickers/delete.png'),
-    require('@stickers/remove.png'),
-    require('@stickers/check.png'),
-    require('@stickers/danger.png'),
-    require('@stickers/time.png'),
-    require('@stickers/question.png'),
-    require('@stickers/arrow-right.png'),
-    require('@stickers/checkmark.png'),
-    require('@stickers/signed.png'),
-    require('@stickers/done.png'),
-    
+    require('@stickers/moustache.png'),
+    require('@stickers/mustache.png'),
+    require('@stickers/mustache_stick.png'),
+    require('@stickers/sun-glasses.png'),
+    require('@stickers/eyeglasses.png'),
+    require('@stickers/potter-glasses.png'),
+    require('@stickers/dog-treat.png'),
+    require('@stickers/treat.png'),
+    require('@stickers/snack.png'),
+    require('@stickers/meat.png'),
+
+
   ]);
 
   return (

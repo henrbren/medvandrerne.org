@@ -5,14 +5,14 @@ export default useStyle = () => {
     const { height, width } = useWindowDimensions();
     
     const tabbarHeight = Platform.OS == 'ios' ? 180 : 80
-    const heightMinusTabBar = height - tabbarHeight // ??
+    const heightMinusTabBar = height
     
     const styles = StyleSheet.create({
       container: { flex: 1, backgroundColor: '#fff'},
       camera: { height: heightMinusTabBar, backgroundColor: '#fff' },
       buttonContainer: { 
         position: 'absolute', 
-        top: 0,
+        top: 50,
         right: 0,
         width: 80,
         paddingBottom: 20
@@ -20,8 +20,8 @@ export default useStyle = () => {
      },
      pickerButton:{
           position: 'absolute', 
-          bottom: 0,
-          left: 0,
+          bottom: 20,
+          left: 20,
           width: 80,
           paddingBottom: 20,
      },
@@ -31,12 +31,25 @@ export default useStyle = () => {
          marginBottom: 30,
          marginRight: 20,
           position: 'absolute', 
-          bottom: 0,
-          right: 0,
+          bottom: 20,
+          right: 20,
           width: 90,
           height: 90,
           paddingTop: 15,
      },
+
+     pictureButtonGo: { 
+      backgroundColor: '#fff',
+      borderRadius: 50,
+      marginBottom: 30,
+      marginRight: 20,
+       position: 'absolute', 
+        top: height - 200,
+       right: 20,
+       width: 90,
+       height: 90,
+       paddingTop: 15,
+  },
      buttonBlur:{
         borderRadius: 6,
         borderWidth: 2,
@@ -51,8 +64,8 @@ export default useStyle = () => {
       button: {  margin: 5 },
       skipButton:{
         position: 'absolute',
-        left: 10,
-        top: 20
+        left: 20,
+        top: 50
       },
       input:{
         height: height,

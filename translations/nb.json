@@ -13,6 +13,7 @@
     },
     "meta": {
       "back": "Tilbake",
+      "saved": "Lagret",
       "search": "Søk..",
       "cancel": "Avbryt",
       "close": "Lukk",
@@ -46,9 +47,10 @@
     },
     "navigation":{
       "menu":{
-        "home": "Hjem",
+        "home": "Oversikt",
+        "aiChat": "Dyrehvisker",
         "orders": "Hund",
-        "newOrder": "Ny hund",
+        "newAnimal": "Legg til dyr",
         "settings": "Innstillinger",
         "help": "Hjelp",
         "logout": "Logg ut"
@@ -57,6 +59,9 @@
     "screens":{
         "newDog": {
           "tab": "Ny hund",
+        },
+        "dogChat":{
+          "title": "Dyrehvisker AI",
         },
         "dogs": {
           "tab": "Min hund",
@@ -139,8 +144,10 @@
             "description": "Beskrivelse",
             "noDescription": "Ingen",
             "done": "Utført",
+            "notify": "Vi sender deg påminnelse",
             "createTraining": "Legg til trening",
             "tips": "Tips",
+            "exercise": "Øvelse",
             "empty": "Ingen trening lagt til",
             "form":{
               "title": "Tittel",

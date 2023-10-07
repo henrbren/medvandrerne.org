@@ -7,6 +7,8 @@ import * as ImagePicker from 'expo-image-picker';
 import LoadingModal from '@ui/LoadingModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { localize } from "@translations/localize";
+import { encode } from "blurhash";
+
 
 export const DogHistoryForm = ({dog, close}) => {
 
@@ -43,7 +45,7 @@ export const DogHistoryForm = ({dog, close}) => {
     if (!result.canceled) {
       // Accessing the "assets" array instead of "uri"
       const asset = result.assets[0];
-      setSelectedImages([...selectedImages, asset.uri]);
+      setSelectedImages([asset.uri]);
     }
   };
 
@@ -55,6 +57,7 @@ export const DogHistoryForm = ({dog, close}) => {
     
       // Convert image to base64
       let base64Img = await uriToBase64(uri);
+
   
       let parseFile = new Parse.File(fileName, { base64: base64Img });
 
@@ -159,7 +162,7 @@ export const DogHistoryForm = ({dog, close}) => {
 // Sub Components
 const ImagePickerButton = ({ onPress }) => (
   <TouchableOpacity style={styles.imageButton} onPress={onPress}>
-    <Text style={styles.customButtonText}>Legg til bilder +</Text>
+    <Text style={styles.customButtonText}>Legg til bilde +</Text>
   </TouchableOpacity>
 );
 

@@ -23,8 +23,9 @@ export function DrawerContent(props){
         <View style={styles.container}>
 
             <View style={styles.header}>
-    
 
+                <Image style={styles.logo} source={require('@assets/logo.png')} />
+    
             </View>
             <DrawerContentScrollView {...props}>
             
@@ -37,19 +38,18 @@ export function DrawerContent(props){
             </DrawerContentScrollView>
 
             <View style={styles.footer}>
+
+                 <DrawerItem
+                    label={localize('main.navigation.menu.newAnimal')}
+                    onPress={() => { navigation.navigate('NewAnimal'); }}
+                  icon={({ focused, color, size }) => <Ionicons name="add" size={size} color={color} />}
+                                    />
                 <DrawerItem
                     label={localize('main.navigation.menu.settings')}
                     onPress={() => {
                         navigation.navigate('SettingsNavigator');
                     }}
                     icon={({ focused, color, size }) => <Ionicons name="cog-outline" size={size} color={color} />}
-                />
-                <DrawerItem
-                    label={localize('main.navigation.menu.help')}
-                    onPress={() => {
-                        navigation.navigate('HelpNavigator');
-                    }}
-                    icon={({ focused, color, size }) => <Ionicons name="help-circle-outline" size={size} color={color} />}
                 />
 
 
@@ -96,10 +96,10 @@ const styles = StyleSheet.create({
 
     },
     logo: {
-        width: 70,
+        width: 140,
         height: 70,
         marginLeft: 25,
-        marginTop: 30,
+        marginTop: 50,
         resizeMode: 'contain',
     },
 

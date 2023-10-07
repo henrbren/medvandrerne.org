@@ -20,6 +20,7 @@
     "@react-navigation/drawer": "^6.4.4",
     "@react-navigation/native": "^6.0.12",
     "@react-navigation/native-stack": "^6.8.0",
+    "blurhash": "^2.0.5",
     "expo": "^49.0.0",
     "expo-apple-authentication": "~6.1.0",
     "expo-blur": "^12.4.1",
@@ -54,13 +55,14 @@
     "react-native-safe-area-context": "4.6.3",
     "react-native-screens": "~3.22.0",
     "react-native-shared-element": "^0.8.8",
+    "react-native-svg": "13.9.0",
     "react-native-svg-charts": "^5.4.0",
     "react-native-swipe-list-view": "^3.2.9",
     "react-native-tab-view": "^3.5.2",
     "react-native-timeline-flatlist": "^0.8.0",
     "react-native-view-shot": "^3.7.0",
     "react-native-webview": "13.2.2",
-    "react-native-svg": "13.9.0"
+    "expo-notifications": "~0.20.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

@@ -4,7 +4,7 @@ import { DrawerContentScrollView, DrawerItem, } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 
 import { localize } from '@translations/localize';
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome5 } from '@expo/vector-icons';
 
 import { useDrawerStatus } from '@react-navigation/drawer';
   
@@ -41,13 +41,20 @@ export function MenuItems(props){
         <View style={styles.mainMenu}>
               
               
-        <Text style={{ paddingLeft: 10, paddingBottom: 20, textAlign: "left", fontSize: 16, color: "#2A334A", marginTop: 10 }} > myDog</Text>
-      
-        <DrawerItem
+
+                           <DrawerItem
                                         label={localize('main.navigation.menu.home')}
-                                        onPress={() => { navigation.navigate('TabNavigator'); }}
-                                        icon={({ focused, color, size }) => <Ionicons name="clipboard-outline" size={size} color={color} />}
+                                        onPress={() => { navigation.navigate('DogNavigator'); }}
+                                        icon={({ focused, color, size }) => <FontAwesome5 name={"dog"} size={size} color={color}/>}
                                     />
+
+                                <DrawerItem
+                                        label={localize('main.navigation.menu.aiChat')}
+                                        onPress={() => { navigation.navigate('ChatNavigator'); }}
+                                        icon={({ focused, color, size }) => <FontAwesome5 name={"robot"} size={size} color={color}/>}
+                                    />
+
+
         
         
   

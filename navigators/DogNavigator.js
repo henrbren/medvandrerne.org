@@ -217,7 +217,7 @@ export function DogNavigator({ route, navigation }) {
               component={DogHealthScreen}
               options={{
                 headerTitleAlign: "center",
-                title: localize("main.screens.dogs.title"),
+                title: localize("main.screens.dogDetail.medicine.title"),
                 headerStyle: {
                   backgroundColor: colors.card
                 },

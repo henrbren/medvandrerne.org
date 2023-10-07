@@ -233,7 +233,7 @@ export const DogHistoryScreen = ({ route, navigation }) => {
 
   <ReusableBottomSheet
           sheetRef={bottomSheetRef}
-          height={600}
+          height={700}
           colors={{background: '#F9F9F9'}}
       >
           <DogHistoryForm dog={route.params?.id} close={closeSheet} />
@@ -250,8 +250,6 @@ export const DogHistoryScreen = ({ route, navigation }) => {
   </>);
 
 };
-
-
 
 const styles = StyleSheet.create({
   container: {

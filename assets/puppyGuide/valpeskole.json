@@ -4,45 +4,54 @@
         "topics": [
           {
             "title": "Valpens nye hjem",
-            "description": "Gjør hjemmet trygt og innbydende. Fjern farlige gjenstander, og gi den et eget område.",
+            "description": "Når du henter valpen, vil oppdretteren fylle ut en kjøpekontrakt. Du kan også motta et registreringsbevis og bør be om en veterinærkvittering for eventuell fremtidig forsikring.",
+            "exercise":"Oppdretteren vil gi nødvendige instruksjoner angående valpens stell før avreise til det nye hjemmet.",
             "tips": "Legg en klokke med tikking under valpens seng for å etterligne hjerteslagene til moren.",
             "animation":"newHome"
           },
           {
+            "title": "Løfte valpen",
+            "description": "Hvis valpen begynner å sprelle mens du holder den, kan det bli en utfordrende situasjon.",
+            "exercise":"Behold et stødig og forsiktig grep om valpen. Om mulig, sett valpen ned på et trygt sted så raskt som mulig. Hvis det ikke går, prøv å distrahere den med en leke eller godbit.",
+            "tips": "Føl etter tegn på uro hos valpen før du løfter den. Forutse sprellingen for å minimere risikoen for uønsket drama..",
+            "animation":"social"
+          },
+          {
             "title": "Håndtering",
-            "description": "Begynn med myk håndtering av valpen for å bygge tillit.",
-            "tips": "Bruk godbiter som belønning når du trener på å holde valpen i bånd.",
-            "animation":"fetch"
+            "description": "Trening i å håndtere valpen riktig. Gjør den komfortabel med berøring.",
+            "exercise":"Gjør dette daglig, helst når valpen er døsig. Stryk den fra snute til hale, og hvis den biter, bytt ut hånden med en leke.",
+            "tips": "Trekk ikke tilbake hånden ved biting; gi leke. Vær konsekvent; valpen lærer fort.",
+            "animation":"social"
           },
           {
             "title": "Navnetrening",
-            "description": "Si valpens navn ofte, spesielt i positive situasjoner.",
-            "tips": "Bruk navnet bare i positive sammenhenger, så det blir assosiert med gode ting.",
+            "description": "Trening i å komme på kommando ved bruk av navn, med lek som belønning.",
+            "exercise":"Når valpen er opplagt, kall den inn til lek ved å bruke navnet. Lek en stund, ta en pause, og kall den inn igjen senere for mer lek.",
+            "tips": "Bruk navnet for å forsterke positiv respons. Avslutt leken før valpen blir utmattet.",
             "animation":"calling"
           },
           {
             "title": "Mating",
             "description": "Hold deg til fôringsrutinene valpen er vant med, og juster sakte om nødvendig.",
-            "tips": "Introduser nye matvarer gradvis for å unngå mageproblemer.",
+            "exercise":"Start med samme fôr som oppdretteren brukte, og gi mat 3-4 ganger om dagen. Hold øye med avføringen for å sjekke magehelsen.",
+            "tips": "Ha Avital Flora klart for tarmbalanse. Avføring skal være fast; diaré er et rødt flagg.",
             "animation":"feeding"
           },
           {
             "title": "Sosialisering",
-            "description": "Intro for andre familiemedlemmer skal være rolig og kontrollert.",
-            "tips": "La valpen lukte på en klut eller et klesplagg fra nye mennesker før møtet.",
+            "description": "Sosialisering er kritisk for valpens utvikling og fremtidig oppførsel. Denne fasen starter etter at valpen har blitt komfortabel med sin nye familie.",
+            "exercise":"Eksponer valpen for huslige lyder som støvsuger og vaskemaskin. La den møte andre kjæledyr i hjemmet, men hold et øye med interaksjonen for alles trygghet.",
+            "tips": "Start sosialiseringen etter at valpen har blitt kjent med familien. Ta det gradvis og følg valpens tempo.",
             "animation":"social"
           },
           {
             "title": "Utendørs tid",
-            "description": "Hold valpen i bånd utendørs til den er trygg og vaksinert.",
-            "tips": "Ha alltid med deg en flaske vann og en reisebolle på lange turer.",
+            "description": "Hvordan gi valpen frihet uten å risikere sikkerheten, og hva du skal gjøre hvis valpen vurderer en 'road trip' uten deg.",
+            "exercise":"Finn en trygg plass langt fra folk og trafikk. Hvis valpen roter seg bort, kall på den og begynn å bevege deg i motsatt retning. Når den følger etter, belønn med godbiter.",
+            "tips": "Bruk bånd på tettsteder og vær forsiktig med hvor du slipper hunden løs. Ikke følg etter valpen hvis den roter seg bort; få den til å komme til deg.",
             "animation":"outside"
           },
-          {
-            "title": "Nødvendige ting",
-            "description": "Skaff mat- og vannskåler, seng, leker, og grooming-utstyr.",
-            "tips": "Invester i en god børste for å unngå floker og holde pelsen sunn."
-          }
+       
         ]
         
     }
@@ -53,36 +62,43 @@
       "topics": [
         {
           "title": "Stuerenhet",
-          "description": "Begynn stuerenhetsopplæringen med regelmessige tissepauser.",
-          "tips": "Bruk positiv forsterkning. Ros valpen hver gang den gjør fra seg ute.",
+          "description": "For å få valpen stueren raskt, er det viktig med hyppige turer ut, spesielt i visse situasjoner.",
+          "exercise":"Ta ut valpen ca. hver time på dagtid, samt: Etter den har sovet, midt i lek og rett etter måltider.. Gi belønning når den gjør fra seg ute.",
+          "tips": "Ikke stress rett inn etter at valpen har gjort sitt; de er smarte og tar hintet.",
           "animation":"clean"
         },
         {
           "title": "Valpetenner",
-          "description": "Sjekk tennene for korrekt utvikling og begynn med enkle tannpleierutiner.",
-          "tips": "Tyggeleker kan hjelpe valpen med å lindre tannfrembruddssmerter."
+          "description": "Valper elsker å bruke tennene for å utforske og leke, men det er viktig å lære dem riktig måte å interagere med mennesker på.",
+          "exercise":"Ikke la valpen leke med hendene eller føttene dine. Bytt ut hånden med en leke hvis valpen biter. Hvis den biter mye, avslutt leken og fjern deg eller bli passiv. ",
+          "tips": "Hendene er for mat og kos, ikke for biting. Bruk avslutning av lek som en læremetode. Raske bevegelser kan gjøre valpen for entusiastisk; vær bevisst på det."
+        },
+        {
+          "title": "Mer sosialisering",
+          "description": "Det er tid for å introdusere valpen for nye 'venner' og situasjoner, for at den skal bli en selvsikker voksen hund.",
+          "exercise":"Møt en liten, vennlig og vaksinert hund. La valpen observere i eget tempo. Heng ved nærbutikken for litt menneske- og trafikk-eksponering.",
+          "tips": "Alltid på valpens vilkår; la den utforske i eget tempo. Vær tålmodig og rolig for å hjelpe valpen med å tilpasse seg.",
+          "animation":"fetch"
         },
         {
           "title": "Innkalling",
           "description": "Tren på innkalling med valpen i et trygt og inngjerdet område.",
-          "tips": "Begynn med korte avstander og bruk en godbit som belønning.",
+          "exercise":"Bruk en positiv forsterkning som en godbit eller leke. Kall valpen inn til deg, og belønn den når den kommer.",
+          "tips": "Begynn med korte avstander og bruk en godbit som belønning. Gradvis øk avstanden og bruk leken som belønning.",
           "animation":"calling"
         },
         {
           "title": "Fôrvalg",
-          "description": "Finn et høykvalitets valpefôr som valpen liker.",
-          "tips": "Introduser nytt fôr gradvis over flere dager for å unngå mageproblemer.",
+          "description": "Finn et høykvalitets valpefôr som valpen liker. Etter hvert kan du prøve å blande inn litt våtfôr.",
+          "exercise":"Finn et fôr som passer valpens størrelse og alder. Følg instruksjonene på pakken for mengde og hyppighet.",
+          "tips": "Introduser nytt fôr gradvis over flere dager for å unngå mageproblemer. Hold deg til samme fôr som oppdretteren brukte i begynnelsen.",
           "animation":"reward"
         },
         {
           "title": "Hundevenner",
-          "description": "La valpen møte vaksinerte, vennlige hunder for sosialisering.",
-          "tips": "Start med rolige hunder som du vet er godt sosialisert."
-        },
-        {
-          "title": "Møte med andre hunder",
-          "description": "Hold off på møter med uvaksinerte hunder til valpen er fullt vaksinert.",
-          "tips": "Sosialiseringstimer for valper er en trygg måte å introdusere valpen for nye hunder."
+          "description": "Det er viktig for valpen å møte andre hunder for å lære sosiale ferdigheter.",
+          "exercise":"La valpen møte vaksinerte, vennlige hunder for sosialisering. Hold valpen i bånd og la den observere i eget tempo.",
+          "tips": "Start med rolige hunder som du vet er godt sosialisert og som valpen kan lære av."
         }
       ]
     
@@ -95,17 +111,20 @@
         {
           "title": "Alenetid",
           "description": "Begynn med korte perioder alene og gradvis øke tiden.",
-          "tips": "Ha på radioen for å dempe følelsen av ensomhet for valpen.",
+          "exercise":"La valpen være alene i et rom med en leke eller tyggeleke. Gå ut av rommet i noen sekunder, og kom tilbake før valpen blir urolig. Gradvis øk tiden.",
+          "tips": "Ha på radioen for å dempe følelsen av ensomhet for valpen. Ikke gi oppmerksomhet når du kommer tilbake, vent til valpen er rolig.",
           "animation":"alone"
         },
         {
           "title": "Klør",
-          "description": "Få valpen vant til klippeklør-rutinen.",
+          "description": "Klipp klørne regelmessig for å holde dem korte og sunne.",
+          "exercise":"Klipp klørne med en kloklipper for hunder. Klipp bare den hvite delen av kloen, og unngå den rosa delen som inneholder blodårer.",
           "tips": "Klipp litt og ofte, så valpen blir vant til prosessen."
         },
         {
           "title": "Trening",
-          "description": "Introduser grunnleggende kommandoer som sit, stay og down.",
+          "description": "Introduser grunnleggende kommandoer som sitt, bli og ligg.",
+          "exercise":"Bruk positiv forsterkning som godbiter eller lek som belønning. Hold øktene korte og hyppige.",
           "tips": "Korte, hyppige treningsøkter er mer effektive enn lange.",
           "animation":"calling"
         },

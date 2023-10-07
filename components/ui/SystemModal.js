@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 
 
-const SystemModal = ({ isVisible, closeModal, children, backdrop, backdropToValue, celebration, onShare }) => {
+const SystemModal = ({ isVisible, closeModal, children, backdrop, backdropToValue, celebration, onShare, marginTop }) => {
   const [backdropOpacity, setBackdropOpacity] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const SystemModal = ({ isVisible, closeModal, children, backdrop, backdropToValu
       {celebration && <LottieView style={styles.backdropConfetti}  source={require('@animations/confetti.json')} autoPlay loop={false}   />}
       {celebration && <LottieView style={styles.backdropFirework}  source={require('@animations/firework.json')} autoPlay loop={true}   />}
   
-      <View style={styles.modalView}>
+      <View style={[styles.modalView, {marginTop: marginTop ? marginTop: 120}]} >
         
         <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                     <Ionicons name="close" size={30} color="black" />

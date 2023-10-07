@@ -8,8 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 import { localize } from "@translations/localize";
 
 import { DogTrainingForm } from '@components/dogs/DogTrainingForm'; 
-
-
 import getActivityName from '@components/dogs/training/getActivityName';
 
 import HeaderRightButton from '@components/dogs/training/HeaderRightButton';
@@ -32,6 +30,7 @@ export const DogTrainingScreen = ({ route, navigation }) => {
  const [refreshing, setRefreshing] = useState(false);
  const [isLoading, setIsLoading] = useState(true);
   const [readResults, setReadResults] = useState([]);
+  const dogName = route.params?.dogName;
 
   useEffect(() => {
     navigation.setOptions({
@@ -130,7 +129,7 @@ export const DogTrainingScreen = ({ route, navigation }) => {
             dragFromTopOnly={true}
             colors={{background: '#F9F9F9'}}
         >
-          <DogTrainingForm dog={route.params?.id} close={closeSheet} />
+          <DogTrainingForm dog={route.params?.id} dogName={dogName} close={closeSheet} />
       </ReusableBottomSheet>
 
  </> );

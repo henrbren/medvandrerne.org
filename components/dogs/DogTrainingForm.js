@@ -10,13 +10,18 @@ import { Picker } from '@react-native-picker/picker';
 import getActivityIconName from './training/getActivityIconName';
 import { localize } from "@translations/localize";
 
-export const DogTrainingForm = ({dog, close}) => {
+import scheduleLocalNotification from '@components/helpers/notifications/scheduleLocalNotification';
+
+import { FontAwesome5 } from '@expo/vector-icons';
+
+export const DogTrainingForm = ({dog, close, dogName}) => {
 
   const [formData, setFormData] = useState({ title: '', desc: '', badge: 'dog', trainingType: 'BasicPuppy', date: new Date() });
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTrainingType, setSelectedTrainingType] = useState('Basic');
-
+  const [isInFuture, setIsInFuture] = useState(false);
+  const [sendNotification, setSendNotification] = useState(true);
 
   const handleChange = (key, value) => {
     setFormData({ ...formData, [key]: value });
@@ -28,8 +33,22 @@ export const DogTrainingForm = ({dog, close}) => {
       // Convert to your desired format
       const formattedDate = selectedDate.toISOString().split('T')[0];
       handleChange('date', selectedDate);
+      setIsInFuture(isFutureDate(selectedDate));
     }
   };
+  
+  const isFutureDate = (date) => {
+    const now = new Date();
+    return date > now;
+  };
+
+  const notificationButton = () => {
+
+ 
+    setSendNotification(previousState => !previousState);
+
+  };
+  
   
   // Functions used by the screen components
   const createDogReward = async function () {
@@ -41,8 +60,7 @@ export const DogTrainingForm = ({dog, close}) => {
     DogHistory.set('badge', getActivityIconName(formData.trainingType));
     DogHistory.set('trainingType', formData.trainingType);
 
-    console.log(getActivityIconName(formData.badge))
-    
+
     const dogPointer = Parse.Object.extend('dogs').createWithoutData(dog);
 
     let dateForm = new Date(formData.date);
@@ -54,6 +72,17 @@ export const DogTrainingForm = ({dog, close}) => {
     // After setting the todo values, save it on the server
     try {
       await DogHistory.save();
+
+      if(sendNotification && isInFuture){
+        scheduleLocalNotification(
+          'Påminnelse: '+ formData.title,
+          formData.desc + ' for ' + dogName,
+          { navigerTil: "HomeScreen" },
+          dateForm  // Varsel vil utløses om 5 minutter
+        );
+      }
+   
+
       setIsUploading(false)
       close()
 
@@ -71,7 +100,13 @@ export const DogTrainingForm = ({dog, close}) => {
 
   return (
     <View style={styles.container}>
-          <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: 20 }}>{localize('main.screens.dogDetail.training.createTraining')}</Text>
+          <Text style={{ fontSize: 20, fontWeight: '600', marginBottom: sendNotification ? 2 : 31}}>{localize('main.screens.dogDetail.training.createTraining')}</Text>
+             {sendNotification &&  ( <Text style={{ fontSize: 12, marginBottom: 15}}>{localize('main.screens.dogDetail.training.notify')}</Text>)}
+            {isInFuture && (
+            <TouchableOpacity style={{margin: 10, position: 'absolute', top: 10, right: 20, width: 25,}} onPress={notificationButton}>
+              <FontAwesome5 name={sendNotification ? "bell" : "bell-slash"} size={20} color="#000" />
+            </TouchableOpacity>)}
+        
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={selectedTrainingType}
@@ -127,6 +162,7 @@ export const DogTrainingForm = ({dog, close}) => {
             placeholderText='Velg dato'
             style={{  borderRadius: 12, color: 'black', marginBottom: 20}}
           />
+        
       <ActionButton text="Opprett"  onPress={createDogReward} />
       <ActionButton text="Lukk" textColor="black" onPress={close} style={styles.closeButton} />
       <LoadingModal isVisible={isUploading} backgroundColor={'transparent'} onRequestClose={() => setIsUploading(false)} />

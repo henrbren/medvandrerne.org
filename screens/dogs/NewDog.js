@@ -89,17 +89,17 @@ export const NewDog = () => {
 
   return (
     <>
-    {image ? (<CameraView setImage={setImage} image={image} />) : (
+    {!image ? (<CameraView setImage={setImage} image={image} />) : (
 
       <SafeAreaView style={Styles.container}>
         <View style={Styles.wrapper}>
 
-        {/*<View style={{backgroundColor: '#f2f2f2', borderRadius: 6}}>
+   <View style={{backgroundColor: '#f2f2f2', borderRadius: 6}}>
           {image ? (<Image style={{width: '100%', height: 200, borderRadius: 6}} source={{uri: image}} />) : (<> 
            <LottieView style={{width: '100%'}}  source={require('@animations/imageSelect.json')} autoPlay loop={true}   />
                 <Text style={Styles.selectImageText}>Trykk for å velge bilde</Text></>)}
               
-        </View>*/}
+        </View>
 
           <View style={Styles.create_todo_container}>
             {/* Todo create text input */}

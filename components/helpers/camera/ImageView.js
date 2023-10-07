@@ -84,7 +84,7 @@ export default function ImageView({ imageUri, setImage, setImageUri }) {
              )
 
             showMessage({
-              message: localize("main.screens.newWorkOrder.savedToDisk"),
+              message: localize("main.meta.saved"),
               backgroundColor: "#2F4A9F",
             });
           }
@@ -93,21 +93,20 @@ export default function ImageView({ imageUri, setImage, setImageUri }) {
         }
       };
 
-      useEffect(() => {
-        //analyzeImage() Run OCR on image. To be used?
-    }, [imageUri]);
 
 
   return (<>
-                    <Pressable onLongPress={onAddSticker}>
-                            <View ref={imageRef} collapsable={false}>
-                            
-                                <Image style={styles.imagePreview} source={{ uri: imageUri }} />
-                                {pickedEmoji !== null ? <EmojiSticker imageSize={40} stickerSource={pickedEmoji} /> : null}
-                               
-                          
-                            </View>
-                    </Pressable>
+         
+                  <Pressable onLongPress={onAddSticker} >
+                                            <View ref={imageRef} collapsable={false}>
+                                            
+                                                <Image style={styles.imagePreview} source={{ uri: imageUri }} />
+                                                {pickedEmoji !== null ? <EmojiSticker imageSize={40} stickerSource={pickedEmoji} /> : null}
+                                              
+                                          
+                                            </View>
+                                    </Pressable>
+
          
                               <View  style={styles.buttonContainer}>
                                       <BlurView intensity={40} tint="dark" style={styles.buttonBlur} >
@@ -126,18 +125,17 @@ export default function ImageView({ imageUri, setImage, setImageUri }) {
                                                 </TouchableOpacity>           
                                     </BlurView>
 
+                                    <View style={[styles.pictureButtonGo]} >
+                                              <TouchableOpacity style={[styles.button]} onPress={onSetImageAsync}>
+                                                                    <Text style={styles.text}>
+                                                                        <FontAwesome5  name="arrow-right" size={30} color="#385e9e" />
+                                                                    </Text>
+                                                        </TouchableOpacity>             
+                                            </View>
                                
                             </View>
 
-                            <View style={[styles.pictureButton]} >
-                                      <TouchableOpacity style={[styles.button]} onPress={onSetImageAsync}>
-                                                            <Text style={styles.text}>
-                                                                <FontAwesome5  name="arrow-right" size={30} color="#385e9e" />
-                                                            </Text>
-                                                </TouchableOpacity>             
-                                    </View>
-
-            
+                          
 
                             <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
                                  <EmojiList onSelect={setPickedEmoji} onCloseModal={onModalClose} />

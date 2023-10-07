@@ -78,17 +78,17 @@ const week = currentWeekData[weekKey];
     setSelectedItem(null);
   };
 
-    
+  
   return (<>
     <ScrollView style={styles.container}>
        
-
+      <Text style={styles.weekTitle}>{week.title}</Text>
       <View style={styles.weekContainer}>
-        <Text style={styles.weekTitle}>{week.title}</Text>
+     
         {week.topics.map((topic, topicIndex) => (
           <TouchableOpacity key={topicIndex} style={styles.topicContainer} onPress={() => onSelectItem(topic)}>
             <Text style={styles.topicTitle}>{topic.title}</Text>
-            <Text style={styles.topicDescription}>{topic.description}</Text>
+            <Text style={styles.topicDescription}>{topic?.description.substring(0, 85)}..</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -102,7 +102,7 @@ const week = currentWeekData[weekKey];
       </View>
 
     </ScrollView>
-    <SystemModal  isVisible={isVisible} closeModal={closeModal} backdrop={true} >
+    <SystemModal  isVisible={isVisible} closeModal={closeModal} backdrop={true} marginTop={90} >
             <GuideModal selectedItem={selectedItem}  />
         </SystemModal>
 
@@ -132,9 +132,11 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   weekTitle: {
-    fontSize: 20,
+    fontSize: 16,
+    alignSelf: 'center',
     fontWeight: '600', // Semi-bold
     marginBottom: 12,
+    marginTop: 12,
     color: '#333', // Nesten svart
   },
   topicContainer: {
@@ -148,7 +150,8 @@ const styles = StyleSheet.create({
     color: '#111', // Nesten svart
   },
   topicDescription: {
-    fontSize: 16,
+    marginTop: 4,
+    fontSize: 14,
     color: '#666', // Grå tekst for beskrivelse
   },
   buttonContainer: {

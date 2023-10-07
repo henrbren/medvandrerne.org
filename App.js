@@ -1,9 +1,11 @@
 import 'react-native-gesture-handler';
 import React, {useState, useEffect} from 'react';
-import {Image, SafeAreaView, StatusBar, Text, View} from 'react-native';
+import {Image, SafeAreaView, Text, View} from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Parse from 'parse/react-native';
+
+import registerForPushNotifications  from '@components/helpers/notifications/registerForPushNotifications';
 
 import  LoadingAppView  from "@components/helpers/loading/LoadingAppView";
 import { localize, initLanguage } from './translations/localize';
@@ -15,6 +17,8 @@ import { MainNavigator } from "@navigators/MainNavigator";
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import FlashMessage from "react-native-flash-message";
 
+
+import * as Notifications from 'expo-notifications';
 
 // Your Parse initialization configuration goes here
 Parse.setAsyncStorage(AsyncStorage);
@@ -88,6 +92,14 @@ const [username, setUsername] = useState('');
 const [loading, setLoading] = useState(true)
 
 
+useEffect(() => {
+  registerForPushNotifications();
+  const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+    // Din kode for å håndtere brukerens interaksjon med varsel
+  });
+
+  return () => subscription.remove();
+}, []);
 
 useEffect(() => {
 
@@ -114,6 +126,7 @@ if (loading) {
 
 return (<AuthContext.Provider value={authContext}>
                   <ActionSheetProvider>
+                       
                       {state.loggedin ? (<>
                               <MainNavigator />
                             </>) : 

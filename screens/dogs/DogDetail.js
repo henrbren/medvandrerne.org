@@ -24,10 +24,12 @@ export const DogDetailScreen = ({ route, navigation }) => {
   // State variables
   const [readResults, setReadResults] = useState([]);
   const [dogName, setDogName] = useState('');
+  const [showDesc, setShowDesc] = useState(false);
 
   const readDogData = async function () {
     // Reading parse objects is done by using Parse.Query
     const parseQuery = new Parse.Query('dogs');
+
     parseQuery.equalTo("objectId", route.params.id);
 
 
@@ -65,7 +67,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
    };
 
    const goToTraining = () => {
-    navigation.navigate('DogTrainingScreen', {id: route.params.id});
+    navigation.navigate('DogTrainingScreen', {id: route.params.id,  dogName:dogName, });
    };
 
    const goToMedicine= () => {
@@ -114,26 +116,19 @@ export const DogDetailScreen = ({ route, navigation }) => {
               <Text style={[styles.title, { fontSize: 20, marginBottom: 5 }]}>{dog.get('title')} {dog.get('lastname')}</Text>
               <Text style={[styles.text, { fontSize: 16, fontWeight: '500' }]}>{dog.get('breed')}</Text>
             </View>
+            
           </View>
+        
         </View>
 
       {isBirthday &&  <View style={styles.card}>
           <Text style={[styles.text, { fontWeight: '600', marginBottom: 10 }]}>{dog.get('title')} {localize("main.screens.dogDetail.birthdayTitle")}</Text>
           <Text style={styles.text}>{localize("main.screens.dogDetail.birthdayDesc")} {ageStringInYears} {localize("main.screens.dogDetail.birthdayDesc2")}</Text>
         </View>}
-      
 
 
       {/* Information Cards */}
-      <View style={styles.card}>
-          <Text style={[styles.text, { fontWeight: '600', marginBottom: 10 }]}>{localize("main.screens.dogDetail.desc")}</Text>
-          {dog.get('desc') ? (
-            <Text style={[styles.text, { lineHeight: 24 }]}>{dog.get('desc')}</Text>
-          ) : (
-            <Text style={styles.text}>{localize("main.screens.dogDetail.noDescription")}</Text>
-          )}
-        </View>
-
+  
         <View style={styles.buttonCardContainer}>
             
             <TouchableOpacity 
@@ -187,7 +182,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
                  style={[styles.card, styles.buttonCard]} 
                  onPress={goToTraining}
                >
-                 <FontAwesome5 name="paw" size={24} style={styles.buttonIcon} />
+                 <FontAwesome5 name="walking" size={24} style={styles.buttonIcon} />
                  <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showTraining")}</Text>
                </TouchableOpacity>
 
@@ -207,11 +202,21 @@ export const DogDetailScreen = ({ route, navigation }) => {
                   </TouchableOpacity>
         </View>
 
+        <View style={styles.card}>
+        <TouchableOpacity onPress={() => setShowDesc(previousState => !previousState)}>
+             <Text style={[styles.text, { fontWeight: '600',  }]}>{localize("main.screens.dogDetail.desc")}</Text>
+             <FontAwesome5 name={showDesc ? "chevron-up" : "chevron-down"} size={18} style={[{ position: 'absolute', right: 0, top: 0 }]} />
+        </TouchableOpacity>
+            {showDesc &&  (
+            <Text style={[styles.text, { lineHeight: 24 }]}>{dog.get('desc')}</Text>
+                 )}
+        </View>
+
         
         <View style={[styles.card, styles.infoCard]}>
           <View style={styles.row}>
             <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.gender')}:</Text>
-            <Text style={styles.text}>{dog.get('gender')}</Text>
+            <Text style={styles.text}>{dog.get('isFemale') ? 'Hunn' : 'Hann'}</Text>
           </View>
 
           <View style={styles.row}>
@@ -236,7 +241,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
           <View style={styles.row}>
             <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.formals.title')}:</Text>
                 <TouchableOpacity  style={styles.text} onPress={goToFormals} >
-                  <Text style={[styles.text, styles.label]}>{localize("main.screens.dogDetail.showFormals")}</Text>
+                  <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.showFormals")}</Text>
                 </TouchableOpacity>
           </View>
         </View>

@@ -96,7 +96,6 @@ export const DogGalleryScreen = ({ route, navigation }) => {
               style={styles.image}
               cachePolicy={'disk'}
               placeholder={item.blurHash}
-              transition={500}
             />
           </TouchableOpacity>
         )}
@@ -107,7 +106,7 @@ export const DogGalleryScreen = ({ route, navigation }) => {
 
       <ReusableBottomSheet
           sheetRef={bottomSheetRef}
-          height={600}
+          height={700}
           colors={{background: '#F9F9F9'}}
       >
           <DogHistoryForm dog={route.params?.id} close={closeSheet} />

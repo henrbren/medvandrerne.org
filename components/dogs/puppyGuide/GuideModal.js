@@ -73,6 +73,15 @@ const GuideModal = ({ selectedItem, closeModal, }) => {
             </Text>
             </View>
 
+            {selectedItem.exercise &&(<>           
+                    <Text style={styles.fieldTitle}>
+                    {localize('main.screens.dogDetail.training.exercise')}
+                    </Text>                 
+                    <View style={styles.fieldBox}>
+                          <Text style={styles.tableRowContent}>
+                          {selectedItem.exercise}
+                          </Text>  
+                     </View></>)}
 
 
             {selectedItem.tips &&(<>           
@@ -97,14 +106,14 @@ const GuideModal = ({ selectedItem, closeModal, }) => {
 const styles = StyleSheet.create({
   animation:{
     width: 200,
-    height: 200,
+    height: 180,
   },
     tableSection: {
         marginBottom: 20,
         width: '100%',
         backgroundColor: 'transparent',
         borderRadius: 10,
-        padding: 15,
+        padding: 0,
       },
       tableSectionTitle: {
         alignItems: 'center',

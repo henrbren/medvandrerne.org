@@ -8,32 +8,61 @@ import { NavigationContainer } from "@react-navigation/native";
 import { DrawerContent } from "@components/Menu";
 import { TabNavigator } from '@navigators/TabNavigator';
 
+import { DogNavigator } from "@navigators/DogNavigator";
+import { ChatNavigator } from "@navigators/ChatNavigator";
+import { NewDog } from "@screens/dogs/NewDog";
+
+import { StatusBar } from 'expo-status-bar';
+
 //icons
 import { FontAwesome } from '@expo/vector-icons'; 
 
 //Navigator
 export function MainNavigator({ navigation }) {
 
-    let initialRouteName = 'TabNavigator'
+    let initialRouteName = 'DogNavigator'
     const Drawer = createDrawerNavigator();
 
     return (
+      
         <NavigationContainer>
+            <StatusBar style="dark" />
                 <Drawer.Navigator initialRouteName={initialRouteName}
                 screenOptions={{ headerShown: false,   swipeEdgeWidth: 0,  }}
                 drawerContent={(props) => <DrawerContent {...props} />}
                 >
 
-                <Drawer.Screen
-                    name="TabNavigator"
+
+            <Drawer.Screen
+                    name="DogNavigator"
                     options={{ 
                         title: 'Hund' ,
                       }}
-                    component={TabNavigator}
+                    component={DogNavigator}
                 
                 />
 
-     
+          <Drawer.Screen
+                    name="NewAnimal"
+                    options={{ 
+                        
+                        title: 'Hund' ,
+                      }}
+                    component={NewDog}
+                
+                />
+
+            <Drawer.Screen
+                    name="ChatNavigator"
+                    options={{ 
+                        
+                        title: 'Hund' ,
+                      }}
+                    component={ChatNavigator}
+                
+                />
+
+                
 
             
             </Drawer.Navigator>
