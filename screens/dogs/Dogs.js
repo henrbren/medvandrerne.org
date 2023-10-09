@@ -26,6 +26,8 @@ export const DogsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+
+
   useEffect(() => {
     readMeasures();
     console.log('DogsScreen useEffect')
@@ -35,8 +37,15 @@ export const DogsScreen = () => {
     setRefreshing(true);
     const parseQuery = new Parse.Query('dogs');
     try {
-      const todos = await parseQuery.find();
-      setReadResults(todos);
+      const animals = await parseQuery.find();
+
+    
+      if (animals.length >= 2) {
+        navigator.setOptions({ title: localize('main.screens.dogs.tabMultiple') })
+      }
+
+
+      setReadResults(animals);
       setRefreshing(false);
     } catch (error) {
       Alert.alert('Error!', error.message);
@@ -87,7 +96,7 @@ export const DogsScreen = () => {
       <FlatList
         data={filteredResults}
         renderItem={renderItem}
-        ListEmptyComponent={() => <EmptyView text="Her er det ingen hunder" />}  
+        ListEmptyComponent={() => <EmptyView text={localize('main.screens.dogs.noDogs')} />}  
         keyExtractor={item => item.id}
         refreshControl={
           <RefreshControl

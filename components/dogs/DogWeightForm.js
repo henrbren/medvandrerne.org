@@ -104,8 +104,8 @@ export const DogWeightForm = ({dog, close}) => {
             placeholderText='Velg dato'
             style={{  borderRadius: 12, color: 'black', marginBottom: 20}}
           />
-      <ActionButton text="Opprett"  onPress={createDogReward} />
-      <ActionButton text="Lukk" textColor="black" onPress={close} style={styles.closeButton} />
+     <ActionButton text={localize('main.screens.dogDetail.history.form.create')}  onPress={createDogReward} />
+      <ActionButton text={localize('main.screens.dogDetail.history.form.close')}  textColor="black" onPress={close} style={styles.closeButton} />
       <LoadingModal isVisible={isUploading} backgroundColor={'transparent'} onRequestClose={() => setIsUploading(false)} />
     </View>
   );

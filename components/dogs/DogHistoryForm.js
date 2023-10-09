@@ -162,7 +162,7 @@ export const DogHistoryForm = ({dog, close}) => {
 // Sub Components
 const ImagePickerButton = ({ onPress }) => (
   <TouchableOpacity style={styles.imageButton} onPress={onPress}>
-    <Text style={styles.customButtonText}>Legg til bilde +</Text>
+    <Text style={styles.customButtonText}>{localize('main.screens.dogDetail.history.form.addImage')} </Text>
   </TouchableOpacity>
 );
 

@@ -5,12 +5,11 @@ import Parse from 'parse/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { localize } from "@translations/localize";
 import { FontAwesome5 } from '@expo/vector-icons';
-
+import * as Haptics from 'expo-haptics';
 
 import UpdateProfileImage from '@parse/UpdateProfileImage'; 
 
 import { formatDate, calculateDetailedAge, generateAgeString, calculateAgeInWeeks, isBirthdayOrHalfBirthday, generateAgeStringInYears } from '@components/helpers/DateUtils';  // adjust the import path as needed
-
 
 export const DogDetailScreen = ({ route, navigation }) => {
   const navigator = useNavigation();
@@ -41,6 +40,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
         setReadResults([dog]);  // Set the state to an array containing only this dog
         navigator.setOptions({ title: dog.get('title') });
         setDogName(dog.get('title') + ' ' + dog.get('lastname'));
+      
       }
       
       return true;
@@ -52,39 +52,11 @@ export const DogDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  const goToHistory = () => {
-   navigation.navigate('DogHistoryScreen', {id: route.params.id});
+  const goToPage = (navigateTo, params = {id: route.params.id}) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        navigation.navigate(navigateTo, params );
   };
 
-  const goToGallery = () => {
-    navigation.navigate('DogGalleryScreen', {id: route.params.id});
-   };
-
-  
-
-  const goToRewards = () => {
-    navigation.navigate('DogRewardsScreen', {id: route.params.id, dogName:dogName, imageUrl: readResults[0].get('profileImage').url()});
-   };
-
-   const goToTraining = () => {
-    navigation.navigate('DogTrainingScreen', {id: route.params.id,  dogName:dogName, });
-   };
-
-   const goToMedicine= () => {
-    navigation.navigate('DogHealthScreen', {id: route.params.id});
-   };
-
-   const goToPuppySchool = () => {
-    navigation.navigate('PuppySchoolScreen', {id: route.params.id, week: calculateAgeInWeeks(readResults[0].get('dateOfBirth'))});
-   };
-
-
-   
-
-  const goToFormals = () => {
-    navigation.navigate('DogFormaliaScreen', {id: route.params.id});
-   };
- 
 
 
     
@@ -133,7 +105,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
             
             <TouchableOpacity 
               style={[styles.card, styles.buttonCard]} 
-              onPress={goToPuppySchool}
+              onPress={() => goToPage('PuppySchoolScreen',  {id: route.params.id, week: calculateAgeInWeeks(readResults[0].get('dateOfBirth'))})}
             >
               <FontAwesome5 name="paw" size={24} style={[styles.buttonIcon]} />
               <Text style={styles.buttonText}>{localize("main.screens.dogDetail.puppySchool")}</Text>
@@ -147,7 +119,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
                {/* History Button */}
                <TouchableOpacity 
                  style={[styles.card, styles.buttonCard, { marginRight: 10 }]} 
-                 onPress={goToHistory}
+                 onPress={(() => goToPage('DogHistoryScreen'))}
                >
                  <FontAwesome5 name="history" size={24} style={styles.buttonIcon} />
                  <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showHistory")}</Text>
@@ -156,7 +128,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
             {/* History Button */}
             <TouchableOpacity 
                  style={[styles.card, styles.buttonCard, ]} 
-                 onPress={goToGallery}
+                 onPress={() => goToPage('DogGalleryScreen')}
                >
                  <FontAwesome5 name="images" size={24} style={styles.buttonIcon} />
                  <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showGallery")}</Text>
@@ -172,7 +144,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
 
                 <TouchableOpacity 
                   style={[styles.card, styles.buttonCard, { marginRight: 10 }]} 
-                  onPress={goToRewards}
+                  onPress={() => goToPage('DogRewardsScreen', {id: route.params.id, dogName:dogName, imageUrl: readResults[0].get('profileImage').url()})}
                 >
                   <FontAwesome5 name="medal" size={24} style={styles.buttonIcon} />
                   <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showRewards")}</Text>
@@ -180,7 +152,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
                
                 <TouchableOpacity 
                  style={[styles.card, styles.buttonCard]} 
-                 onPress={goToTraining}
+                 onPress={() => goToPage('DogTrainingScreen',  {id: route.params.id,  dogName:dogName, })}
                >
                  <FontAwesome5 name="walking" size={24} style={styles.buttonIcon} />
                  <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showTraining")}</Text>
@@ -194,16 +166,26 @@ export const DogDetailScreen = ({ route, navigation }) => {
         <View style={styles.buttonCardContainer}>
             
                   <TouchableOpacity 
-                    style={[styles.card, styles.buttonCard]} 
-                    onPress={goToMedicine}
+                    style={[styles.card, styles.buttonCard,  { marginRight: 10 }]} 
+                    onPress={() => goToPage('DogHealthScreen')}
                   >
                     <FontAwesome5 name="plus" size={24} style={[styles.buttonIcon, { color: '#FF0000' }]} />
                     <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showMedicine")}</Text>
                   </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.card, styles.buttonCard]} 
+                    onPress={() => goToPage('DogHistoryScreen')}
+                  >
+                    <FontAwesome5 name="folder-open" size={24} style={[styles.buttonIcon]} />
+                    <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showDocs")}</Text>
+                  </TouchableOpacity>
         </View>
 
         <View style={styles.card}>
-        <TouchableOpacity onPress={() => setShowDesc(previousState => !previousState)}>
+        <TouchableOpacity onPress={() => {
+                setShowDesc(previousState => !previousState)
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}}>
              <Text style={[styles.text, { fontWeight: '600',  }]}>{localize("main.screens.dogDetail.desc")}</Text>
              <FontAwesome5 name={showDesc ? "chevron-up" : "chevron-down"} size={18} style={[{ position: 'absolute', right: 0, top: 0 }]} />
         </TouchableOpacity>
@@ -240,7 +222,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
           </View>
           <View style={styles.row}>
             <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.formals.title')}:</Text>
-                <TouchableOpacity  style={styles.text} onPress={goToFormals} >
+                <TouchableOpacity  style={styles.text} onPress={() => goToPage('DogFormaliaScreen')} >
                   <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.showFormals")}</Text>
                 </TouchableOpacity>
           </View>
@@ -344,14 +326,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',  // Changed to 'flex-start' for left alignment
-    padding: 20,
+    padding: 18,
   },
   buttonIcon: {
     marginRight: 15,
     color: '#007AFF',  // Apple's default blue
   },
   buttonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     flexShrink: 1,  // Allow the text to shrink if needed
   },

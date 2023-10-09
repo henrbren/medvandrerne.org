@@ -18,12 +18,12 @@ const ChatFieldAccessory = ({ value, setUserMessage, handleSendMessage }) => {
                   value={value}
                   onChangeText={setUserMessage}
                   style={styles.input}
-                  placeholder="Skriv en melding"
+                  placeholder={localize('main.meta.writeAMessage')}
                   inputAccessoryViewID={Platform.OS === 'ios' ? inputAccessoryViewID : undefined}
                   placeholderTextColor="#777"
                 />
                 <TouchableOpacity onPress={handleSendMessage} style={styles.sendButton}>
-                  <Text style={{ color: '#FFF' }}>Send</Text>
+                  <Text style={{ color: '#FFF' }}>{localize('main.meta.send')}</Text>
                 </TouchableOpacity>
       </View>
      
@@ -34,11 +34,11 @@ const ChatFieldAccessory = ({ value, setUserMessage, handleSendMessage }) => {
                       value={value}
                       onChangeText={setUserMessage}
                       style={styles.input}
-                      placeholder="Skriv en melding"
+                      placeholder={localize('main.meta.writeAMessage')}
                       placeholderTextColor="#777"
                     />
                     <TouchableOpacity onPress={handleSendMessage} style={styles.sendButton}>
-                      <Text style={{ color: '#FFF' }}>Send</Text>
+                      <Text style={{ color: '#FFF' }}>{localize('main.meta.send')}</Text>
                     </TouchableOpacity>
                   </View>
         </InputAccessoryView>

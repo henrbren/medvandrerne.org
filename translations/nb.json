@@ -13,6 +13,8 @@
     },
     "meta": {
       "back": "Tilbake",
+      "writeAMessage": "Skriv en melding",
+      "send": "send",
       "saved": "Lagret",
       "search": "Søk..",
       "cancel": "Avbryt",
@@ -67,6 +69,7 @@
           "tab": "Min hund",
           "tabMultiple": "Mine hunder",
           "title": "Min hund",
+          "noDogs": "Ingen hunder lagt til",
         },
         "dogDetail": {
           "noDescription": "Ingen beskrivelse",
@@ -79,6 +82,14 @@
           "rewards":{
             "title": "Merker",
             "createReward": "Legg til merke",
+            "diploma": "Diplom",
+            "mark":  "Merke",
+            "rare": "Sjelden",
+            "points": "Poeng",
+            "noRewards": "Ingen merker lagt til",
+            "awardedTo": "TILDELES",
+            "for": "FOR",
+
             "form":{
               "title": "Navn",
               "description": "Beskrivelse",
@@ -97,6 +108,7 @@
             },
             "medicineLog":{
               "title": "Medisinlogg",
+              "noLogs": "Ingen medisinlogg lagt til",
 
             },
             "form":{
@@ -193,6 +205,7 @@
               "date": "Dato",
               "create": "Legg til",
               "close":"Avbryt",
+              "addImage": "Legg til bilde +",
             }
           },
           "desc": "Beskrivelse",
@@ -210,6 +223,7 @@
            "showTraining": "Trening",
            "showRewards": "Merker",
            "showFormals": "Vis hos NKK",
+           "showDocs": "Dokumenter",
            "puppySchool": "Valpeskole",
           },
     }

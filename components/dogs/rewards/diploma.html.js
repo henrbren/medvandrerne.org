@@ -1,12 +1,14 @@
 
 
 import { formatDateWithTime } from '@components/helpers/DateUtils';  // adjust the import path as needed
+import { localize } from "@translations/localize";
+
 
 const diploma = async (selectedItem, dogName) => {
     const HTML = `<!DOCTYPE html>
     <html>
       <head>
-        <title>Diploma</title>
+        <title>${localize('main.screens.dogDetail.rewards.diploma')}</title>
         <style>
           /* General styles */
           body {
@@ -29,7 +31,7 @@ const diploma = async (selectedItem, dogName) => {
     
           /* Logo */
           .logo {
-            width: 100px;
+            width: 300px;
             margin-bottom: 20px;
           }
     
@@ -73,12 +75,12 @@ const diploma = async (selectedItem, dogName) => {
       </head>
       <body>
         <div class="container">
-          <img src="https://laft.io/wp-content/uploads/2022/09/laft_logo_farger.png" alt="Logo" class="logo">  <!-- Replace with your logo -->
-          <h1>Diplom</h1>
+          <img src="https://dyremappa.no/wp-content/uploads/2023/10/icon.png" alt="Logo" class="logo">  <!-- Replace with your logo -->
+          <h1>${localize('main.screens.dogDetail.rewards.diploma')}</h1>
           <div class="decorative"></div>
-          <p>TILDELES</p>
+          <p>${localize('main.screens.dogDetail.rewards.awardedTo')}</p>
           <h2>${dogName}</h2>
-          <p>FOR</p>
+          <p>${localize('main.screens.dogDetail.rewards.for')}</p>
           <h3>${selectedItem.get('title')}</h3>
           <p>${selectedItem.get('desc') ? selectedItem.get('desc') : ''}</p>
           <p>Dato: ${formatDateWithTime(selectedItem.get('date'))}</p>

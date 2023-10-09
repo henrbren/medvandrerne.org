@@ -4,6 +4,7 @@ import {Alert,View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, SafeAre
 import { formatDateWithTime, calculateDetailedAge } from '@components/helpers/DateUtils';  // adjust the import path as needed
 import EmptyView from '@components/helpers/loading/EmptyView';  // Importer din EmptyView komponent
 import { Image } from 'expo-image';
+import { localize } from "@translations/localize";
 
 
 import Parse from 'parse/react-native';
@@ -12,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { DogRewardForm } from '@components/dogs/DogRewardForm'; 
-import { localize } from "@translations/localize";
 
 import ReusableBottomSheet from '@ui/ReusableBottomSheet';  // Importer ReusableBottomSheet
 import SystemModal from '@ui/SystemModal';
@@ -137,12 +137,12 @@ const onRefresh = React.useCallback(() => {
       <TouchableOpacity  style={styles.gridItem} onPress={() => { setSelectedItem(item); setIsVisible(true); }}>
          {item.get('isCustom') != true && 
               <View style={styles.ribbon}>
-                <Text style={styles.ribbonText}>Diplom</Text>
+                <Text style={styles.ribbonText}>{localize('main.screens.dogDetail.rewards.diploma')}</Text>
               </View>
             }
          {item.get('isRare') == true && 
               <View style={[styles.ribbon, {top: 90, backgroundColor: 'purple'}]}>
-                <Text style={styles.ribbonText}>Sjelden</Text>
+                <Text style={styles.ribbonText}>{localize('main.screens.dogDetail.rewards.rare')}</Text>
               </View>
             } 
           {badgeIcon}
@@ -161,14 +161,14 @@ const onRefresh = React.useCallback(() => {
         data={filteredResults}
         ListHeaderComponent={() => (
           <View style={styles.headerCard}>
-            <Text style={styles.totalPointsText}>{totalPoints} poeng</Text>
+            <Text style={styles.totalPointsText}>{totalPoints} {localize('main.screens.dogDetail.rewards.points')}</Text>
           </View>
         )}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={2}
         refreshing={refreshing}
-        ListEmptyComponent={() => <EmptyView text="Ingen merker tilgjengelige" isLoading={isLoading}/>}  
+        ListEmptyComponent={() => <EmptyView text={localize('main.screens.dogDetail.rewards.noRewards')} isLoading={isLoading}/>}  
         onRefresh={onRefresh}
         contentContainerStyle={styles.gridContainer}
       />
@@ -186,11 +186,11 @@ const onRefresh = React.useCallback(() => {
                         />
                       )}
                  
-                    <Text style={styles.diplomaHeader}>{selectedItem.get('isCustom') == true ? 'Merke' : 'Diplom'}</Text>
+                    <Text style={styles.diplomaHeader}>{selectedItem.get('isCustom') == true ? localize('main.screens.dogDetail.rewards.mark') : localize('main.screens.dogDetail.rewards.diploma')}</Text>
                     
-                    <Text style={styles.dividerText}>TILDELES</Text>
+                    <Text style={styles.dividerText}>{localize('main.screens.dogDetail.rewards.awardedTo')}</Text>
                     <Text style={styles.recipientName}>{dogName}</Text>
-                    <Text style={styles.dividerText}>FOR</Text>
+                    <Text style={styles.dividerText}>{localize('main.screens.dogDetail.rewards.for')}</Text>
                     <Text style={styles.diplomaTitle}>{selectedItem.get('title')} </Text>
                     <Text style={styles.description}>{selectedItem.get('desc')}</Text>
     
@@ -198,7 +198,7 @@ const onRefresh = React.useCallback(() => {
                          <Text style={styles.date}>{formatDateWithTime(selectedItem.get('date'))}</Text>
       
                     </View>
-                    <Text style={styles.points}>{selectedItem.get('points') ? selectedItem.get('points') : '0'} poeng</Text>
+                    <Text style={styles.points}>{selectedItem.get('points') ? selectedItem.get('points') : '0'} {localize('main.screens.dogDetail.rewards.points')}</Text>
                  
              
              

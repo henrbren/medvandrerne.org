@@ -4,7 +4,10 @@ import { I18n } from 'i18n-js';
 
 // Define your translations
 const translations = {
-  'nb': require('./nb.json'), // Assuming you have a nb.json file with your translations
+  'nb': require('./nb.json'), 
+  'en': require('./en.json'), 
+  'pl': require('./pl.json'), 
+  'nn': require('./nn.json'), 
 };
 
 // Instantiate I18n
@@ -13,7 +16,7 @@ const i18n = new I18n(translations);
 // Set the locale
 const currentLocale = getLocales()[0].languageCode;
 i18n.defaultLocale = 'nb'; // Set default locale
-i18n.locale = currentLocale; // Set current locale
+i18n.locale =  currentLocale; // Set current locale
 
 console.log(`Current locale: ${currentLocale}`);
 

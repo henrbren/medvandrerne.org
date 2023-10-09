@@ -2,6 +2,8 @@ import React from 'react';
 import { FlatList, View, Text } from 'react-native';
 import MedicineListItem from './MedicineListItem';  // Importer din TrainingListItem komponent
 import EmptyView from '@components/helpers/loading/EmptyView';  // Importer din EmptyView komponent
+import { localize } from "@translations/localize";
+
 
 const MedicineList = ({ data, refreshing, onRefresh, onSelectItem, onDeleteItem, isLoading }) => {
 
@@ -18,7 +20,7 @@ const MedicineList = ({ data, refreshing, onRefresh, onSelectItem, onDeleteItem,
       data={data}
       renderItem={renderItem}
       keyExtractor={(item, index) => index.toString()}
-      ListEmptyComponent={() => <EmptyView text="Ingenting loggført" isLoading={isLoading}  />}  // Bruk din egen lokaliseringsfunksjon her
+      ListEmptyComponent={() => <EmptyView text={localize('main.screens.dogDetail.medicine.medicineLog.noLogs')} isLoading={isLoading}  />}  // Bruk din egen lokaliseringsfunksjon her
       refreshing={refreshing}
       onRefresh={onRefresh}
     />
