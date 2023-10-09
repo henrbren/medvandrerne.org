@@ -12,34 +12,30 @@ import UpdateProfileImage from '@parse/UpdateProfileImage';
 import { formatDate, calculateDetailedAge, generateAgeString, calculateAgeInWeeks, isBirthdayOrHalfBirthday, generateAgeStringInYears } from '@components/helpers/DateUtils';  // adjust the import path as needed
 
 export const DogDetailScreen = ({ route, navigation }) => {
-  const navigator = useNavigation();
 
+    const navigator = useNavigation();
+    const [readResults, setReadResults] = useState([]);
+    const [dogName, setDogName] = useState('');
+    const [showDesc, setShowDesc] = useState(false);
 
   useEffect(() => {
-    readDogData();
+    readAnimalData();
   }, []);
 
 
-  // State variables
-  const [readResults, setReadResults] = useState([]);
-  const [dogName, setDogName] = useState('');
-  const [showDesc, setShowDesc] = useState(false);
-
-  const readDogData = async function () {
+  const readAnimalData = async function () {
     // Reading parse objects is done by using Parse.Query
     const parseQuery = new Parse.Query('dogs');
-
     parseQuery.equalTo("objectId", route.params.id);
 
-
     try {
-    let dog = await parseQuery.first();  // Use first instead of find
+    let animal = await parseQuery.first();  // Use first instead of find
       // Be aware that empty or invalid queries return as an empty array
       // Set results to state variable
-      if (dog) {
-        setReadResults([dog]);  // Set the state to an array containing only this dog
-        navigator.setOptions({ title: dog.get('title') });
-        setDogName(dog.get('title') + ' ' + dog.get('lastname'));
+      if (animal) {
+        setReadResults([animal]);  // Set the state to an array containing only this dog
+        navigator.setOptions({ title: animal.get('title') });
+        setDogName(animal.get('title') + ' ' + animal.get('lastname'));
       
       }
       
