@@ -1,9 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { WebView } from 'react-native-webview';
+
 import Parse from 'parse/react-native';
 import NkkExtractor from '@extractors/NkkExtractor';
+import { localize } from "@translations/localize";
+
+
 
 export const DogFormaliaScreen = ({ route }) => {
   const [registrationNumber, setRegistrationNumber] = useState('');
@@ -53,7 +56,7 @@ export const DogFormaliaScreen = ({ route }) => {
       {dogInfo ? (
         <ScrollView style={styles.scrollView}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Informasjon om hund</Text>
+            <Text style={styles.cardTitle}>{localize('main.screens.dogDetail.formals.info')}</Text>
             {dogInfo?.dogInfo && Object.keys(dogInfo.dogInfo).map((key) => (
               <View key={key} style={styles.infoContainer}>
                 <Text style={styles.label}>{key}</Text>
@@ -63,7 +66,7 @@ export const DogFormaliaScreen = ({ route }) => {
           </View>
           
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Oppdretter</Text>
+            <Text style={styles.cardTitle}>{localize('main.screens.dogDetail.formals.breeder')}</Text>
             {dogInfo?.breederInfo &&Object.keys(dogInfo.breederInfo).map((key) => (
               <View key={key} style={styles.infoContainer}>
                 <Text style={styles.label}>{key}</Text>
@@ -73,7 +76,7 @@ export const DogFormaliaScreen = ({ route }) => {
           </View>
           
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Informasjon om foreldre</Text>
+            <Text style={styles.cardTitle}>{localize('main.screens.dogDetail.formals.parentInfo')}</Text>
             {dogInfo?.parentInfo && Object.keys(dogInfo.parentInfo).map((key) => (
               <View key={key} style={styles.infoContainer}>
                 <Text style={styles.label}>{key}</Text>

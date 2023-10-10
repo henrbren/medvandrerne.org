@@ -97,7 +97,7 @@ const UpdateProfileImage = ({ parseClass, objectId, profileImageUrl, showActionS
   return (<>
     <TouchableOpacity onPress={onImagePress}>
       {imageUrl ? (
-        <Image style={{ width: 80, height: 80, borderRadius: 40 }} source={{ uri: imageUrl }} cachePolicy={'disk'} />
+        <Image style={{ width: 80, height: 80, borderRadius: 12 }} source={{ uri: imageUrl }} cachePolicy={'disk'} />
       ) : (
         <Text>Legg til profilbilde</Text>
       )}

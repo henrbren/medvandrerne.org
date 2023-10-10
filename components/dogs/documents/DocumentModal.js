@@ -6,23 +6,27 @@ import { localize } from "@translations/localize";
 import getActivityName from '@components/dogs/training/getActivityName';
 import { formatDateWithTime } from '@components/helpers/DateUtils';  
 
-const DocumentListItem = ({ selectedItem, closeModal }) => {
+const DocumentModal = ({ selectedItem, closeModal }) => {
 
+  const convertBytesToString = (bytes) => {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    
+    if (bytes === 0) return '0 Byte';
+    
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+  };
   return (<>
     <View style={styles.tableSection}>
-            <Text style={styles.tableSectionTitle}>
-            {selectedItem.get('title')}
-            {' '}
-            {selectedItem.get('badge') ? 
-                <FontAwesome5 name={selectedItem.get('badge')} size={16} /> : null}
-            </Text>
+ 
 
             <Text style={styles.tableSectionSmallTitle}>
-            {localize('main.screens.dogDetail.medicine.info')}
+            {localize('main.screens.dogDetail.documents.info')}
             </Text>
 
             <Text style={styles.fieldTitle}>
-            {localize('main.screens.dogDetail.training.trainingTitle')}
+            {localize('main.screens.dogDetail.documents.fileName')}
             </Text>
             <View style={styles.fieldBox}>
             <Text style={styles.tableRowContent}>
@@ -31,7 +35,7 @@ const DocumentListItem = ({ selectedItem, closeModal }) => {
             </View>
 
             <Text style={styles.fieldTitle}>
-            {localize('main.screens.dogDetail.training.description')}
+            {localize('main.screens.dogDetail.documents.fileDesc')}
             </Text>
             <View style={styles.fieldBox}>
             <Text style={styles.tableRowContent}>
@@ -39,12 +43,21 @@ const DocumentListItem = ({ selectedItem, closeModal }) => {
             </Text>
             </View>
 
-                <Text style={styles.fieldTitle}>
-                {localize('main.screens.dogDetail.training.done')}
+            <Text style={styles.fieldTitle}>
+                {localize('main.screens.dogDetail.documents.fileSize')}
                  </Text>
             <View style={styles.fieldBox}>
                 <Text style={styles.tableRowContent}>
-                    {formatDateWithTime(selectedItem.get('date'))}
+                        {convertBytesToString(selectedItem.get('size'))}
+                </Text>
+            </View>
+
+                <Text style={styles.fieldTitle}>
+                {localize('main.screens.dogDetail.documents.uploaded')}
+                 </Text>
+            <View style={styles.fieldBox}>
+                <Text style={styles.tableRowContent}>
+                    {formatDateWithTime(selectedItem.get('createdAt'))}
                 </Text>
             </View>
   </View>
@@ -55,6 +68,7 @@ const DocumentListItem = ({ selectedItem, closeModal }) => {
 
 const styles = StyleSheet.create({
     tableSection: {
+         marginTop: 20,
         marginBottom: 20,
         width: '100%',
         backgroundColor: 'transparent',
@@ -110,4 +124,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default DocumentListItem;
+export default DocumentModal;

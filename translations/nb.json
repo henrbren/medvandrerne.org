@@ -85,6 +85,10 @@
           "birthdayDesc2": "gammel i dag 🎉 Gratulerer med dagen 🥳",
           "formals": {
             "title": "Formalia",
+            "info": "Informasjon om hund",
+            "breeder": "Oppdreter",
+            "parentInfo": "Informasjon om foreldre",
+
           },
           "rewards":{
             "title": "Merker",
@@ -104,6 +108,26 @@
               "create": "Legg til",
               "close":"Avbryt",
             }
+          },
+          "documents":{
+            "title": "Dokumenter",
+            "info":"Informasjon om dokument",
+            "noLogs": "Ingen dokumenter lagt til",
+            "noLogsHelp": "Legg til dokumenter for å holde orden på vaksinasjoner, forsikringer og andre viktige dokumenter.",
+            "fileName": "Filnavn",
+            "fileSize": "Størrelse",
+            "fileDesc": "Beskrivese",
+            "uploaded": "Lastet opp",
+            "form":{
+              "title": "Navn",
+              "tooLarge": "Filen er for stor. Maks 10MB.",
+              "fileAlert": "Vennligst velg en PDF eller TXT-fil.",
+              "date": "Dato",
+              "create": "Legg til dokument",
+              "upload":"Last opp",
+             "add":"Velg dokument +",
+              "close":"Avbryt",
+            },
           },
           "medicine":{
             "title": "Helse",
@@ -154,6 +178,18 @@
               "DentalCare": "Tannpleie",
               "Supplements": "Tilskudd",
               "Other": "Annet"
+            }
+          },
+          "missing":{
+            "title": "Meld savnet",
+            "info": "Informasjon om savnet",
+            "reportMissing": "Meld savnet",
+            "createMissing": "Legg til savnet",
+            "noMissing": "Ingen savnet lagt til",
+            "form":{
+              "questionMissing": "Er du sikker på at du vil melde savnet?",
+              "confirm": "Beskrivelse",
+           
             }
           },
           "training":{

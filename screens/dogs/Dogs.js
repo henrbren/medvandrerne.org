@@ -14,6 +14,9 @@ import Parse from 'parse/react-native';
 import { Image } from 'expo-image';
 
 import { FontAwesome5 } from '@expo/vector-icons'; 
+import { Ionicons } from '@expo/vector-icons';  // We switch to Ionicons for a more iOS-native feel
+
+
 import { localize } from '@translations/localize';
 import SearchFieldAccessory from '@ui/SearchFieldAccessory';
 import { useNavigation } from '@react-navigation/native';
@@ -30,7 +33,6 @@ export const DogsScreen = () => {
 
   useEffect(() => {
     readMeasures();
-    console.log('DogsScreen useEffect')
   }, []);
 
   const readMeasures = async () => {
@@ -67,30 +69,30 @@ export const DogsScreen = () => {
   const renderItem = ({ item }) => {
     const profileImageFile = item.get('profileImage');
     const profileImageUrl = profileImageFile ? profileImageFile.url() : null;
-
+  
     return (
       <TouchableOpacity 
         style={Styles.todo_item} 
         onPress={() => { navigator.navigate('DogDetailScreen', { id: item.id }) }}
       >
-        <View style={Styles.todo_item_content}>
-          {profileImageUrl && (
+                {profileImageUrl && (
             <Image
               source={{ uri: profileImageUrl }}
               style={Styles.profileImage}
               cachePolicy={'disk'}
             />
           )}
+        <View style={Styles.todo_item_content}>
+  
           <View>
             <Text style={Styles.list_text_header}>{item.get('title')} {item.get('lastname')}</Text>
             <Text style={Styles.list_text}>{item.get('breed')}</Text>
           </View>
         </View>
-        <FontAwesome5 name="chevron-right" style={Styles.list_arrow} size={22} color={"#333"} />
+        <Ionicons name="ios-chevron-forward" style={Styles.list_arrow} size={22} color={"#333"} />
       </TouchableOpacity>
     );
   };
-
   return (
     <SafeAreaView style={Styles.container}>
       <FlatList
@@ -113,36 +115,50 @@ export const DogsScreen = () => {
 const Styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#F8F8F8',  // Pure white backgroun
   },
   todo_item: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginLeft: 20,
+    marginRight: 20,
+    marginTop: 10,
+    borderColor: '#E0E0E0',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.07,
+    shadowRadius: 2,
+    elevation: 1,
   },
   todo_item_content: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingLeft: 20,
   },
   profileImage: {
-    width: 80,  // Increased from 40
-    height: 80,  // Increased from 40
-    borderRadius: 40,  // Increased from 20
-    marginRight: 16,  // Increased from 10
+    width: 100,
+    height: 100,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+
   },
   list_text_header: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,  // A bit larger for readability
+    fontWeight: '500',  // Semibold
   },
   list_text: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 15,  // A bit larger for readability
+    color: '#8E8E93',  // Secondary label color for iOS
   },
   list_arrow: {
-    color: '#C7C7CC',
+    color: '#8E8E93',  // Secondary label color for iOS
+    position: 'absolute',
+    right: 20,
+
+    
   },
 });

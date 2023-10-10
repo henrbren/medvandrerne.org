@@ -170,7 +170,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
 
                   <TouchableOpacity 
                     style={[styles.card, styles.buttonCard]} 
-                    onPress={() => goToPage('DogHistoryScreen')}
+                    onPress={() => goToPage('DogDocumentsScreen')}
                   >
                     <FontAwesome5 name="folder-open" size={24} style={[styles.buttonIcon]} />
                     <Text style={styles.buttonText}>{localize("main.screens.dogDetail.showDocs")}</Text>
@@ -221,7 +221,16 @@ export const DogDetailScreen = ({ route, navigation }) => {
                   <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.showFormals")}</Text>
                 </TouchableOpacity>
           </View>
+
         </View>
+
+
+        <View style={{alignItems:'center'}}>
+         
+                <TouchableOpacity  style={styles.text} onPress={() => goToPage('DogRepportMissing')} >
+                  <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.missing.reportMissing")}</Text>
+                </TouchableOpacity>
+          </View>
 
     
 </View>
@@ -283,7 +292,7 @@ const styles = StyleSheet.create({
   image: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 12,
     marginRight: 10,
   },
   weekInfo:{
