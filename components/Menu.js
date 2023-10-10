@@ -8,14 +8,15 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useDrawerStatus } from '@react-navigation/drawer';
 import { MenuItems } from '@components/MenuItems';
-import { doUserLogOut } from "@components/login/UserLogOut";
+import { useUserLogOut } from "@components/login/useUserLogOut";
+
 
   
 export function DrawerContent(props){
 
     const navigation = useNavigation();
     const isDrawerOpen = useDrawerStatus() === 'open';
-
+    const doUserLogOut = useUserLogOut();
 
 
  
@@ -41,7 +42,7 @@ export function DrawerContent(props){
 
                  <DrawerItem
                     label={localize('main.navigation.menu.newAnimal')}
-                    onPress={() => { navigation.navigate('NewAnimal'); }}
+                    onPress={() => { navigation.navigate('NewAnimalNavigator'); }}
                   icon={({ focused, color, size }) => <Ionicons name="add" size={size} color={color} />}
                                     />
                 <DrawerItem

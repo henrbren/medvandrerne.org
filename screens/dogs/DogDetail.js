@@ -69,7 +69,6 @@ export const DogDetailScreen = ({ route, navigation }) => {
     const ageStringInYears = generateAgeStringInYears(dateOfBirth);
 
 
-
         
     return (
       <View style={styles.container}>
@@ -96,19 +95,19 @@ export const DogDetailScreen = ({ route, navigation }) => {
 
 
       {/* Information Cards */}
-  
-        <View style={styles.buttonCardContainer}>
-            
-            <TouchableOpacity 
-              style={[styles.card, styles.buttonCard]} 
-              onPress={() => goToPage('PuppySchoolScreen',  {id: route.params.id, week: calculateAgeInWeeks(readResults[0].get('dateOfBirth'))})}
-            >
-              <FontAwesome5 name="paw" size={24} style={[styles.buttonIcon]} />
-              <Text style={styles.buttonText}>{localize("main.screens.dogDetail.puppySchool")}</Text>
-              <Text style={styles.weekInfo}>{localize("main.screens.dogDetail.week")} {weeksOld}</Text>
-              
-            </TouchableOpacity>
-  </View>
+  {weeksOld <= 16 && (
+                <View style={styles.buttonCardContainer}>
+                    
+                        <TouchableOpacity 
+                          style={[styles.card, styles.buttonCard]} 
+                          onPress={() => goToPage('PuppySchoolScreen',  {id: route.params.id, week: weeksOld})}
+                        >
+                          <FontAwesome5 name="paw" size={24} style={[styles.buttonIcon]} />
+                          <Text style={styles.buttonText}>{localize("main.screens.dogDetail.puppySchool")}</Text>
+                          <Text style={styles.weekInfo}>{localize("main.screens.dogDetail.week")} {weeksOld}</Text>
+                          
+                        </TouchableOpacity>
+                  </View>)}
         
         <View style={styles.buttonCardContainer}>
                
@@ -254,11 +253,13 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
+    borderColor: '#E0E0E0',
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.07,
+    shadowRadius: 2,
+    elevation: 1,
   },
   title: {
     fontSize: 20,
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '400',
     flexShrink: 1,  // Allow the text to shrink if needed
   },
 });

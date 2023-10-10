@@ -10,7 +10,7 @@ import { TabNavigator } from '@navigators/TabNavigator';
 
 import { DogNavigator } from "@navigators/DogNavigator";
 import { ChatNavigator } from "@navigators/ChatNavigator";
-import { NewDog } from "@screens/dogs/NewDog";
+import { NewAnimalNavigator } from "@navigators/NewAnimalNavigator";
 
 import { StatusBar } from 'expo-status-bar';
 
@@ -43,12 +43,12 @@ export function MainNavigator({ navigation }) {
                 />
 
           <Drawer.Screen
-                    name="NewAnimal"
+                    name="NewAnimalNavigator"
                     options={{ 
                         
                         title: 'Hund' ,
                       }}
-                    component={NewDog}
+                    component={NewAnimalNavigator}
                 
                 />
 

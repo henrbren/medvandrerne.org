@@ -19,6 +19,7 @@
       "search": "Søk..",
       "cancel": "Avbryt",
       "close": "Lukk",
+      "start": "Start",
       "confirm": "Bekreft",
       "delete": "Slett",
       "deleteForever": "Slett for alltid",
@@ -40,12 +41,16 @@
     "login":{
       "username": "E-post",
       "password": "Passord",
+      "registerNewAccount": "Registrer ny konto",
       "login": "Logg inn",
+      "loginWithEmail": "Logg inn med E-post",
+      "registerWithEmail": "Registrer med E-post",
+      "or":  "eller",
       "register": "Registrer",
       "loginError": "Feil brukernavn eller passord",
       "loginErrorReason": "Kontroller at du har skrevet riktig brukernavn og passord.",
       "loginErrorTryAgain": "Prøv igjen",
-      "title": "Velkommen til myDog",
+      "title": "Velkommen til Dyremappa",
     },
     "navigation":{
       "menu":{
@@ -59,8 +64,10 @@
       }
     },
     "screens":{
-        "newDog": {
-          "tab": "Ny hund",
+        "newAnimal": {
+          "title": "Legg til dyr",
+          "desc": "Vi starter med et bilde! Smil 😁",
+
         },
         "dogChat":{
           "title": "Dyrehvisker AI",

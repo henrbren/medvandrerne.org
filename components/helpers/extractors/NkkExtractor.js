@@ -21,7 +21,10 @@ const NkkExtractor = ({ url, onDataExtracted }) => {
         if(cells.length > 1) {
           let key = cells[0].textContent.trim().replace(/\\s+/g, ' ');
           let value = cells[1].textContent.trim().replace(/\\s+/g, ' ');
-          infoObj[key] = value;
+          if(key && value){
+            infoObj[key] = value;
+          }
+        
         }
       });
     }

@@ -14,6 +14,7 @@
       "back": "Tilbake",
       "saved": "Lagra",
       "search": "Søk..",
+      "start": "Start",
       "writeAMessage": "Skriv ei melding..",
       "send": "Send",
       "cancel": "Avbryt",
@@ -39,12 +40,16 @@
     "login": {
       "username": "E-post",
       "password": "Passord",
+      "registerNewAccount": "Registrer ny konto",
       "login": "Logg inn",
+      "loginWithEmail": "Logg inn med E-post",
+      "registerWithEmail": "Registrer med E-post",
       "register": "Registrer",
+      "or":  "eller",
       "loginError": "Feil brukarnamn eller passord",
       "loginErrorReason": "Kontroller at du har skrive rett brukarnamn og passord.",
       "loginErrorTryAgain": "Prøv igjen",
-      "title": "Velkomen til myDog"
+      "title": "Velkomen til Dyremappa"
     },
     "navigation": {
       "menu": {

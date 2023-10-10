@@ -4,15 +4,15 @@ export default useStyle = () => {
 
     const { height, width } = useWindowDimensions();
     
-    const tabbarHeight = Platform.OS == 'ios' ? 180 : 80
-    const heightMinusTabBar = height
+    const tabbarHeight = Platform.OS == 'ios' ? 95: 80
+    const heightMinusTabBar = height - tabbarHeight
     
     const styles = StyleSheet.create({
       container: { flex: 1, backgroundColor: '#fff'},
       camera: { height: heightMinusTabBar, backgroundColor: '#fff' },
       buttonContainer: { 
         position: 'absolute', 
-        top: 50,
+        top: 30,
         right: 0,
         width: 80,
         paddingBottom: 20
@@ -44,7 +44,7 @@ export default useStyle = () => {
       marginBottom: 30,
       marginRight: 20,
        position: 'absolute', 
-        top: height - 200,
+        top: height - 260,
        right: 20,
        width: 90,
        height: 90,
@@ -65,7 +65,7 @@ export default useStyle = () => {
       skipButton:{
         position: 'absolute',
         left: 20,
-        top: 50
+        top: 30
       },
       input:{
         height: height,

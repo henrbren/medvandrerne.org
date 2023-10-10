@@ -9,7 +9,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function CameraView({
     image, 
-    setImage
+    setImage,
+    modal
 }) {
 
   const [imageUri, setImageUri] = useState();
@@ -22,6 +23,7 @@ export default function CameraView({
   }, [permission]);
 
   return (<GestureHandlerRootView>
+                         {modal}
                          {imageUri ? (
                           <ImageView imageUri={imageUri} setImage={setImage} setImageUri={setImageUri} />) : (
                          <TakePicture setImageUri={setImageUri} setPermission={setPermission} />)}
