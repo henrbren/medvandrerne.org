@@ -4,10 +4,10 @@ import { TouchableOpacity, FlatList, View } from 'react-native';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as Haptics from 'expo-haptics';
 
-const BadgeList = ({route}) => {
+const BadgeList = ({id}) => {
 
     const [readResults, setReadResults] = useState([]);
-    const dogId = route.params?.id;
+    const dogId = id;
 
     useEffect(() => {
         readAnimalData();

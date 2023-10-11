@@ -1,11 +1,30 @@
 {
-    "build": {
-      "production": {
-        "channel": "production"
-      },
-      "preview": {
-        "channel": "staging",
-        "distribution": "internal"
+  "submit": {
+    "SUBMIT_PROFILE_NAME_1": {
+      "ios": {
+        "appleId": "henrik.brendhagen@newgencom.com",
+        "ascAppId": "1628178056",
+        "appleTeamId": "RZR3VMLE6"
       }
     }
+  },
+  "build": {
+    "production": {
+      "channel": "production"
+    },
+    "preview": {
+      "extends": "production",
+      "distribution": "internal"
+    },
+    "simulator": {
+      "ios": {
+        "simulator": true
+      }
+    },
+    "development": {
+      "developmentClient": "true",
+      "channel": "production",
+      "distribution": "internal"
+    }
   }
+}

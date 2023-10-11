@@ -99,7 +99,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
             <View style={{ marginLeft: 20 }}>
               <Text style={[styles.title, { fontSize: 20, marginBottom: 5 }]}>{dog.get('title')} {dog.get('lastname')}</Text>
               <Text style={[styles.text, { fontSize: 16, fontWeight: '500' }]}>{dog.get('breed')}</Text>
-              <BadgeList route={route} />
+              <BadgeList id={route.params.id} />
             </View>
             
           </View>

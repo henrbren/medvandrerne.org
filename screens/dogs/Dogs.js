@@ -15,6 +15,9 @@ import { Image } from 'expo-image';
 
 import { FontAwesome5 } from '@expo/vector-icons'; 
 import { Ionicons } from '@expo/vector-icons';  // We switch to Ionicons for a more iOS-native feel
+import checkForUpdates from '@components/helpers/UpdatesChecker';  // Husk å importere riktig
+import * as Haptics from 'expo-haptics';
+import BadgeList from '@parse/BadgeList';  // Husk å importere BadgeList
 
 
 import { localize } from '@translations/localize';
@@ -28,11 +31,14 @@ export const DogsScreen = () => {
   const [readResults, setReadResults] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showBadges, setShowBadges] = useState(false);
 
 
 
   useEffect(() => {
     readMeasures();
+    checkForUpdates()
+    
   }, []);
 
   const readMeasures = async () => {
@@ -45,8 +51,6 @@ export const DogsScreen = () => {
       if (animals.length >= 2) {
         navigator.setOptions({ title: localize('main.screens.dogs.tabMultiple') })
       }
-
-  
 
       if (animals.length == 0) {
         navigator.navigate('NewAnimalNavigator')
@@ -79,7 +83,12 @@ export const DogsScreen = () => {
     return (
       <TouchableOpacity 
         style={Styles.todo_item} 
-        onPress={() => { navigator.navigate('DogDetailScreen', { id: item.id }) }}
+        onLongPress={() => { 
+          setShowBadges(true)
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }}
+        onPress={() => { 
+          navigator.navigate('DogDetailScreen', { id: item.id })
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }}
       >
                 {profileImageUrl && (
             <Image
@@ -93,6 +102,7 @@ export const DogsScreen = () => {
           <View>
             <Text style={Styles.list_text_header}>{item.get('title')} {item.get('lastname')}</Text>
             <Text style={Styles.list_text}>{item.get('breed')}</Text>
+            {showBadges && (<BadgeList id={item.id} />)}
           </View>
         </View>
         <Ionicons name="ios-chevron-forward" style={Styles.list_arrow} size={22} color={"#333"} />
@@ -101,6 +111,7 @@ export const DogsScreen = () => {
   };
   return (
     <SafeAreaView style={Styles.container}>
+       
       <FlatList
         data={filteredResults}
         renderItem={renderItem}

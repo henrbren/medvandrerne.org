@@ -20,6 +20,12 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
+      ],
+      [
+        "expo-updates",
+        {
+          "username": "henrbren"
+        }
       ]
     ],
     "splash": {
