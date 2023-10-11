@@ -78,14 +78,25 @@ const missing = async (data) => {
       </head>
       <body>
         <div class="container">
-        <img src="${data.get('profileImage').url()}" alt="Logo" class="image">  <!-- Replace with your logo -->
-          <h1>${localize('main.screens.dogDetail.missing.pdf.title')}</h1>
-          <div class="decorative"></div>
-          <p>${localize('main.screens.dogDetail.missing.pdf.haveYouSeen')}</p>
+        <h1>${localize('main.screens.dogDetail.missing.pdf.title')}</h1>
+        <p>${localize('main.screens.dogDetail.missing.pdf.haveYouSeen')}</p>
+        <table>
+        <tr>
+          <td>
+                  <img src="${data.get('profileImage').url()}" alt="Logo" class="image"> 
+            </td>
+          <td>
           <h2>${data.get('title')}</h2>
           <p>${localize('main.screens.dogDetail.missing.pdf.description')}</p>
-          <p>${data.get('desc') ? data.get('desc') : ''}</p>
-          <p>${data.get('breed') ? data.get('breed') : ''}</p>
+            <p>${data.get('desc') ? data.get('desc') : ''}</p>
+            <p>${data.get('breed') ? data.get('breed') : ''}</p>
+            <p>Meldt savnet: January 4</p>
+   
+          </td>
+        </tr>
+      </table>
+
+         
           <img src="https://dyremappa.no/wp-content/uploads/2023/10/icon.png" alt="Logo" class="logo">  <!-- Replace with your logo -->
         </div>
       </body>

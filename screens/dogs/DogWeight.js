@@ -3,7 +3,6 @@ import {Alert, StyleSheet, SafeAreaView, View, ScrollView, Text} from 'react-nat
 import { formatDateWithTime, formatDate } from '@components/helpers/DateUtils';  // adjust the import path as needed
 import { Dimensions } from 'react-native';
 
-import Svg, { Circle, Rect } from 'react-native-svg';
 import Parse from 'parse/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { localize } from "@translations/localize";
@@ -12,7 +11,7 @@ import { DogWeightForm } from '@components/dogs/DogWeightForm';
 
 import HeaderRightButton from '@components/dogs/training/HeaderRightButton';
 import WeightList from '@components/dogs/medicine/weight/WeightList';
-import { LineChart, YAxis, Grid } from 'react-native-svg-charts';
+//import { LineChart, YAxis, Grid } from 'react-native-svg-charts';
 
 
 import ReusableBottomSheet from '@ui/ReusableBottomSheet';  // Importer ReusableBottomSheet
@@ -151,12 +150,12 @@ export const DogWeightScreen = ({ route, navigation }) => {
              
          {data && ( <View style={{ height: 260, padding: 20, backgroundColor: 'white' }}>
           <View style={{ flex: 1, flexDirection: 'row' }}>
-              <LineChart
+              {/*<LineChart
                   style={{ flex: 1, marginLeft: 10 }}
                   data={data}
                   svg={{ stroke: 'rgb(0, 122, 255)', strokeWidth: 2 }}
                   contentInset={{ top: 20, bottom: 20 }}
-              >
+  >
                   <Grid svg={{ stroke: 'rgba(0, 0, 0, 0.1)', strokeWidth: 1 }} />
               </LineChart>
               <YAxis
@@ -165,6 +164,7 @@ export const DogWeightScreen = ({ route, navigation }) => {
                   contentInset={{ top: 20, bottom: 20 }}
                   svg={{ fontSize: 10, fill: 'grey' }}
               />
+              */}
           </View>
           <Text style={{ fontSize: 12, color: 'grey', marginBottom: 10 }}>
         Tidsramme: {timeFrame}
