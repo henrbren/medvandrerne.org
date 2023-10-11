@@ -71,7 +71,7 @@ export const DogHistoryScreen = ({ route, navigation }) => {
     const dogPointer = Parse.Object.extend('dogs').createWithoutData(dogId);
     parseQuery.equalTo('dogOwner', dogPointer);
     parseQuery.exists('title'); 
-    parseQuery.descending('createdAt');
+    parseQuery.descending('date');
   
     try {
       let dogs = await parseQuery.find();
@@ -254,7 +254,7 @@ export const DogHistoryScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F9F9', // Light Gray
+    backgroundColor: '#F2F2F7', // Light Gray
   },
   deleteBtn: {
     height: '100%',

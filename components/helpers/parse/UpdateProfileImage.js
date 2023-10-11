@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
-import { TouchableOpacity, Image, Text } from 'react-native';
+import { TouchableOpacity, Text } from 'react-native';
 import { connectActionSheet } from '@expo/react-native-action-sheet';
 import * as ImagePicker from 'expo-image-picker';
 import Parse from 'parse/react-native';
 import * as FileSystem from 'expo-file-system';
-
+import { Image } from 'expo-image';
 
 import LoadingModal from '@ui/LoadingModal';  // Import LoadingModal
 import * as Haptics from 'expo-haptics';

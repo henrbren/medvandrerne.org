@@ -46,6 +46,12 @@ export const DogsScreen = () => {
         navigator.setOptions({ title: localize('main.screens.dogs.tabMultiple') })
       }
 
+  
+
+      if (animals.length == 0) {
+        navigator.navigate('NewAnimalNavigator')
+      }
+
 
       setReadResults(animals);
       setRefreshing(false);

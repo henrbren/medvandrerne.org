@@ -24,7 +24,7 @@ export function NewAnimalNavigator({ route, navigation }) {
         component={NewDog}
         options={{
           headerTitleAlign: "center",
-          title: localize("main.screens.dogChat.title"),
+          title: localize("main.screens.newAnimal.title"),
           headerStyle: {
             backgroundColor: colors.card
           },

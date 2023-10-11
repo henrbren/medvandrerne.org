@@ -9,7 +9,7 @@
       "hour": "Time",
       "minute": "Minutt",
       "second": "Sekund",
-
+      "seconds": "sekunder",
     },
     "meta": {
       "back": "Tilbake",
@@ -67,6 +67,17 @@
         "newAnimal": {
           "title": "Legg til dyr",
           "desc": "Vi starter med et bilde! Smil 😁",
+          "form":{
+            "title": "Navn",
+            "lastname": "Etternavn",
+            "desc": "Beskrivelse",
+            "rase": "Rase",
+            "kennel":"Kennel",
+            "nkkNumber": "NKK-nummer",
+            "dateOfBirth": "Fødselsdato",
+            "dateOfAcquisition": "Anskaffet",
+            "create": "Legg til",
+          }
 
         },
         "dogChat":{
@@ -83,18 +94,22 @@
           "birthdayTitle": "har bursdag!",
           "birthdayDesc": "Din hund er",
           "birthdayDesc2": "gammel i dag 🎉 Gratulerer med dagen 🥳",
+          "info": "Informasjon",
+          "countdown": {
+            "to":   "til",
+            "arrival": "kommer",
+          },
           "formals": {
             "title": "Formalia",
             "info": "Informasjon om hund",
             "breeder": "Oppdreter",
             "parentInfo": "Informasjon om foreldre",
-
           },
           "rewards":{
             "title": "Merker",
             "createReward": "Legg til merke",
-            "diploma": "Diplom",
-            "mark":  "Merke",
+            "diploma": "DIPLOM",
+            "mark":  "MERKE",
             "rare": "Sjelden",
             "points": "Poeng",
             "noRewards": "Ingen merker lagt til",
@@ -182,14 +197,30 @@
           },
           "missing":{
             "title": "Meld savnet",
-            "info": "Informasjon om savnet",
+            "preInfo": "Er det fare for at ",
+            "info": "kan bli borte? Meld savnet og få hjelp fra andre hundeeiere i nærheten.",
             "reportMissing": "Meld savnet",
+            "reportedMissing": "er savnet",
+            "missingInfo": "Informasjon",
             "createMissing": "Legg til savnet",
+            "exportPdf": "Eksporter som PDF",
+            "sharePdf": "Del",
             "noMissing": "Ingen savnet lagt til",
             "form":{
               "questionMissing": "Er du sikker på at du vil melde savnet?",
+              "questionFound": "Er du sikker på at du vil melde funnet?",
               "confirm": "Beskrivelse",
-           
+              "report": "Meld",
+              "missing": "savnet",
+              "found": "funnet",
+            },
+            "pdf":{
+              "title": "Savnet",
+              "description": "Beskrivelse",
+              "haveYouSeen": "Har du sett",
+              "date": "Dato",
+              "create": "Legg til",
+            
             }
           },
           "training":{

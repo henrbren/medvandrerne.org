@@ -7,6 +7,10 @@ import { localize } from "@translations/localize";
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
+import CountDown from '@ui/CountDown';
+import BadgeList from '@parse/BadgeList';  // Husk å importere BadgeList
+
+
 import UpdateProfileImage from '@parse/UpdateProfileImage'; 
 
 import { formatDate, calculateDetailedAge, generateAgeString, calculateAgeInWeeks, isBirthdayOrHalfBirthday, generateAgeStringInYears } from '@components/helpers/DateUtils';  // adjust the import path as needed
@@ -16,7 +20,10 @@ export const DogDetailScreen = ({ route, navigation }) => {
     const navigator = useNavigation();
     const [readResults, setReadResults] = useState([]);
     const [dogName, setDogName] = useState('');
+    const [isMissing, setIsMissing] = useState(false);
     const [showDesc, setShowDesc] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
+    
 
   useEffect(() => {
     readAnimalData();
@@ -36,6 +43,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
         setReadResults([animal]);  // Set the state to an array containing only this dog
         navigator.setOptions({ title: animal.get('title') });
         setDogName(animal.get('title') + ' ' + animal.get('lastname'));
+        setIsMissing(animal.get('isMissing'));
       
       }
       
@@ -54,7 +62,15 @@ export const DogDetailScreen = ({ route, navigation }) => {
   };
 
 
-
+  const isFutureDate = (targetDate) => {
+    if (!targetDate) {
+      return false;
+    }
+  
+    const now = new Date();
+    return new Date(targetDate) > now;
+  };
+  
     
   const renderDogDetails = (dog) => {
     const profileImageFile = dog.get('profileImage');
@@ -63,6 +79,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
     const age = calculateDetailedAge(dateOfBirth);
     const weeksOld = calculateAgeInWeeks(dateOfBirth);
     const { isBirthday, isHalfBirthday } = isBirthdayOrHalfBirthday(dog.get('dateOfBirth'));
+    const isCountdown = isFutureDate(dog.get('dateAcquired'))
 
     const ageString = weeksOld <= 16 ? generateAgeString(age) + ' ('+weeksOld + ' ' + localize("main.dates.weeks") +')' : generateAgeString(age);
 
@@ -82,6 +99,7 @@ export const DogDetailScreen = ({ route, navigation }) => {
             <View style={{ marginLeft: 20 }}>
               <Text style={[styles.title, { fontSize: 20, marginBottom: 5 }]}>{dog.get('title')} {dog.get('lastname')}</Text>
               <Text style={[styles.text, { fontSize: 16, fontWeight: '500' }]}>{dog.get('breed')}</Text>
+              <BadgeList route={route} />
             </View>
             
           </View>
@@ -95,7 +113,20 @@ export const DogDetailScreen = ({ route, navigation }) => {
 
 
       {/* Information Cards */}
-  {weeksOld <= 16 && (
+      {isCountdown && (
+                <View style={styles.buttonCardContainer}>
+                    
+                        <TouchableOpacity 
+                          style={[styles.card, styles.buttonCard]} 
+                          onPress={() => goToPage('PuppySchoolScreen',  {id: route.params.id, week: weeksOld})}
+                        >
+                          <FontAwesome5 name="hourglass-half" size={24} style={[styles.buttonIcon]} />
+                          <CountDown targetDate={dog.get('dateAcquired')} name={dog.get('title')} />
+                    
+                          
+                        </TouchableOpacity>
+                  </View>)}
+      {weeksOld <= 16 && !isCountdown && (
                 <View style={styles.buttonCardContainer}>
                     
                         <TouchableOpacity 
@@ -189,45 +220,52 @@ export const DogDetailScreen = ({ route, navigation }) => {
                  )}
         </View>
 
+        <View style={styles.card}>
+        <TouchableOpacity onPress={() => {
+                setShowInfo(previousState => !previousState)
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}}>
+             <Text style={[styles.text, { fontWeight: '600',  }]}>{localize("main.screens.dogDetail.info")}</Text>
+             <FontAwesome5 name={showInfo ? "chevron-up" : "chevron-down"} size={18} style={[{ position: 'absolute', right: 0, top: 0 }]} />
+        </TouchableOpacity>
+            {showInfo &&  (<>
+                    <View style={styles.row}>
+                    <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.gender')}:</Text>
+                    <Text style={styles.text}>{dog.get('isFemale') ? 'Hunn' : 'Hann'}</Text>
+                  </View>
         
-        <View style={[styles.card, styles.infoCard]}>
-          <View style={styles.row}>
-            <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.gender')}:</Text>
-            <Text style={styles.text}>{dog.get('isFemale') ? 'Hunn' : 'Hann'}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.age')}:</Text>
-            <Text style={styles.text}>{ageString}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.kennel')}:</Text>
-            <Text style={styles.text}>{dog.get('kennel')}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.dateOfBirth')}:</Text>
-            <Text style={styles.text}>{formatDate(dog.get('dateOfBirth'))}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.dateAquired')}:</Text>
-            <Text style={styles.text}>{formatDate(dog.get('dateAcquired'))}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.formals.title')}:</Text>
-                <TouchableOpacity  style={styles.text} onPress={() => goToPage('DogFormaliaScreen')} >
-                  <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.showFormals")}</Text>
-                </TouchableOpacity>
-          </View>
-
+                  <View style={styles.row}>
+                    <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.age')}:</Text>
+                    <Text style={styles.text}>{ageString}</Text>
+                  </View>
+        
+                  <View style={styles.row}>
+                    <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.kennel')}:</Text>
+                    <Text style={styles.text}>{dog.get('kennel')}</Text>
+                  </View>
+        
+                  <View style={styles.row}>
+                    <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.dateOfBirth')}:</Text>
+                    <Text style={styles.text}>{formatDate(dog.get('dateOfBirth'))}</Text>
+                  </View>
+        
+                  <View style={styles.row}>
+                    <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.dateAquired')}:</Text>
+                    <Text style={styles.text}>{formatDate(dog.get('dateAcquired'))}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <Text style={[styles.text, styles.label]}>{localize('main.screens.dogDetail.formals.title')}:</Text>
+                        <TouchableOpacity  style={styles.text} onPress={() => goToPage('DogFormaliaScreen')} >
+                          <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.showFormals")}</Text>
+                        </TouchableOpacity>
+                  </View>
+                  </> )}
         </View>
 
-
-        <View style={{alignItems:'center'}}>
+        
+      
+        <View style={{alignItems:'center', marginBottom: 30}}>
          
-                <TouchableOpacity  style={styles.text} onPress={() => goToPage('DogRepportMissing')} >
+                <TouchableOpacity  style={styles.text} onPress={() => goToPage('DogRepportMissing',   {id: route.params.id,  dogName:dogName, isMissing:isMissing})} >
                   <Text style={[styles.text, styles.label, {color: '#007AFF'}]}>{localize("main.screens.dogDetail.missing.reportMissing")}</Text>
                 </TouchableOpacity>
           </View>
@@ -239,11 +277,9 @@ export const DogDetailScreen = ({ route, navigation }) => {
   
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView style={styles.container}>
         {readResults.length > 0 ? renderDogDetails(readResults[0]) : null}
       </ScrollView>
-    </SafeAreaView>
   );
 
 
@@ -254,12 +290,13 @@ export const DogDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#F8F8F8',
+    padding: 10,
+
+    backgroundColor: '#F2F2F7',
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 12,
     padding: 20,
     marginBottom: 20,
     borderColor: '#E0E0E0',

@@ -176,13 +176,13 @@ const onRefresh = React.useCallback(() => {
       <SystemModal isVisible={isVisible} closeModal={closeModal} backdrop={true} backdropToValue={1.0} celebration={true} onShare={shareDiploma} >
             {selectedItem && (
               <>
-                <FontAwesome5 name={selectedItem.get('badge')} size={100} color="#DAA520" style={{margin: 10}}/>
+                <FontAwesome5 name={selectedItem.get('badge')} size={100} color="orange" style={styles.diplomaIcon}/>
                           {imageUrl &&  (
                         <Image
                           style={[styles.image]} // Increased size
                           source={{ uri: imageUrl }}
                           cachePolicy={'disk'}
-                          blurRadius={5}
+                          blurRadius={7}
                         />
                       )}
                  
@@ -255,21 +255,34 @@ const styles = StyleSheet.create({
 
     width: 400,
     height: 200,
-    opacity: 0.4,
+    opacity: 0.6,
   },
   diplomaContainer: {
-    backgroundColor: '#FAF3E0',
+    backgroundColor: '#fff',
     padding: 20,
     alignItems: 'center',
   },
   diplomaHeader: {
     fontSize: 32,
-    color: '#4E4E4E',
+    fontWeight: 'bold',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 5,
+    color: '#fff',
   },
   recipientName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#4E4E4E',
+  }, 
+  diplomaIcon:{
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 5,
+    marginBottom: 20,
   },
   diplomaTitle: {
     fontSize: 18,
@@ -309,7 +322,7 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
 
-    padding: 16,
+    paddingTop: 16,
 
   },
   gridItem: {

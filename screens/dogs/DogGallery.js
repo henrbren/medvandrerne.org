@@ -127,7 +127,7 @@ export const DogGalleryScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#F2F2F7',
   },
   imageContainer: {
     flex: 1,

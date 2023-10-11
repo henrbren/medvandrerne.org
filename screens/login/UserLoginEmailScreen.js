@@ -14,9 +14,7 @@ import {
 import Parse from 'parse/react-native';
 
 import LottieView from 'lottie-react-native';
-import { doAppleLogin } from './AppleLogin';
 
-import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';

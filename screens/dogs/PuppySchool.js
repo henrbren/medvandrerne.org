@@ -36,6 +36,18 @@ export const PuppySchoolScreen = ({ route, navigation }) => {
     case weekIn == 10:
       setCurrentWeekIndex(2);
       break;
+    case weekIn == 11:
+      setCurrentWeekIndex(3);
+      break;
+    case weekIn == 12:
+      setCurrentWeekIndex(4);
+      break;
+    case weekIn == 13:
+      setCurrentWeekIndex(5);
+      break;
+     case weekIn == 14:
+       setCurrentWeekIndex(6);
+        break;
     default:
       setCurrentWeekIndex(0);
   }
@@ -93,9 +105,10 @@ const week = currentWeekData[weekKey];
         ))}
       </View>
       <View style={styles.buttonContainer}>
+        {currentWeekIndex != 0 && (
         <TouchableOpacity style={styles.prevButton} onPress={handlePreviousWeek}>
           <Text style={styles.prevButtonText}>Forrige uke</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>)}
         <TouchableOpacity style={styles.nextButton} onPress={handleNextWeek}>
           <Text style={styles.nextButtonText}>Neste uke</Text>
         </TouchableOpacity>
