@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '800',
     color: theme.colors.white,
     textAlign: 'center',

@@ -8,6 +8,7 @@ import {
   Linking,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
@@ -59,34 +60,51 @@ export default function PersonDetailScreen({ route, navigation }) {
       >
         {/* Hero Section */}
         <Animated.View style={[styles.heroWrapper, { opacity: fadeAnim }]}>
-          <LinearGradient
-            colors={[
-              theme.colors.gradientStart,
-              theme.colors.gradientMiddle,
-              theme.colors.gradientEnd,
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroGradient}
-          >
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Icon
-                  name="person-circle"
-                  size={80}
-                  color={theme.colors.white}
-                />
+          {person.image ? (
+            <View style={styles.heroImageContainer}>
+              <Image 
+                source={person.image} 
+                style={styles.heroImage}
+                resizeMode="cover"
+              />
+              <View style={styles.heroImageOverlay} />
+              <View style={styles.heroContent}>
+                <Text style={styles.heroName}>{person.name}</Text>
+                {person.role && (
+                  <Text style={styles.heroRole}>{person.role}</Text>
+                )}
               </View>
             </View>
-            <Text style={styles.heroName}>{person.name}</Text>
-            {person.role && (
-              <Text style={styles.heroRole}>{person.role}</Text>
-            )}
-            
-            {/* Decorative elements */}
-            <View style={styles.heroDecoration1} />
-            <View style={styles.heroDecoration2} />
-          </LinearGradient>
+          ) : (
+            <LinearGradient
+              colors={[
+                theme.colors.gradientStart,
+                theme.colors.gradientMiddle,
+                theme.colors.gradientEnd,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroGradient}
+            >
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatar}>
+                  <Icon
+                    name="person-circle"
+                    size={56}
+                    color={theme.colors.white}
+                  />
+                </View>
+              </View>
+              <Text style={styles.heroName}>{person.name}</Text>
+              {person.role && (
+                <Text style={styles.heroRole}>{person.role}</Text>
+              )}
+              
+              {/* Decorative elements */}
+              <View style={styles.heroDecoration1} />
+              <View style={styles.heroDecoration2} />
+            </LinearGradient>
+          )}
         </Animated.View>
 
         {/* Contact Actions */}
@@ -246,50 +264,81 @@ const styles = StyleSheet.create({
   
   // Hero Section
   heroWrapper: {
-    marginBottom: theme.spacing.xxxl,
+    marginBottom: theme.spacing.xl,
+  },
+  heroImageContainer: {
+    width: '100%',
+    height: 180,
+    marginHorizontal: isWeb ? 0 : theme.spacing.lg,
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    position: 'relative',
+    ...theme.shadows.glow,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroImageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  heroContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: theme.spacing.lg,
+    zIndex: 2,
   },
   heroGradient: {
-    paddingVertical: theme.spacing.xxxl * 1.5,
-    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.xl + theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
     alignItems: 'center',
     marginHorizontal: isWeb ? 0 : theme.spacing.lg,
-    borderRadius: theme.borderRadius.xxl,
+    borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
     ...theme.shadows.glow,
   },
   avatarContainer: {
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
     zIndex: 2,
   },
   avatar: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: theme.colors.white + '25',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: theme.colors.white + '40',
-    ...theme.shadows.medium,
+    ...theme.shadows.small,
   },
   heroName: {
-    ...theme.typography.h1,
-    fontSize: isWeb ? 42 : 36,
-    fontWeight: '900',
+    ...theme.typography.h2,
+    fontSize: isWeb ? 24 : 22,
+    fontWeight: '800',
     color: theme.colors.white,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-    zIndex: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 12,
+    textAlign: 'left',
+    marginBottom: theme.spacing.xs / 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   heroRole: {
-    ...theme.typography.title,
+    ...theme.typography.body,
     color: theme.colors.white,
     opacity: 0.95,
-    textAlign: 'center',
-    zIndex: 2,
+    fontSize: 16,
+    textAlign: 'left',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   heroDecoration1: {
     position: 'absolute',

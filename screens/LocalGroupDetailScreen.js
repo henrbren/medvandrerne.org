@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,36 @@ import {
   TouchableOpacity,
   Linking,
   Platform,
+  Animated,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 
+const isWeb = Platform.OS === 'web';
+
 export default function LocalGroupDetailScreen({ route, navigation }) {
   const { group } = route.params || {};
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: theme.animations.normal,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   if (!group) {
     return (
@@ -22,6 +45,11 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
       </View>
     );
   }
+
+  const headerStyle = {
+    opacity: fadeAnim,
+    transform: [{ translateY: slideAnim }],
+  };
 
   const handlePhonePress = (phone) => {
     if (phone) {
@@ -35,9 +63,9 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
     }
   };
 
-  const handleFacebookPress = (url) => {
+  const handleFacebookPress = async (url) => {
     if (url) {
-      Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url);
     }
   };
 
@@ -53,25 +81,33 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
           isWeb && styles.scrollContentWeb,
         ]}
       >
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <LinearGradient
-            colors={[
-              theme.colors.gradientStart,
-              theme.colors.gradientMiddle,
-              theme.colors.gradientEnd,
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroGradient}
-          >
-            <View style={styles.iconContainer}>
-              <Icon name="people" size={60} color={theme.colors.white} />
+        {/* Hero Header - Full Width */}
+        <Animated.View style={[styles.heroWrapper, headerStyle]}>
+          <View style={styles.heroImageContainer}>
+            <Image 
+              source={require('../assets/img/hero/hero3.jpg')} 
+              style={styles.heroBackgroundImage}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroImageOverlay}
+            />
+            <View style={styles.heroContent}>
+              <View style={styles.heroIconContainer}>
+                <Image 
+                  source={require('../assets/img/logo.png')} 
+                  style={styles.heroLogo}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.heroTitle}>{group.name}</Text>
+              <Text style={styles.heroSubtitle}>Lokallag</Text>
             </View>
-            <Text style={styles.heroName}>{group.name}</Text>
-            <Text style={styles.heroSubtitle}>Lokallag</Text>
-          </LinearGradient>
-        </View>
+          </View>
+        </Animated.View>
 
         {/* Coordinator Info */}
         {group.coordinator && (
@@ -316,7 +352,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: theme.spacing.xl,
     paddingBottom: theme.spacing.xxxl,
   },
   scrollContentWeb: {
@@ -325,47 +360,87 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: theme.web.sidePadding,
   },
-  heroSection: {
-    marginBottom: theme.spacing.xxxl,
+  
+  // Hero Section
+  heroWrapper: {
+    width: '100%',
+    marginBottom: theme.spacing.xl,
   },
-  heroGradient: {
-    paddingVertical: theme.spacing.xxxl * 1.5,
-    paddingHorizontal: theme.spacing.xl,
-    alignItems: 'center',
-    marginHorizontal: Platform.OS === 'web' ? 0 : theme.spacing.lg,
-    borderRadius: theme.borderRadius.xxl,
+  heroImageContainer: {
+    width: '100%',
+    height: 240,
+    position: 'relative',
     overflow: 'hidden',
-    ...theme.shadows.glow,
   },
-  iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.white + '20',
+  heroBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  heroImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  heroContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xl,
+    zIndex: 2,
+  },
+  heroIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '30',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.md,
-    borderWidth: 3,
-    borderColor: theme.colors.white + '40',
+    padding: theme.spacing.xs,
+    ...theme.shadows.small,
+    zIndex: 3,
   },
-  heroName: {
-    ...theme.typography.h1,
+  heroLogo: {
+    width: '100%',
+    height: '100%',
+  },
+  heroTitle: {
+    ...theme.typography.h2,
+    fontSize: isWeb ? 24 : 22,
+    fontWeight: '800',
     color: theme.colors.white,
-    fontSize: 36,
-    fontWeight: '900',
     textAlign: 'center',
-    marginBottom: theme.spacing.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    marginBottom: theme.spacing.sm,
+    zIndex: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
+    paddingHorizontal: theme.spacing.md,
   },
   heroSubtitle: {
-    ...theme.typography.body,
+    ...theme.typography.bodySmall,
     color: theme.colors.white,
     opacity: 0.95,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
+    zIndex: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   section: {
     marginHorizontal: Platform.OS === 'web' ? 0 : theme.spacing.lg,

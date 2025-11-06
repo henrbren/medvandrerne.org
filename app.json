@@ -23,7 +23,12 @@
       "package": "org.medvandrerne.app"
     },
     "plugins": [
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-notifications"
+    ],
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#FF453A"
+    }
   }
 }

@@ -89,14 +89,60 @@ a:focus-visible,
 
 /* Responsive improvements */
 @media (max-width: 768px) {
-  /* Mobile optimizations */
+  /* Mobile optimizations - hide sidebar */
+  .web-sidebar {
+    display: none !important;
+  }
+  
   [class*="sidebar"] {
     display: none !important;
+  }
+  
+  /* Ensure app container uses column layout on mobile */
+  [class*="appContainer"] {
+    flex-direction: column !important;
   }
   
   [class*="webContentContainer"] {
     margin-left: 0 !important;
     width: 100% !important;
+  }
+  
+  /* Ensure tab bar is visible on mobile web */
+  [class*="tabBar"] {
+    display: flex !important;
+  }
+}
+
+/* Desktop - hide tab bar when sidebar is visible */
+@media (min-width: 769px) {
+  /* Hide React Navigation tab bar */
+  [class*="tabBar"],
+  [class*="tabBar"] *,
+  nav[class*="tabBar"],
+  div[class*="tabBar"],
+  [role="tablist"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  
+  /* Also hide any tab bar container or wrapper */
+  [class*="tabBarContainer"],
+  [class*="tabBarWrapper"],
+  [class*="TabBar"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+  }
+  
+  /* Ensure content doesn't have bottom padding for tab bar */
+  [class*="webContentContainer"],
+  [class*="contentContainer"] {
+    padding-bottom: 0 !important;
   }
 }
 

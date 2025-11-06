@@ -50,7 +50,15 @@ const Icon = ({ name, size = 24, color = '#000', library = 'ionicons' }) => {
     'logo-facebook': { lib: 'ionicons', name: 'logo-facebook' },
     'medical': { lib: 'ionicons', name: 'medical' },
     'medical-outline': { lib: 'ionicons', name: 'medical-outline' },
+    'chevron-forward': { lib: 'ionicons', name: 'chevron-forward' },
     'chevron-forward-outline': { lib: 'ionicons', name: 'chevron-forward' },
+    'checkmark-circle': { lib: 'ionicons', name: 'checkmark-circle' },
+    'checkmark-circle-outline': { lib: 'ionicons', name: 'checkmark-circle-outline' },
+    'person-add': { lib: 'ionicons', name: 'person-add' },
+    'person-add-outline': { lib: 'ionicons', name: 'person-add-outline' },
+    'arrow-forward': { lib: 'ionicons', name: 'arrow-forward' },
+    'close-circle': { lib: 'ionicons', name: 'close-circle' },
+    'close-circle-outline': { lib: 'ionicons', name: 'close-circle-outline' },
   };
 
   const iconConfig = iconMap[name] || { lib: 'ionicons', name: 'help-circle-outline' };

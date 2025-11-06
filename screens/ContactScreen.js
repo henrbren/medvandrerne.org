@@ -8,8 +8,10 @@ import {
   Linking,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import {
@@ -114,62 +116,72 @@ export default function ContactScreen({ navigation }) {
                   onPress={() => handlePersonPress(person, 'administration')}
                   activeOpacity={0.7}
                 >
-                  <LinearGradient
-                    colors={[theme.colors.surface, theme.colors.backgroundElevated]}
-                    style={styles.contactCardGradient}
-                  >
-                    <View style={styles.contactHeader}>
-                      <View style={styles.avatarContainer}>
+                  <View style={styles.contactCardContent}>
+                    {person.image ? (
+                      <View style={styles.contactImageHeader}>
+                        <Image 
+                          source={person.image} 
+                          style={styles.contactHeaderImage}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    ) : (
+                      <View style={styles.contactHeaderPlaceholder}>
                         <LinearGradient
                           colors={[theme.colors.primary + '40', theme.colors.primary + '20']}
-                          style={styles.avatarGradient}
+                          style={styles.contactHeaderPlaceholderGradient}
                         >
-                          <Icon name="person-circle" size={40} color={theme.colors.primary} />
+                          <Icon name="person-circle" size={60} color={theme.colors.primary} />
                         </LinearGradient>
                       </View>
-                      <View style={styles.contactInfo}>
-                        <Text style={styles.contactRole}>{person.role}</Text>
-                        <Text style={styles.contactName}>{person.name}</Text>
-                      </View>
-                      <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
-                    </View>
-
-                    {(person.phone || person.email) && (
-                      <View style={styles.contactActions}>
-                        {person.phone && (
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handlePhonePress(person.phone);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <View style={[styles.actionIcon, { backgroundColor: theme.colors.success + '20' }]}>
-                              <Icon name="call" size={20} color={theme.colors.success} />
-                            </View>
-                            <Text style={styles.actionText}>{person.phone}</Text>
-                          </TouchableOpacity>
-                        )}
-
-                        {person.email && (
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleEmailPress(person.email);
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <View style={[styles.actionIcon, { backgroundColor: theme.colors.info + '20' }]}>
-                              <Icon name="mail" size={20} color={theme.colors.info} />
-                            </View>
-                            <Text style={styles.actionText}>{person.email}</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
                     )}
-                  </LinearGradient>
+                    
+                    <View style={styles.contactCardBody}>
+                      <View style={styles.contactHeader}>
+                        <View style={styles.contactInfo}>
+                          <Text style={styles.contactRole}>{person.role}</Text>
+                          <Text style={styles.contactName}>{person.name}</Text>
+                        </View>
+                        <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+                      </View>
+
+                      {(person.phone || person.email) && (
+                        <View style={styles.contactActions}>
+                          {person.phone && (
+                            <TouchableOpacity
+                              style={styles.actionButton}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handlePhonePress(person.phone);
+                              }}
+                              activeOpacity={0.7}
+                            >
+                              <View style={[styles.actionIcon, { backgroundColor: theme.colors.success + '20' }]}>
+                                <Icon name="call" size={20} color={theme.colors.success} />
+                              </View>
+                              <Text style={styles.actionText}>{person.phone}</Text>
+                            </TouchableOpacity>
+                          )}
+
+                          {person.email && (
+                            <TouchableOpacity
+                              style={styles.actionButton}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleEmailPress(person.email);
+                              }}
+                              activeOpacity={0.7}
+                            >
+                              <View style={[styles.actionIcon, { backgroundColor: theme.colors.info + '20' }]}>
+                                <Icon name="mail" size={20} color={theme.colors.info} />
+                              </View>
+                              <Text style={styles.actionText}>{person.email}</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -187,7 +199,7 @@ export default function ContactScreen({ navigation }) {
             {/* Board Leader */}
             <TouchableOpacity
               style={styles.boardLeaderCard}
-              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder' }, 'board')}
+              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder', image: BOARD.leaderImage }, 'board')}
               activeOpacity={0.7}
             >
               <LinearGradient
@@ -195,7 +207,15 @@ export default function ContactScreen({ navigation }) {
                 style={styles.boardLeaderGradient}
               >
                 <View style={styles.leaderIconContainer}>
-                  <Icon name="trophy" size={32} color={theme.colors.white} />
+                  {BOARD.leaderImage ? (
+                    <Image 
+                      source={BOARD.leaderImage} 
+                      style={styles.leaderImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Icon name="trophy" size={32} color={theme.colors.white} />
+                  )}
                 </View>
                 <View style={styles.leaderInfo}>
                   <Text style={styles.leaderRole}>Styreleder</Text>
@@ -213,13 +233,21 @@ export default function ContactScreen({ navigation }) {
                   <TouchableOpacity
                     key={index}
                     style={styles.memberCard}
-                    onPress={() => handlePersonPress({ name: member, role: 'Styremedlem' }, 'board')}
+                    onPress={() => handlePersonPress({ name: member.name, role: 'Styremedlem', image: member.image }, 'board')}
                     activeOpacity={0.7}
                   >
                     <View style={styles.memberIconContainer}>
-                      <Icon name="person" size={20} color={theme.colors.primary} />
+                      {member.image ? (
+                        <Image 
+                          source={member.image} 
+                          style={styles.memberImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Icon name="person" size={20} color={theme.colors.primary} />
+                      )}
                     </View>
-                    <Text style={styles.memberName}>{member}</Text>
+                    <Text style={styles.memberName}>{member.name}</Text>
                     <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
                   </TouchableOpacity>
                 ))}
@@ -279,7 +307,7 @@ export default function ContactScreen({ navigation }) {
 
               <TouchableOpacity
                 style={styles.infoItem}
-                onPress={() => Linking.openURL(ORGANIZATION_INFO.website)}
+                onPress={async () => await WebBrowser.openBrowserAsync(ORGANIZATION_INFO.website)}
                 activeOpacity={0.7}
               >
                 <View style={[styles.infoIcon, { backgroundColor: theme.colors.info + '20' }]}>
@@ -300,7 +328,7 @@ export default function ContactScreen({ navigation }) {
           <View style={styles.supportSection}>
             <TouchableOpacity
               style={styles.supportCTA}
-              onPress={() => Linking.openURL('https://spleis.no/medvandrerne')}
+              onPress={async () => await WebBrowser.openBrowserAsync('https://spleis.no/medvandrerne')}
               activeOpacity={0.85}
             >
               <LinearGradient
@@ -383,26 +411,44 @@ const styles = StyleSheet.create({
   contactCard: {
     borderRadius: theme.borderRadius.xxl,
     overflow: 'hidden',
+    backgroundColor: theme.colors.surface,
     ...theme.shadows.medium,
   },
-  contactCardGradient: {
+  contactCardContent: {
+    overflow: 'hidden',
+  },
+  contactImageHeader: {
+    width: '100%',
+    height: 180,
+    overflow: 'hidden',
+  },
+  contactHeaderImage: {
+    width: '100%',
+    height: '100%',
+  },
+  contactHeaderPlaceholder: {
+    width: '100%',
+    height: 120,
+    backgroundColor: theme.colors.backgroundElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contactHeaderPlaceholderGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: theme.borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contactCardBody: {
     padding: theme.spacing.xl,
+    backgroundColor: theme.colors.surface,
   },
   contactHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
     marginBottom: theme.spacing.md,
-  },
-  avatarContainer: {
-    ...theme.shadows.small,
-  },
-  avatarGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: theme.borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   contactInfo: {
     flex: 1,

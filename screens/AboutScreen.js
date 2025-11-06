@@ -10,6 +10,8 @@ import {
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
+import { useNavigation } from '@react-navigation/native';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import {
@@ -22,6 +24,7 @@ import {
 const isWeb = Platform.OS === 'web';
 
 export default function AboutScreen() {
+  const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -32,9 +35,13 @@ export default function AboutScreen() {
     }).start();
   }, []);
 
-  const handlePress = (url) => {
+  const handlePress = async (url) => {
     if (url) {
-      Linking.openURL(url);
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        await WebBrowser.openBrowserAsync(url);
+      } else {
+        Linking.openURL(url);
+      }
     }
   };
 
@@ -167,8 +174,109 @@ export default function AboutScreen() {
           </View>
         </AnimatedSection>
 
-        {/* Core Activities */}
+        {/* Symbols Section */}
         <AnimatedSection delay={200}>
+          <View style={styles.symbolsSection}>
+            <View style={styles.sectionHeader}>
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
+                style={styles.headerIconGradient}
+              >
+                <Icon name="flame" size={32} color={theme.colors.white} />
+              </LinearGradient>
+              <Text style={styles.sectionTitle}>Våre symboler</Text>
+            </View>
+            
+            <View style={styles.symbolsList}>
+              {/* Bålet */}
+              <View style={styles.symbolCard}>
+                <LinearGradient
+                  colors={[theme.colors.warning + '20', theme.colors.warning + '10']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.symbolGradient}
+                >
+                  <View style={styles.symbolHeader}>
+                    <View style={styles.symbolIconContainer}>
+                      <LinearGradient
+                        colors={[theme.colors.warning, theme.colors.warning + 'DD']}
+                        style={styles.symbolIconGradient}
+                      >
+                        <Icon name="flame" size={36} color={theme.colors.white} />
+                      </LinearGradient>
+                    </View>
+                    <Text style={styles.symbolTitle}>Bålet</Text>
+                  </View>
+                  <Text style={styles.symbolText}>
+                    Bålet representerer fellesskap og samhørighet. Rundt bålet kveld etter kveld 
+                    deler deltakerne erfaringer, sorger og håp. Dette skaper en følelse av 
+                    tilhørighet og fellesskap som kan være vanskelig å finne andre steder. 
+                    Bålet er et sted hvor alle er likestilte, uten "ovenfra og ned"-relasjoner.
+                  </Text>
+                </LinearGradient>
+              </View>
+
+              {/* Ryggsekken */}
+              <View style={styles.symbolCard}>
+                <LinearGradient
+                  colors={[theme.colors.success + '20', theme.colors.success + '10']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.symbolGradient}
+                >
+                  <View style={styles.symbolHeader}>
+                    <View style={styles.symbolIconContainer}>
+                      <LinearGradient
+                        colors={[theme.colors.success, theme.colors.success + 'DD']}
+                        style={styles.symbolIconGradient}
+                      >
+                        <Icon name="backpack" size={36} color={theme.colors.white} />
+                      </LinearGradient>
+                    </View>
+                    <Text style={styles.symbolTitle}>Ryggsekken</Text>
+                  </View>
+                  <Text style={styles.symbolText}>
+                    Ryggsekken symboliserer bagasjen vi bærer med oss - både fysisk og 
+                    mentalt. Den representerer erfaringene, utfordringene og læringen vi 
+                    tar med oss gjennom livet. På turene lærer vi å bære vår egen ryggsekk, 
+                    men også å støtte hverandre når sekken blir tung.
+                  </Text>
+                </LinearGradient>
+              </View>
+
+              {/* Vandrerstaven */}
+              <View style={styles.symbolCard}>
+                <LinearGradient
+                  colors={[theme.colors.info + '20', theme.colors.info + '10']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.symbolGradient}
+                >
+                  <View style={styles.symbolHeader}>
+                    <View style={styles.symbolIconContainer}>
+                      <LinearGradient
+                        colors={[theme.colors.info, theme.colors.info + 'DD']}
+                        style={styles.symbolIconGradient}
+                      >
+                        <Icon name="fitness" size={36} color={theme.colors.white} />
+                      </LinearGradient>
+                    </View>
+                    <Text style={styles.symbolTitle}>Vandrerstaven</Text>
+                  </View>
+                  <Text style={styles.symbolText}>
+                    Vandrerstaven representerer støtte og veiledning på veien. Den er et 
+                    verktøy som hjelper oss å finne balanse og stabilitet når terrenget 
+                    blir utfordrende. Staven minner oss om at vi ikke er alene på reisen, 
+                    og at det er greit å søke støtte når vi trenger det.
+                  </Text>
+                </LinearGradient>
+              </View>
+            </View>
+          </View>
+        </AnimatedSection>
+
+        {/* Core Activities */}
+        <AnimatedSection delay={300}>
           <View style={styles.activitiesSection}>
             <View style={styles.sectionHeader}>
               <Icon name="trophy" size={28} color={theme.colors.primary} />
@@ -177,7 +285,12 @@ export default function AboutScreen() {
             
             <View style={styles.activitiesList}>
               {CORE_ACTIVITIES.map((activity, index) => (
-                <View key={activity.id} style={styles.activityItem}>
+                <TouchableOpacity
+                  key={activity.id}
+                  style={styles.activityItem}
+                  onPress={() => navigation.navigate('CoreActivityDetail', { activity })}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.activityIconContainer}>
                     <LinearGradient
                       colors={[theme.colors.primary + '40', theme.colors.primary + '20']}
@@ -190,14 +303,15 @@ export default function AboutScreen() {
                     <Text style={styles.activityTitle}>{activity.title}</Text>
                     <Text style={styles.activityDescription}>{activity.description}</Text>
                   </View>
-                </View>
+                  <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                </TouchableOpacity>
               ))}
             </View>
           </View>
         </AnimatedSection>
 
         {/* Organization Information */}
-        <AnimatedSection delay={300}>
+        <AnimatedSection delay={400}>
           <View style={styles.organizationSection}>
             <View style={styles.sectionHeader}>
               <Icon name="business" size={28} color={theme.colors.primary} />
@@ -238,7 +352,7 @@ export default function AboutScreen() {
         </AnimatedSection>
 
         {/* Supporters */}
-        <AnimatedSection delay={400}>
+        <AnimatedSection delay={500}>
           <View style={styles.supportersSection}>
             <View style={styles.sectionHeader}>
               <Icon name="heart" size={28} color={theme.colors.primary} />
@@ -391,6 +505,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
     alignItems: 'center',
+    ...theme.shadows.small,
   },
   activityIconContainer: {
     shadowColor: theme.colors.primary,
@@ -491,6 +606,50 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     flex: 1,
     lineHeight: 24,
+  },
+  
+  // Symbols Section
+  symbolsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  symbolsList: {
+    gap: theme.spacing.lg,
+  },
+  symbolCard: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    ...theme.shadows.medium,
+  },
+  symbolGradient: {
+    padding: theme.spacing.xl,
+    borderRadius: theme.borderRadius.xl,
+  },
+  symbolHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+    gap: theme.spacing.md,
+  },
+  symbolIconContainer: {
+    ...theme.shadows.glowSubtle,
+  },
+  symbolIconGradient: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  symbolTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  symbolText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    lineHeight: 26,
   },
   
   bottomSpacer: {

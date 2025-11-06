@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from './constants/theme';
 import Sidebar from './components/Sidebar';
+import { requestPermissions } from './services/notifications';
 
 import HomeScreen from './screens/HomeScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
@@ -17,6 +18,7 @@ import ContactScreen from './screens/ContactScreen';
 import PersonDetailScreen from './screens/PersonDetailScreen';
 import LocalGroupDetailScreen from './screens/LocalGroupDetailScreen';
 import CoreActivityDetailScreen from './screens/CoreActivityDetailScreen';
+import ActivityDetailScreen from './screens/ActivityDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -66,9 +68,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
                 paddingBottom: Platform.OS === 'ios' ? 28 : 8,
                 paddingTop: 8,
                 ...theme.shadows.small,
-                ...(isWeb && {
-                  display: 'none',
-                }),
+                // Don't set display on web - let CSS handle it
               },
               tabBarLabelStyle: {
                 fontSize: 12,
@@ -81,9 +81,6 @@ function TabNavigator({ navigationRef, currentRoute }) {
                 shadowOpacity: 0,
                 borderBottomWidth: 0,
                 height: Platform.OS === 'ios' ? 44 + insets.top : isWeb ? 0 : 64,
-                ...(isWeb && {
-                  display: 'none',
-                }),
               },
               headerTintColor: theme.colors.white,
               headerTitleStyle: {
@@ -91,15 +88,28 @@ function TabNavigator({ navigationRef, currentRoute }) {
                 fontSize: 18,
                 letterSpacing: 0.5,
               },
+              headerTitleAlign: 'center',
               headerShadowVisible: false,
+              headerTitleContainerStyle: {
+                paddingHorizontal: Platform.OS === 'ios' ? 0 : 16,
+              },
             })}
           >
             <Tab.Screen 
               name="Hjem" 
               component={HomeScreen}
-              options={{
+              options={({ route }) => ({
                 headerTitle: 'Medvandrerne',
-              }}
+                headerStyle: {
+                  backgroundColor: 'transparent',
+                  elevation: 0,
+                  shadowOpacity: 0,
+                  borderBottomWidth: 0,
+                  height: Platform.OS === 'ios' ? 44 + insets.top : isWeb ? 0 : 64,
+                },
+                headerTransparent: true,
+                headerBlurEffect: 'dark',
+              })}
             />
             <Tab.Screen name="Aktiviteter" component={ActivitiesScreen} />
             <Tab.Screen name="Lokallag" component={LocalGroupsScreen} />
@@ -120,6 +130,8 @@ function TabNavigator({ navigationRef, currentRoute }) {
             fontWeight: '700',
             fontSize: 18,
           },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
           title: 'Kontaktinformasjon',
         }}
       />
@@ -135,6 +147,8 @@ function TabNavigator({ navigationRef, currentRoute }) {
             fontWeight: '700',
             fontSize: 18,
           },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
           title: 'Lokallag',
         }}
       />
@@ -150,7 +164,26 @@ function TabNavigator({ navigationRef, currentRoute }) {
             fontWeight: '700',
             fontSize: 18,
           },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
           title: 'Kjernevirksomhet',
+        }}
+      />
+      <Stack.Screen
+        name="ActivityDetail"
+        component={ActivityDetailScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Aktivitet',
         }}
       />
     </Stack.Navigator>
@@ -161,6 +194,26 @@ function AppWithNavigation() {
   const navigationRef = React.useRef(null);
   const [currentRoute, setCurrentRoute] = React.useState('Hjem');
   const [navigationReady, setNavigationReady] = React.useState(false);
+  const [isMobileWeb, setIsMobileWeb] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isWeb) {
+      const checkMobile = () => {
+        const mobile = window.innerWidth <= 768;
+        setIsMobileWeb(mobile);
+        // Also update CSS custom property for better CSS control
+        document.documentElement.style.setProperty('--is-mobile', mobile ? '1' : '0');
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      // Also check on orientation change
+      window.addEventListener('orientationchange', checkMobile);
+      return () => {
+        window.removeEventListener('resize', checkMobile);
+        window.removeEventListener('orientationchange', checkMobile);
+      };
+    }
+  }, []);
 
   return (
     <NavigationContainer
@@ -172,10 +225,13 @@ function AppWithNavigation() {
       }}
     >
       <View style={styles.appContainer}>
-        {isWeb && navigationReady && navigationRef.current && (
+        {isWeb && !isMobileWeb && navigationReady && navigationRef.current && (
           <Sidebar navigation={navigationRef.current} currentRoute={currentRoute} />
         )}
-        <View style={[styles.contentContainer, isWeb && styles.webContentContainer]}>
+        <View style={[
+          styles.contentContainer, 
+          isWeb && !isMobileWeb && styles.webContentContainer
+        ]}>
           <TabNavigator navigationRef={navigationRef} currentRoute={currentRoute} />
         </View>
       </View>
@@ -184,6 +240,13 @@ function AppWithNavigation() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Request notification permissions on app start
+    requestPermissions().catch((error) => {
+      console.error('Error requesting notification permissions:', error);
+    });
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StatusBar style="light" backgroundColor={theme.colors.primary} />
@@ -195,8 +258,11 @@ export default function App() {
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
-    flexDirection: isWeb ? 'row' : 'column',
+    flexDirection: 'column',
     backgroundColor: theme.colors.background,
+    ...(isWeb && {
+      flexDirection: 'row',
+    }),
   },
   contentContainer: {
     flex: 1,

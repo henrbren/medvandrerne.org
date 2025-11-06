@@ -77,30 +77,30 @@ export const theme = {
   typography: {
     // Large display - hero sections
     display: {
-      fontSize: 52,
+      fontSize: 40,
       fontWeight: '800',
-      lineHeight: 60,
+      lineHeight: 48,
       letterSpacing: -1.5,
     },
     // Extra large title
     h1: {
-      fontSize: 38,
+      fontSize: 30,
       fontWeight: '800',
-      lineHeight: 46,
+      lineHeight: 38,
       letterSpacing: -0.5,
     },
     // Large title
     h2: {
-      fontSize: 32,
+      fontSize: 26,
       fontWeight: '700',
-      lineHeight: 38,
+      lineHeight: 32,
       letterSpacing: -0.5,
     },
     // Title 1
     h3: {
-      fontSize: 26,
+      fontSize: 22,
       fontWeight: '700',
-      lineHeight: 32,
+      lineHeight: 28,
       letterSpacing: -0.3,
     },
     // Title 2

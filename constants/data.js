@@ -30,8 +30,28 @@ export const CORE_ACTIVITIES = [
   {
     id: 2,
     title: 'Femundløpet',
-    description: 'Deltakelse på Femundløpet som frivillige. En fantastisk arena for mestring og fellesskap.',
+    description: 'For Medvandrerne er Femundløpet en unik arena for å finne mestringsarenaer og styrke sunne relasjoner. Gjennom fysisk aktivitet, problemløsning og samhandling får deltakerne erfaringer som styrker troen på egne evner.',
     icon: 'snow',
+    detailedDescription: 'For Medvandrerne er Femundløpet en unik arena for å finne mestringsarenaer og styrke sunne relasjoner og utvikle oss i spann med våre samarbeidspartnere på rusfeltet. Med et langvarig samarbeid med Femundløpet har vi etablert oss som en viktig del av arrangementet, samtidig som det gir våre deltakere en mulighet til å skrive et nytt kapittel i sine egne liv.\n\nFor mange blir Femundløpet en "brobygger" tilbake til samfunnet. Gjennom fysisk aktivitet, problemløsning og samhandling får de erfaringer som styrker troen på egne evner. Noen oppdager til og med hundekjøring som en meningsfull fritidsaktivitet, noe som kan gi en ny retning i livet.\n\nMedvandrerne løfter frem det friske i mennesket og viser at alle har noe å bidra med, uansett fortid. Gjennom deltakelsen i Femundløpet får rusavhengige mulighet til å hjelpe andre – både hverandre og arrangementet som helhet. Dette skaper en følelse av tilhørighet til noe større enn seg selv. For noen blir det et vendepunkt, en sjanse til å tre ut av gamle roller og mønstre og gi seg selv nye muligheter.',
+    website: 'https://www.medvandrerne.org/kjernevirksomhet/femundl%C3%B8pet',
+    year: 2025,
+    participants: 45,
+    location: 'Tos arena, Os kommune / Røros',
+    tasks: [
+      'Tidtaking',
+      'Hjelpe hunder til spann',
+      'Parkeringsvakter',
+      'Salg av mat og effekter',
+      'Utplassering av halmballer',
+      'Publikumsservice',
+      'Hjelpe spann inn og ut av stolpe',
+    ],
+    partners: [
+      'Femundløpet AS',
+      'Solliakollektivet',
+      'Tyrili',
+    ],
+    impact: 'Medvandrerne skal delta med rundt 45 personer på Femundløpet 2025, med base på Tos arena i Os kommune. Herfra skal de drifte flere sjekkpunkter og bidra i start- og målområdet i Røros.',
   },
   {
     id: 3,
@@ -62,6 +82,7 @@ export const LOCAL_GROUPS = [
     phone: '988 65 645',
     email: 'siri@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/709169972883175/',
+    coordinatorImage: require('../assets/img/folk/siri.png'),
   },
   {
     id: 2,
@@ -70,6 +91,7 @@ export const LOCAL_GROUPS = [
     phone: '936 80 952',
     email: 'hanne@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/597383110927203',
+    coordinatorImage: require('../assets/img/folk/hanne.png'),
   },
   {
     id: 3,
@@ -78,6 +100,7 @@ export const LOCAL_GROUPS = [
     phone: '407 42 322',
     email: 'patrick@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/189498986112969',
+    coordinatorImage: require('../assets/img/folk/patrick.png'),
   },
   {
     id: 4,
@@ -86,6 +109,7 @@ export const LOCAL_GROUPS = [
     phone: '970 42 144',
     email: 'sven.sande@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/184188560572263',
+    coordinatorImage: require('../assets/img/folk/sven.png'),
   },
   {
     id: 5,
@@ -94,6 +118,7 @@ export const LOCAL_GROUPS = [
     phone: '923 18 386',
     email: 'ivar@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/407645723586023',
+    coordinatorImage: require('../assets/img/folk/ivar.jpg'),
   },
   {
     id: 6,
@@ -102,6 +127,7 @@ export const LOCAL_GROUPS = [
     phone: '936 64 596',
     email: 'torben.breivik@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/3388077521212643',
+    coordinatorImage: require('../assets/img/folk/torben.png'),
   },
   {
     id: 7,
@@ -110,6 +136,7 @@ export const LOCAL_GROUPS = [
     phone: '451 65 159',
     email: 'didrik@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/619804148685842',
+    coordinatorImage: require('../assets/img/folk/didrik.png'),
   },
   {
     id: 8,
@@ -118,6 +145,7 @@ export const LOCAL_GROUPS = [
     phone: '923 18 386',
     email: 'ivar@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/189498986112969',
+    coordinatorImage: require('../assets/img/folk/ivar.jpg'),
   },
   {
     id: 9,
@@ -126,6 +154,7 @@ export const LOCAL_GROUPS = [
     phone: '',
     email: '',
     facebook: 'https://www.facebook.com/groups/433811482705184',
+    coordinatorImage: null,
   },
 ];
 
@@ -137,6 +166,7 @@ export const ADMINISTRATION = [
     name: 'Roger Wangberg',
     phone: '936 60 011',
     email: 'roger@medvandrerne.org',
+    image: require('../assets/img/folk/roger.png'),
   },
   {
     id: 2,
@@ -144,6 +174,7 @@ export const ADMINISTRATION = [
     name: 'Elin Larsen',
     phone: '95932919',
     email: 'elin.larsen@medvandrerne.org',
+    image: require('../assets/img/folk/elin.png'),
   },
   {
     id: 3,
@@ -151,6 +182,7 @@ export const ADMINISTRATION = [
     name: 'Raymond Tollefsen',
     phone: '',
     email: 'raymond@medvandrerne.org',
+    image: require('../assets/img/folk/raymond.png'),
   },
   {
     id: 4,
@@ -158,6 +190,7 @@ export const ADMINISTRATION = [
     name: 'Ivar Brecke Nygaard',
     phone: '',
     email: 'ivar@medvandrerne.org',
+    image: require('../assets/img/folk/ivar.jpg'),
   },
   {
     id: 5,
@@ -165,6 +198,7 @@ export const ADMINISTRATION = [
     name: 'Siri Otterskred',
     phone: '',
     email: 'siri@medvandrerne.org',
+    image: require('../assets/img/folk/siri.png'),
   },
   {
     id: 6,
@@ -172,19 +206,21 @@ export const ADMINISTRATION = [
     name: 'Henrik Brendhagen',
     phone: '991 22 328',
     email: 'henrik@medvandrerne.org',
+    image: require('../assets/img/folk/henrik.png'),
   },
 ];
 
 // Board members
 export const BOARD = {
   leader: 'Sigmund Aunan',
+  leaderImage: null, // Image not available
   members: [
-    'Are Lerstein',
-    'Ivar Brecke Nygaard',
-    'Pål Berger',
-    'Per Sandvik',
-    'Raymond Tollefsen',
-    'Aina Rype',
+    { name: 'Are Lerstein', image: null },
+    { name: 'Ivar Brecke Nygaard', image: require('../assets/img/folk/ivar.jpg') },
+    { name: 'Pål Berger', image: null },
+    { name: 'Per Sandvik', image: null },
+    { name: 'Raymond Tollefsen', image: require('../assets/img/folk/raymond.png') },
+    { name: 'Aina Rype', image: null },
   ],
 };
 

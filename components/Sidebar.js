@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Animated, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../constants/theme';
@@ -45,6 +45,7 @@ export default function Sidebar({ navigation, currentRoute }) {
           transform: [{ translateX: slideAnim }],
         },
       ]}
+      className="web-sidebar"
     >
       <LinearGradient
         colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
@@ -54,7 +55,11 @@ export default function Sidebar({ navigation, currentRoute }) {
       >
         <View style={styles.logoContainer}>
           <View style={styles.logoIconContainer}>
-            <Ionicons name="walk" size={32} color={theme.colors.white} />
+            <Image 
+              source={require('../assets/img/logo.png')} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.logoText}>Medvandrerne</Text>
           <Text style={styles.logoSubtext}>Vi vandrer sammen</Text>
@@ -152,6 +157,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: theme.spacing.md,
     ...theme.shadows.medium,
+  },
+  logoImage: {
+    width: 48,
+    height: 48,
   },
   logoText: {
     ...theme.typography.h2,

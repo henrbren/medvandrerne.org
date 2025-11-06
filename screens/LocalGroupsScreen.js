@@ -10,6 +10,7 @@ import {
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { LOCAL_GROUPS } from '../constants/data';
@@ -39,9 +40,9 @@ export default function LocalGroupsScreen({ navigation }) {
     }
   };
 
-  const handleFacebookPress = (url) => {
+  const handleFacebookPress = async (url) => {
     if (url) {
-      Linking.openURL(url);
+      await WebBrowser.openBrowserAsync(url);
     }
   };
 

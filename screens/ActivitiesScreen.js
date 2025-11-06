@@ -11,13 +11,14 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { SAMPLE_ACTIVITIES } from '../constants/data';
 
 const isWeb = Platform.OS === 'web';
 
-export default function ActivitiesScreen() {
+export default function ActivitiesScreen({ navigation }) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -60,8 +61,8 @@ export default function ActivitiesScreen() {
     });
   };
 
-  const handleCalendarPress = () => {
-    Linking.openURL('https://www.google.com/calendar/embed?color=%23ffad46&src=medvandrerne.org_2ht93gv6gho6qdo7sft8h60a2c@group.calendar.google.com');
+  const handleCalendarPress = async () => {
+    await WebBrowser.openBrowserAsync('https://www.google.com/calendar/embed?color=%23ffad46&src=medvandrerne.org_2ht93gv6gho6qdo7sft8h60a2c@group.calendar.google.com');
   };
 
   const getActivityIcon = (type) => {
@@ -177,6 +178,7 @@ export default function ActivitiesScreen() {
                   key={activity.id}
                   style={styles.activityCard}
                   activeOpacity={0.7}
+                  onPress={() => navigation.navigate('ActivityDetail', { activity })}
                 >
                   <View style={styles.activityIconContainer}>
                     <LinearGradient
@@ -235,6 +237,7 @@ export default function ActivitiesScreen() {
                   key={activity.id}
                   style={styles.eventCard}
                   activeOpacity={0.7}
+                  onPress={() => navigation.navigate('ActivityDetail', { activity })}
                 >
                   <View style={[styles.eventIconContainer, { backgroundColor: theme.colors.warning + '20' }]}>
                     <Icon name="trophy" size={24} color={theme.colors.warning} />

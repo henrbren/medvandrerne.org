@@ -1,4 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -9,19 +11,62 @@ import {
   Dimensions,
   Animated,
   Platform,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
-import { ORGANIZATION_INFO, MISSION, CORE_ACTIVITIES } from '../constants/data';
+import { ORGANIZATION_INFO, MISSION, CORE_ACTIVITIES, SAMPLE_ACTIVITIES } from '../constants/data';
+import { useRegistrations } from '../hooks/useRegistrations';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 export default function HomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const { registrations, loading, loadRegistrations } = useRegistrations();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  
+  const headerHeight = Platform.OS === 'ios' ? 44 + insets.top : 64;
+
+  // Refresh registrations when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadRegistrations();
+    }, [])
+  );
+
+  // Get registered activities
+  const registeredActivities = SAMPLE_ACTIVITIES.filter(activity => 
+    registrations.includes(activity.id)
+  );
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('nb-NO', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+  };
+
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'Tur':
+        return 'walk';
+      case 'Motivasjonstur':
+        return 'map';
+      case 'Møte':
+        return 'people';
+      case 'Arrangement':
+        return 'trophy';
+      default:
+        return 'calendar';
+    }
+  };
 
   useEffect(() => {
     Animated.parallel([
@@ -93,7 +138,7 @@ export default function HomeScreen({ navigation }) {
           isWeb && styles.scrollContentWeb,
         ]}
       >
-        {/* Hero Section - Modernized */}
+        {/* Hero Section - With Image Background */}
         <Animated.View
           style={[
             styles.heroWrapper,
@@ -103,33 +148,87 @@ export default function HomeScreen({ navigation }) {
                 { translateY: slideAnim },
                 { scale: scaleAnim },
               ],
+              marginTop: -headerHeight,
             },
           ]}
         >
-          <LinearGradient
-            colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroSection}
-          >
+          <View style={[styles.heroImageContainer, { paddingTop: headerHeight + theme.spacing.md }]}>
+            <Image 
+              source={require('../assets/img/hero/hero1.jpg')} 
+              style={styles.heroBackgroundImage}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroImageOverlay}
+            />
             <View style={styles.heroContent}>
               <View style={styles.heroIconContainer}>
-                <Icon name="walk" size={48} color={theme.colors.white} />
+                <Image 
+                  source={require('../assets/img/logo.png')} 
+                  style={styles.heroLogo}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.heroSubtitle}>STIFTELSEN</Text>
               <Text style={styles.heroTitle}>Medvandrerne</Text>
               <Text style={styles.heroTagline}>Vi vandrer sammen</Text>
             </View>
-            
-            {/* Decorative blur circles */}
-            <View style={styles.heroDecoration1} />
-            <View style={styles.heroDecoration2} />
-            <View style={styles.heroDecoration3} />
-          </LinearGradient>
+          </View>
         </Animated.View>
 
+        {/* My Registrations */}
+        {registeredActivities.length > 0 && (
+          <AnimatedSection delay={100}>
+            <View style={styles.registrationsSection}>
+              <View style={styles.sectionHeaderMinimal}>
+                <LinearGradient
+                  colors={[theme.colors.primary, theme.colors.primaryLight]}
+                  style={styles.headerIconGradient}
+                >
+                  <Icon name="checkmark-circle" size={28} color={theme.colors.white} />
+                </LinearGradient>
+                <Text style={styles.sectionTitleLarge}>Mine påmeldinger</Text>
+              </View>
+              
+              <View style={styles.registrationsList}>
+                {registeredActivities.map((activity) => (
+                  <TouchableOpacity
+                    key={activity.id}
+                    style={styles.registrationCard}
+                    onPress={() => navigation.navigate('ActivityDetail', { activity })}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.registrationIconContainer}>
+                      <LinearGradient
+                        colors={[theme.colors.primary + '40', theme.colors.primary + '20']}
+                        style={styles.registrationIconGradient}
+                      >
+                        <Icon name={getActivityIcon(activity.type)} size={24} color={theme.colors.primary} />
+                      </LinearGradient>
+                    </View>
+                    <View style={styles.registrationContent}>
+                      <Text style={styles.registrationTitle}>{activity.title}</Text>
+                      <View style={styles.registrationMeta}>
+                        <Icon name="time" size={14} color={theme.colors.textSecondary} />
+                        <Text style={styles.registrationDate}>
+                          {formatDate(activity.date)}
+                          {activity.time && ` • ${activity.time}`}
+                        </Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </AnimatedSection>
+        )}
+
         {/* Mission Statement - No card, more space */}
-        <AnimatedSection delay={100}>
+        <AnimatedSection delay={registeredActivities.length > 0 ? 200 : 100}>
           <View style={styles.missionSection}>
             <View style={styles.sectionHeaderMinimal}>
               <Text style={styles.sectionTitleLarge}>Om Medvandrerne</Text>
@@ -142,7 +241,7 @@ export default function HomeScreen({ navigation }) {
         </AnimatedSection>
 
         {/* Core Activities - Interactive List */}
-        <AnimatedSection delay={200}>
+        <AnimatedSection delay={registeredActivities.length > 0 ? 300 : 200}>
           <View style={styles.activitiesSection}>
             <View style={styles.sectionHeaderMinimal}>
               <Icon name="trophy" size={28} color={theme.colors.primary} />
@@ -303,7 +402,30 @@ const styles = StyleSheet.create({
   
   // Hero Section
   heroWrapper: {
-    marginBottom: theme.spacing.xxxl,
+    marginBottom: theme.spacing.xl,
+  },
+  heroImageContainer: {
+    width: '100%',
+    minHeight: isWeb ? 400 : 360,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  heroBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  heroImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
   },
   heroSection: {
     paddingVertical: theme.spacing.xxxl * 1.5,
@@ -315,18 +437,27 @@ const styles = StyleSheet.create({
     ...theme.shadows.glow,
   },
   heroContent: {
+    position: 'relative',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.lg,
     zIndex: 2,
   },
   heroIconContainer: {
-    width: 96,
-    height: 96,
+    width: 100,
+    height: 100,
     borderRadius: theme.borderRadius.xxl,
-    backgroundColor: theme.colors.white + '25',
+    backgroundColor: theme.colors.white + '30',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.medium,
+    marginBottom: theme.spacing.md,
+    padding: theme.spacing.xs,
+    ...theme.shadows.large,
+  },
+  heroLogo: {
+    width: '100%',
+    height: '100%',
   },
   heroSubtitle: {
     ...theme.typography.caption,
@@ -334,55 +465,27 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     letterSpacing: 3,
     fontWeight: '800',
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.xs / 2,
+    fontSize: 11,
   },
   heroTitle: {
-    ...theme.typography.display,
-    fontSize: isWeb ? 64 : 52,
-    fontWeight: '900',
+    ...theme.typography.h1,
+    fontSize: isWeb ? 28 : 24,
+    fontWeight: '800',
     color: theme.colors.white,
     textAlign: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs / 2,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 12,
   },
   heroTagline: {
-    ...theme.typography.title,
+    ...theme.typography.body,
+    fontSize: isWeb ? 16 : 15,
     color: theme.colors.white,
     opacity: 0.95,
     fontStyle: 'italic',
     fontWeight: '500',
-  },
-  heroDecoration1: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: theme.colors.white + '15',
-    top: -50,
-    right: -50,
-    zIndex: 1,
-  },
-  heroDecoration2: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: theme.colors.white + '10',
-    bottom: -30,
-    left: -30,
-    zIndex: 1,
-  },
-  heroDecoration3: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.white + '08',
-    bottom: 50,
-    right: 30,
-    zIndex: 1,
   },
   
   // Section Headers - Minimal
@@ -392,9 +495,66 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
     gap: theme.spacing.md,
   },
+  headerIconGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sectionTitleLarge: {
     ...theme.typography.h2,
     color: theme.colors.text,
+  },
+  
+  // Registrations Section
+  registrationsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  registrationsList: {
+    gap: theme.spacing.md,
+  },
+  registrationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  registrationIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    overflow: 'hidden',
+  },
+  registrationIconGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  registrationContent: {
+    flex: 1,
+  },
+  registrationTitle: {
+    ...theme.typography.body,
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  registrationMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs / 2,
+  },
+  registrationDate: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    fontSize: 13,
   },
   
   // Mission Section - No cards
@@ -404,9 +564,10 @@ const styles = StyleSheet.create({
   },
   missionText: {
     ...theme.typography.body,
+    fontSize: 16,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.lg,
-    lineHeight: 28,
+    marginBottom: theme.spacing.md,
+    lineHeight: 24,
   },
   
   // Activities Section
@@ -422,7 +583,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.xl,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     gap: theme.spacing.md,
     ...theme.shadows.small,
   },
@@ -445,13 +606,15 @@ const styles = StyleSheet.create({
   },
   activityTitle: {
     ...theme.typography.title,
+    fontSize: 20,
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.xs / 2,
   },
   activityDescription: {
     ...theme.typography.bodySmall,
+    fontSize: 14,
     color: theme.colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   activityChevron: {
     opacity: 0.5,
