@@ -13,10 +13,14 @@ export const ORGANIZATION_INFO = {
 // Mission and values
 export const MISSION = {
   title: 'Om Medvandrerne',
-  description: 'Medvandrerne fokuserer på salutogenese og recovery, som betyr at de fokuserer på det som gjør den enkelte frisk og flytter fokus vekk fra selve «sykdomsbildet». De fokuserer på mulighetene og vekstpotensialet til deltakerne, og ikke på diagnoser og begrensninger.',
-  nature: 'Naturen spiller en sentral rolle i Medvandrernes konsept. De arrangerer motivasjonsturer for rusavhengige og som utfordrer og gir muligheter for vekst. Turene gir deltakerne anledning til å komme seg vekk fra en vanskelig hverdag og finne innsikt og sunt fellesskap.',
-  equality: 'På turene er alle likestilte, og det er ingen "ovenfra og ned"-relasjon mellom hjelpere og brukere. Deltakerne sitter rundt bålet kveld etter kveld og deler erfaringer, sorger og håp. Dette skaper en følelse av fellesskap og tilhørighet som kan være vanskelig å finne andre steder.',
-  responsibility: 'Medvandrerne legger vekt på at deltakerne skal ta ansvar for seg selv og hverandre. Gjennom å mestre utfordringer i naturen, får deltakerne økt selvtillit og mestringsfølelse som de kan ta med seg tilbake til hverdagen.',
+  description:
+    'Medvandrerne er en ideell stiftelse som arbeider helhetlig med utgangspunkt i salutogenese og recovery. Vi identifiserer og videreutvikler ressursene som finnes hos hver deltaker, fremfor å forsterke sykdoms- eller problemfokuset. Gjennom tydelige rammer, erfaringskompetanse og profesjonelle samarbeidspartnere skaper vi et miljø som inspirerer til varig endring.',
+  nature:
+    'Naturen er vår viktigste arena for utvikling og fellesskap. Strukturerte motivasjonsturer og ekspedisjoner gir deltakerne rom for refleksjon, mestring og ny retning i livet. Gjennom aktivitetene får den enkelte pusterom fra en krevende hverdag og møter et fellesskap som bygger nye vaner og relasjoner.',
+  equality:
+    'Likestilling og gjensidig respekt ligger til grunn for alt vi gjør. Hjelpere, frivillige og deltakere møtes på samme nivå, deler erfaringer og bygger tillit over tid. Ved å være åpne om både utfordringer og seire skaper vi trygge fellesskap der alle stemmer blir hørt.',
+  responsibility:
+    'Medvandrerne stiller tydelige forventninger til ansvar, både for egen utvikling og for gruppens trygghet. Deltakerne trener på å mestre krevende situasjoner i naturen, og tar med seg denne mestringsfølelsen inn i hverdagen. Slik styrker vi individets handlingsrom og evne til å bidra positivt i sine nærmiljøer.',
 };
 
 // Core activities
