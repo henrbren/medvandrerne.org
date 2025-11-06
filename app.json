@@ -1,83 +1,29 @@
 {
   "expo": {
-    "owner": "dyremappa",
-    "name": "Dyremappa",
-    "slug": "dyremappa",
+    "name": "Medvandrerne",
+    "slug": "medvandrerne-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": [
-      "expo-apple-authentication",
-      "expo-localization",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Appen trenger tilatelse for å bruke kameraet ditt"
-        }
-      ],
-      [
-        "expo-document-picker",
-        {
-          "iCloudContainerEnvironment": "Production"
-        }
-      ],
-      [
-        "expo-updates",
-        {
-          "username": "henrbren"
-        }
-      ]
-    ],
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "updates": {
-      "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/79642c64-e780-4cb0-9f67-1ae5a216dbb1"
+      "backgroundColor": "#2E7D32"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "buildNumber": "1.1.2.0",
       "supportsTablet": true,
-      "usesAppleSignIn": true,
-      "bundleIdentifier": "no.vixon.dyremappa",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "For å finne dyr i nærheten",
-        "NSCameraUsageDescription": "Ta bilder for dyr og kommentarer",
-        "NSPhotoLibraryUsageDescription": "Bilder for dyr og kommentarer",
-        "LSApplicationQueriesSchemes": [
-          "no.vixon.dyremappa"
-        ]
-      }
+      "bundleIdentifier": "org.medvandrerne.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#2E7D32"
       },
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.VIBRATE"
-      ],
-      "versionCode": 1,
-      "package": "no.vixon.dyremappa"
+      "package": "org.medvandrerne.app"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "79642c64-e780-4cb0-9f67-1ae5a216dbb1"
-      }
-    }
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

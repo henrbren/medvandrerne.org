@@ -1,0 +1,109 @@
+/* Web-specific styles for better UX */
+
+/* Smooth scrolling */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: #FFF5F5;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar hover effects */
+[class*="menuItem"]:hover {
+  background-color: rgba(220, 38, 38, 0.08) !important;
+  transform: translateX(4px);
+  transition: all 0.2s ease;
+}
+
+[class*="menuItem"]:active {
+  transform: translateX(2px);
+}
+
+/* Better hover effects for interactive elements */
+[data-testid="activity-card"],
+[data-testid="event-card"],
+[data-testid="support-button"],
+[data-testid="calendar-button"] {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-testid="activity-card"]:hover,
+[data-testid="event-card"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2) !important;
+}
+
+[data-testid="support-button"]:hover,
+[data-testid="calendar-button"]:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* Better focus states for accessibility */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #DC2626;
+  outline-offset: 2px;
+}
+
+/* Improve text selection */
+::selection {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #1F2937;
+}
+
+/* Better scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF5F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DC2626;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #991B1B;
+}
+
+/* Smooth page transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  /* Mobile optimizations */
+  [class*="sidebar"] {
+    display: none !important;
+  }
+  
+  [class*="webContentContainer"] {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Tablet and desktop optimizations */
+  body {
+    background-color: #FFF5F5;
+  }
+}
+
