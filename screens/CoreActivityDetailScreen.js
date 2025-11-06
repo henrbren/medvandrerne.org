@@ -1,129 +1,167 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
+  Linking,
+  Platform,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withDelay,
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
+import { ORGANIZATION_INFO } from '../constants/data';
 
-export default function CoreActivityDetailScreen() {
-  const route = useRoute();
-  const { activity } = route.params;
+export default function CoreActivityDetailScreen({ route, navigation }) {
+  const { activity } = route.params || {};
 
-  const fadeAnim = useSharedValue(0);
-  const slideAnim = useSharedValue(50);
-
-  useEffect(() => {
-    fadeAnim.value = withTiming(1, { duration: 600 });
-    slideAnim.value = withSpring(0, { damping: 15, stiffness: 100 });
-  }, []);
-
-  const headerStyle = useAnimatedStyle(() => ({
-    opacity: fadeAnim.value,
-    transform: [{ translateY: slideAnim.value }],
-  }));
-
-  const AnimatedCard = ({ children, delay = 0 }) => {
-    const cardFade = useSharedValue(0);
-    const cardSlide = useSharedValue(30);
-
-    useEffect(() => {
-      cardFade.value = withDelay(delay, withTiming(1, { duration: 500 }));
-      cardSlide.value = withDelay(delay, withSpring(0, { damping: 15, stiffness: 100 }));
-    }, []);
-
-    const cardStyle = useAnimatedStyle(() => ({
-      opacity: cardFade.value,
-      transform: [{ translateY: cardSlide.value }],
-    }));
-
+  if (!activity) {
     return (
-      <Animated.View style={cardStyle}>
-        {children}
-      </Animated.View>
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Ingen informasjon tilgjengelig</Text>
+      </View>
     );
+  }
+
+  const handleContactPress = () => {
+    Linking.openURL(`mailto:${ORGANIZATION_INFO.website}`);
   };
+
+  const handleWebsitePress = () => {
+    Linking.openURL(ORGANIZATION_INFO.website);
+  };
+
+  const isWeb = Platform.OS === 'web';
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isWeb && styles.scrollContentWeb,
+        ]}
       >
-        {/* Hero Header */}
-        <Animated.View style={[styles.heroSection, headerStyle]}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
           <LinearGradient
-            colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
+            colors={[
+              theme.colors.gradientStart,
+              theme.colors.gradientMiddle,
+              theme.colors.gradientEnd,
+            ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.heroGradient}
           >
-            <View style={styles.heroIconContainer}>
-              <Icon name={activity.icon} size={48} color={theme.colors.white} />
+            <View style={styles.iconContainer}>
+              <Icon name={activity.icon} size={60} color={theme.colors.white} />
             </View>
             <Text style={styles.heroTitle}>{activity.title}</Text>
+            <Text style={styles.heroSubtitle}>Kjernevirksomhet</Text>
           </LinearGradient>
-        </Animated.View>
+        </View>
 
-        {/* Description */}
-        <AnimatedCard delay={100}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="information-circle-outline" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Om aktiviteten</Text>
-            </View>
-            <Text style={styles.descriptionText}>{activity.description}</Text>
+        {/* Description Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.primaryLight]}
+              style={styles.iconWrapper}
+            >
+              <Icon
+                name="information-circle"
+                size={32}
+                color={theme.colors.white}
+              />
+            </LinearGradient>
+            <Text style={styles.sectionTitle}>Om aktiviteten</Text>
           </View>
-        </AnimatedCard>
+          <Text style={styles.description}>{activity.description}</Text>
+        </View>
 
-        {/* Additional Info */}
-        <AnimatedCard delay={200}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="heart-outline" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Viktig for Medvandrerne</Text>
+        {/* CTA Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.iconWrapper}>
+              <Icon name="call" size={24} color={theme.colors.primary} />
             </View>
-            <Text style={styles.descriptionText}>
-              Dette er en av våre kjerneaktiviteter som er sentral i Medvandrernes 
-              virksomhet. Gjennom denne aktiviteten skaper vi muligheter for vekst, 
-              mestring og fellesskap i naturen.
+            <Text style={styles.sectionTitle}>Bli med</Text>
+          </View>
+          <Text style={styles.ctaDescription}>
+            Ønsker du å delta på {activity.title.toLowerCase()}? Ta kontakt
+            med oss for å høre mer om hvordan du kan være med.
+          </Text>
+
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={handleContactPress}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={[
+                theme.colors.primaryDark,
+                theme.colors.primary,
+                theme.colors.primaryLight,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.ctaGradient}
+            >
+              <Icon name="mail-outline" size={24} color={theme.colors.white} />
+              <Text style={styles.ctaText}>Ta kontakt</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryCtaButton}
+            onPress={handleWebsitePress}
+            activeOpacity={0.7}
+          >
+            <Icon name="globe-outline" size={20} color={theme.colors.primary} />
+            <Text style={styles.secondaryCtaText}>
+              Besøk vår nettside
             </Text>
-          </View>
-        </AnimatedCard>
+          </TouchableOpacity>
+        </View>
 
-        {/* Impact */}
-        <AnimatedCard delay={300}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="trophy-outline" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Effekt</Text>
+        {/* Additional Info Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.iconWrapper}>
+              <Icon name="trophy" size={24} color={theme.colors.primary} />
             </View>
-            <Text style={styles.descriptionText}>
-              Gjennom denne aktiviteten får deltakerne mulighet til å oppleve 
-              salutogenese og recovery, hvor fokuset ligger på det som gjør den 
-              enkelte frisk. Naturen spiller en sentral rolle, og deltakerne får 
-              økt selvtillit og mestringsfølelse som de kan ta med seg tilbake til hverdagen.
-            </Text>
+            <Text style={styles.sectionTitle}>Mer informasjon</Text>
           </View>
-        </AnimatedCard>
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Icon name="map" size={22} color={theme.colors.primary} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Aktivitet</Text>
+                <Text style={styles.infoValue}>{activity.title}</Text>
+              </View>
+            </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Icon
+                  name="information-circle-outline"
+                  size={22}
+                  color={theme.colors.primary}
+                />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Beskrivelse</Text>
+                <Text style={styles.infoValue}>{activity.description}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
   );
@@ -138,67 +176,172 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
+    paddingTop: theme.spacing.xl,
+    paddingBottom: theme.spacing.xxxl,
+  },
+  scrollContentWeb: {
+    maxWidth: theme.web.maxContentWidth,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: theme.web.sidePadding,
   },
   heroSection: {
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
   },
   heroGradient: {
-    paddingVertical: theme.spacing.xxl,
-    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xxxl * 1.5,
+    paddingHorizontal: theme.spacing.xl,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginHorizontal: Platform.OS === 'web' ? 0 : theme.spacing.lg,
+    borderRadius: theme.borderRadius.xxl,
+    overflow: 'hidden',
+    ...theme.shadows.glow,
   },
-  heroIconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  iconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: theme.colors.white + '20',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.md,
+    borderWidth: 3,
+    borderColor: theme.colors.white + '40',
   },
   heroTitle: {
     ...theme.typography.h1,
     color: theme.colors.white,
+    fontSize: 32,
+    fontWeight: '900',
     textAlign: 'center',
-    fontSize: 28,
+    marginBottom: theme.spacing.xs,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  heroSubtitle: {
+    ...theme.typography.body,
+    color: theme.colors.white,
+    opacity: 0.95,
+    fontSize: 18,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   section: {
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.md,
+    marginHorizontal: Platform.OS === 'web' ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  iconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.glowSubtle,
+  },
+  sectionTitle: {
+    ...theme.typography.h2,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  description: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    lineHeight: 28,
+  },
+  ctaDescription: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    lineHeight: 26,
+    marginBottom: theme.spacing.lg,
+  },
+  ctaButton: {
+    borderRadius: theme.borderRadius.xxl,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.glow,
+  },
+  ctaGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xl + theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.lg,
+  },
+  ctaText: {
+    ...theme.typography.buttonLarge,
+    color: theme.colors.white,
+    flex: 1,
+    textAlign: 'center',
+  },
+  secondaryCtaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surfaceElevated,
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.xl,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    ...theme.shadows.medium,
+  },
+  secondaryCtaText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '700',
+    fontSize: 17,
+    marginLeft: theme.spacing.sm,
+  },
+  infoCard: {
+    backgroundColor: theme.colors.surfaceElevated,
     padding: theme.spacing.lg,
     borderRadius: theme.borderRadius.xl,
     ...theme.shadows.medium,
     borderWidth: 1,
     borderColor: theme.colors.borderLight,
   },
-  sectionHeader: {
+  infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
   },
-  iconWrapper: {
+  infoIconContainer: {
     width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.primary + '10',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.spacing.sm,
+    marginTop: 2,
   },
-  sectionTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '700',
+  infoContent: {
+    flex: 1,
   },
-  descriptionText: {
+  infoLabel: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  infoValue: {
     ...theme.typography.body,
     color: theme.colors.text,
-    lineHeight: 24,
-    fontSize: 16,
+    fontWeight: '500',
+    fontSize: 17,
+  },
+  errorText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: theme.spacing.xl,
+  },
+  bottomSpacer: {
+    height: theme.spacing.md,
   },
 });
-

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
+  Platform,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
@@ -16,7 +18,19 @@ import {
   ORGANIZATION_INFO,
 } from '../constants/data';
 
-export default function ContactScreen() {
+const isWeb = Platform.OS === 'web';
+
+export default function ContactScreen({ navigation }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: theme.animations.normal,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const handlePhonePress = (phone) => {
     if (phone) {
       Linking.openURL(`tel:${phone}`);
@@ -29,186 +43,286 @@ export default function ContactScreen() {
     }
   };
 
+  const handlePersonPress = (person, type) => {
+    navigation.navigate('PersonDetail', { person, type });
+  };
+
+  const AnimatedSection = ({ children, delay = 0 }) => {
+    const sectionFade = useRef(new Animated.Value(0)).current;
+    const sectionSlide = useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(sectionFade, {
+          toValue: 1,
+          duration: theme.animations.normal,
+          delay,
+          useNativeDriver: true,
+        }),
+        Animated.spring(sectionSlide, {
+          toValue: 0,
+          delay,
+          ...theme.animations.spring,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View
+        style={{
+          opacity: sectionFade,
+          transform: [{ translateY: sectionSlide }],
+        }}
+      >
+        {children}
+      </Animated.View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isWeb && styles.scrollContentWeb,
+        ]}
       >
+        {/* Top Spacer */}
+        <View style={styles.topSpacer} />
+
         {/* Administration Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="business" size={24} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>Administrasjon</Text>
-          </View>
-          {ADMINISTRATION.map((person) => (
-            <View key={person.id} style={styles.contactCard}>
-              <View style={styles.contactHeader}>
-                <View style={styles.contactAvatar}>
-                  <Icon name="person-circle-outline" size={40} color={theme.colors.primary} />
-                </View>
-                <View style={styles.contactHeaderText}>
-                  <Text style={styles.role}>{person.role}</Text>
-                  <Text style={styles.name}>{person.name}</Text>
-                </View>
-              </View>
-
-              <View style={styles.contactActions}>
-                {person.phone && (
-                  <TouchableOpacity
-                    style={styles.contactActionButton}
-                    onPress={() => handlePhonePress(person.phone)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.actionIconContainer}>
-                      <Icon name="call-outline" size={20} color={theme.colors.primary} />
-                    </View>
-                    <Text style={styles.contactActionText}>{person.phone}</Text>
-                  </TouchableOpacity>
-                )}
-
-                {person.email && (
-                  <TouchableOpacity
-                    style={styles.contactActionButton}
-                    onPress={() => handleEmailPress(person.email)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.actionIconContainer}>
-                      <Icon name="mail-outline" size={20} color={theme.colors.primary} />
-                    </View>
-                    <Text style={styles.contactActionText}>{person.email}</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+        <AnimatedSection>
+          <View style={styles.administrationSection}>
+            <View style={styles.sectionHeader}>
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
+                style={styles.headerIconGradient}
+              >
+                <Icon name="business" size={32} color={theme.colors.white} />
+              </LinearGradient>
+              <Text style={styles.sectionTitle}>Administrasjon</Text>
             </View>
-          ))}
-        </View>
+            
+            <View style={styles.contactsList}>
+              {ADMINISTRATION.map((person, index) => (
+                <TouchableOpacity
+                  key={person.id}
+                  style={styles.contactCard}
+                  onPress={() => handlePersonPress(person, 'administration')}
+                  activeOpacity={0.7}
+                >
+                  <LinearGradient
+                    colors={[theme.colors.surface, theme.colors.backgroundElevated]}
+                    style={styles.contactCardGradient}
+                  >
+                    <View style={styles.contactHeader}>
+                      <View style={styles.avatarContainer}>
+                        <LinearGradient
+                          colors={[theme.colors.primary + '40', theme.colors.primary + '20']}
+                          style={styles.avatarGradient}
+                        >
+                          <Icon name="person-circle" size={40} color={theme.colors.primary} />
+                        </LinearGradient>
+                      </View>
+                      <View style={styles.contactInfo}>
+                        <Text style={styles.contactRole}>{person.role}</Text>
+                        <Text style={styles.contactName}>{person.name}</Text>
+                      </View>
+                      <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+                    </View>
+
+                    {(person.phone || person.email) && (
+                      <View style={styles.contactActions}>
+                        {person.phone && (
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handlePhonePress(person.phone);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <View style={[styles.actionIcon, { backgroundColor: theme.colors.success + '20' }]}>
+                              <Icon name="call" size={20} color={theme.colors.success} />
+                            </View>
+                            <Text style={styles.actionText}>{person.phone}</Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {person.email && (
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handleEmailPress(person.email);
+                            }}
+                            activeOpacity={0.7}
+                          >
+                            <View style={[styles.actionIcon, { backgroundColor: theme.colors.info + '20' }]}>
+                              <Icon name="mail" size={20} color={theme.colors.info} />
+                            </View>
+                            <Text style={styles.actionText}>{person.email}</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </AnimatedSection>
 
         {/* Board Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="people" size={24} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>Styret</Text>
-          </View>
-          <View style={styles.boardCard}>
-            <View style={styles.boardLeaderContainer}>
-              <View style={styles.boardIconContainer}>
-                <Icon name="trophy" size={24} color={theme.colors.primary} />
-              </View>
-              <View style={styles.boardContent}>
-                <Text style={styles.boardRole}>Styreleder</Text>
-                <Text style={styles.boardName}>{BOARD.leader}</Text>
-              </View>
+        <AnimatedSection delay={100}>
+          <View style={styles.boardSection}>
+            <View style={styles.sectionHeader}>
+              <Icon name="people" size={28} color={theme.colors.primary} />
+              <Text style={styles.sectionTitle}>Styret</Text>
             </View>
-          </View>
-
-          <Text style={styles.boardMembersTitle}>Styremedlemmer:</Text>
-          {BOARD.members.map((member, index) => (
-            <View key={index} style={styles.boardMemberCard}>
-              <View style={styles.memberIconContainer}>
-                <Icon name="person-outline" size={18} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.boardMemberName}>{member}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Organization Information */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="information-circle" size={24} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>Organisasjonsinformasjon</Text>
-          </View>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Icon name="business-outline" size={22} color={theme.colors.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Organisasjonsnummer</Text>
-                <Text style={styles.infoValue}>{ORGANIZATION_INFO.orgNumber}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Icon name="card-outline" size={22} color={theme.colors.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Bankkonto</Text>
-                <Text style={styles.infoValue}>
-                  {ORGANIZATION_INFO.bankAccount}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Icon name="phone-portrait-outline" size={22} color={theme.colors.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>VIPPS</Text>
-                <Text style={styles.infoValue}>{ORGANIZATION_INFO.vipps}</Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Icon name="location-outline" size={22} color={theme.colors.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Adresse</Text>
-                <Text style={styles.infoValue}>
-                  {ORGANIZATION_INFO.address}
-                </Text>
-              </View>
-            </View>
-
+            
+            {/* Board Leader */}
             <TouchableOpacity
-              style={styles.infoRow}
-              onPress={() => Linking.openURL(ORGANIZATION_INFO.website)}
+              style={styles.boardLeaderCard}
+              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder' }, 'board')}
               activeOpacity={0.7}
             >
-              <View style={styles.infoIconContainer}>
-                <Icon name="globe-outline" size={22} color={theme.colors.primary} />
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
+                style={styles.boardLeaderGradient}
+              >
+                <View style={styles.leaderIconContainer}>
+                  <Icon name="trophy" size={32} color={theme.colors.white} />
+                </View>
+                <View style={styles.leaderInfo}>
+                  <Text style={styles.leaderRole}>Styreleder</Text>
+                  <Text style={styles.leaderName}>{BOARD.leader}</Text>
+                </View>
+                <Icon name="chevron-forward" size={24} color={theme.colors.white} />
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Board Members */}
+            <View style={styles.boardMembersContainer}>
+              <Text style={styles.subsectionTitle}>Styremedlemmer</Text>
+              <View style={styles.membersList}>
+                {BOARD.members.map((member, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.memberCard}
+                    onPress={() => handlePersonPress({ name: member, role: 'Styremedlem' }, 'board')}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.memberIconContainer}>
+                      <Icon name="person" size={20} color={theme.colors.primary} />
+                    </View>
+                    <Text style={styles.memberName}>{member}</Text>
+                    <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                  </TouchableOpacity>
+                ))}
               </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Nettsted</Text>
-                <Text style={styles.link}>{ORGANIZATION_INFO.website}</Text>
+            </View>
+          </View>
+        </AnimatedSection>
+
+        {/* Organization Information */}
+        <AnimatedSection delay={200}>
+          <View style={styles.organizationSection}>
+            <View style={styles.sectionHeader}>
+              <Icon name="information-circle" size={28} color={theme.colors.primary} />
+              <Text style={styles.sectionTitle}>Organisasjonsinformasjon</Text>
+            </View>
+            
+            <View style={styles.infoList}>
+              <View style={styles.infoItem}>
+                <View style={[styles.infoIcon, { backgroundColor: theme.colors.primary + '20' }]}>
+                  <Icon name="business" size={24} color={theme.colors.primary} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Org.nr</Text>
+                  <Text style={styles.infoValue}>{ORGANIZATION_INFO.orgNumber}</Text>
+                </View>
               </View>
+
+              <View style={styles.infoItem}>
+                <View style={[styles.infoIcon, { backgroundColor: theme.colors.info + '20' }]}>
+                  <Icon name="card" size={24} color={theme.colors.info} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Bankkonto</Text>
+                  <Text style={styles.infoValue}>{ORGANIZATION_INFO.bankAccount}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <View style={[styles.infoIcon, { backgroundColor: theme.colors.warning + '20' }]}>
+                  <Icon name="phone-portrait" size={24} color={theme.colors.warning} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>VIPPS</Text>
+                  <Text style={styles.infoValue}>{ORGANIZATION_INFO.vipps}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <View style={[styles.infoIcon, { backgroundColor: theme.colors.success + '20' }]}>
+                  <Icon name="location" size={24} color={theme.colors.success} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Adresse</Text>
+                  <Text style={styles.infoValue}>{ORGANIZATION_INFO.address}</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.infoItem}
+                onPress={() => Linking.openURL(ORGANIZATION_INFO.website)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.infoIcon, { backgroundColor: theme.colors.info + '20' }]}>
+                  <Icon name="globe" size={24} color={theme.colors.info} />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Nettsted</Text>
+                  <Text style={[styles.infoValue, styles.infoLink]}>{ORGANIZATION_INFO.website}</Text>
+                </View>
+                <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </AnimatedSection>
+
+        {/* Support CTA */}
+        <AnimatedSection delay={300}>
+          <View style={styles.supportSection}>
+            <TouchableOpacity
+              style={styles.supportCTA}
+              onPress={() => Linking.openURL('https://spleis.no/medvandrerne')}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.supportCTAGradient}
+              >
+                <View style={styles.supportIconContainer}>
+                  <Icon name="heart" size={32} color={theme.colors.white} />
+                </View>
+                <View style={styles.supportTextContainer}>
+                  <Text style={styles.supportTitle}>Støtt på Spleis.no</Text>
+                  <Text style={styles.supportSubtitle}>
+                    Vi setter stor pris på all støtte
+                  </Text>
+                </View>
+                <Icon name="arrow-forward" size={28} color={theme.colors.white} />
+              </LinearGradient>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Support Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="heart" size={24} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>Støtt oss</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.supportButton}
-            onPress={() =>
-              Linking.openURL('https://spleis.no/medvandrerne')
-            }
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={[theme.colors.primaryDark, theme.colors.primary, theme.colors.primaryLight, theme.colors.gradientLight]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.supportButtonGradient}
-            >
-              <Icon name="heart-outline" size={24} color={theme.colors.white} />
-              <Text style={styles.supportButtonText}>Støtt på Spleis.no</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <Text style={styles.supportText}>
-            Vi setter stor pris på all støtte, både økonomisk og gjennom deltakelse
-            på aktiviteter og arrangementer.
-          </Text>
-        </View>
+        </AnimatedSection>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -223,232 +337,278 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
-    flexGrow: 1,
+    paddingBottom: theme.spacing.xxxl,
   },
-  section: {
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-    padding: theme.spacing.xl,
-    borderRadius: theme.borderRadius.xxl,
-    ...theme.shadows.large,
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
+  scrollContentWeb: {
+    maxWidth: theme.web.maxContentWidth,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: theme.web.sidePadding,
   },
+  topSpacer: {
+    height: theme.spacing.xl,
+  },
+  
+  // Section Headers
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  headerIconGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.glowSubtle,
   },
   sectionTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    marginLeft: theme.spacing.sm,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    ...theme.typography.h2,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  
+  // Administration Section
+  administrationSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  contactsList: {
+    gap: theme.spacing.lg,
   },
   contactCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    marginBottom: theme.spacing.md,
-    borderLeftWidth: 5,
-    borderLeftColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.xxl,
+    overflow: 'hidden',
     ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
+  },
+  contactCardGradient: {
+    padding: theme.spacing.xl,
   },
   contactHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: theme.spacing.md,
     marginBottom: theme.spacing.md,
   },
-  contactAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.spacing.md,
+  avatarContainer: {
     ...theme.shadows.small,
   },
-  contactHeaderText: {
-    flex: 1,
-  },
-  role: {
-    ...theme.typography.bodySmall,
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
-  },
-  name: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  contactActions: {
-    marginTop: theme.spacing.xs,
-  },
-  contactActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.sm,
-    borderRadius: theme.borderRadius.sm,
-    marginBottom: theme.spacing.xs,
-  },
-  actionIconContainer: {
-    width: 32,
-    alignItems: 'center',
-  },
-  contactActionText: {
-    ...theme.typography.body,
-    color: theme.colors.primary,
-    fontWeight: '500',
-    flex: 1,
-  },
-  boardCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: theme.spacing.md,
-  },
-  boardLeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  boardIconContainer: {
+  avatarGradient: {
     width: 56,
     height: 56,
     borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: theme.spacing.md,
-    ...theme.shadows.small,
   },
-  boardContent: {
+  contactInfo: {
     flex: 1,
   },
-  boardRole: {
-    ...theme.typography.bodySmall,
+  contactRole: {
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    marginBottom: 4,
-  },
-  boardName: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  boardMembersTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.text,
-    fontSize: 16,
+    marginBottom: 2,
     fontWeight: '600',
-    marginBottom: theme.spacing.sm,
-    marginTop: theme.spacing.xs,
   },
-  boardMemberCard: {
+  contactName: {
+    ...theme.typography.title,
+    color: theme.colors.text,
+  },
+  
+  // Contact Actions
+  contactActions: {
+    gap: theme.spacing.sm,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.surfaceElevated,
+    gap: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionText: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    fontWeight: '500',
+  },
+  
+  // Board Section
+  boardSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  boardLeaderCard: {
+    borderRadius: theme.borderRadius.xxl,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.glow,
+  },
+  boardLeaderGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  leaderIconContainer: {
+    width: 60,
+    height: 60,
     borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.sm,
-    ...theme.shadows.small,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
+    backgroundColor: theme.colors.white + '25',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leaderInfo: {
+    flex: 1,
+  },
+  leaderRole: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    opacity: 0.9,
+    marginBottom: 2,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  leaderName: {
+    ...theme.typography.h3,
+    color: theme.colors.white,
+  },
+  
+  // Board Members
+  boardMembersContainer: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+  },
+  subsectionTitle: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: theme.spacing.md,
+  },
+  membersList: {
+    gap: theme.spacing.sm,
+  },
+  memberCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.backgroundElevated,
+    borderRadius: theme.borderRadius.lg,
+    gap: theme.spacing.md,
   },
   memberIconContainer: {
-    width: 32,
+    width: 36,
+    height: 36,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.primary + '20',
     alignItems: 'center',
-    marginRight: theme.spacing.sm,
+    justifyContent: 'center',
   },
-  boardMemberName: {
+  memberName: {
     ...theme.typography.body,
     color: theme.colors.text,
     flex: 1,
+    fontWeight: '500',
   },
-  infoCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: theme.spacing.lg,
+  
+  // Organization Section
+  organizationSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  infoList: {
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.xl,
-    ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.lg,
   },
-  infoRow: {
+  infoItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
-  },
-  infoIconContainer: {
-    width: 40,
     alignItems: 'center',
-    marginTop: 2,
+    gap: theme.spacing.md,
+  },
+  infoIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   infoContent: {
     flex: 1,
   },
   infoLabel: {
-    ...theme.typography.bodySmall,
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: 2,
+    fontWeight: '600',
   },
   infoValue: {
     ...theme.typography.body,
     color: theme.colors.text,
     fontWeight: '500',
   },
-  link: {
-    ...theme.typography.body,
+  infoLink: {
     color: theme.colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  supportButton: {
-    borderRadius: theme.borderRadius.xl,
+  
+  // Support Section
+  supportSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  supportCTA: {
+    borderRadius: theme.borderRadius.xxl,
     overflow: 'hidden',
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.xl,
     ...theme.shadows.glow,
   },
-  supportButtonGradient: {
+  supportCTAGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xl,
+    paddingVertical: theme.spacing.xl + theme.spacing.sm,
     paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.lg,
   },
-  supportButtonText: {
-    ...theme.typography.body,
+  supportIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  supportTextContainer: {
+    flex: 1,
+  },
+  supportTitle: {
+    ...theme.typography.buttonLarge,
     color: theme.colors.white,
-    fontWeight: '800',
-    marginLeft: theme.spacing.sm,
-    fontSize: 20,
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    marginBottom: theme.spacing.xs / 2,
   },
-  supportText: {
+  supportSubtitle: {
     ...theme.typography.bodySmall,
-    color: theme.colors.textSecondary,
-    lineHeight: 20,
-    textAlign: 'center',
+    color: theme.colors.white,
+    opacity: 0.9,
   },
+  
   bottomSpacer: {
-    height: theme.spacing.md,
+    height: theme.spacing.xxl,
   },
 });

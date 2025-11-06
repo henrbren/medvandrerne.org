@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Linking,
   Platform,
+  Animated,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,6 +19,15 @@ const isWeb = Platform.OS === 'web';
 
 export default function ActivitiesScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: theme.animations.normal,
+      useNativeDriver: true,
+    }).start();
+  }, []);
   
   const markedDates = {};
   SAMPLE_ACTIVITIES.forEach((activity) => {
@@ -61,11 +71,11 @@ export default function ActivitiesScreen() {
       case 'Motivasjonstur':
         return 'map';
       case 'Møte':
-        return 'people-outline';
+        return 'people';
       case 'Arrangement':
         return 'trophy';
       default:
-        return 'calendar-outline';
+        return 'calendar';
     }
   };
 
@@ -79,41 +89,45 @@ export default function ActivitiesScreen() {
           isWeb && styles.scrollContentWeb,
         ]}
       >
+        {/* Top Spacer */}
+        <View style={styles.topSpacer} />
+
         {/* Calendar Link Section */}
-        <View style={styles.section}>
+        <View style={styles.calendarLinkSection}>
           <View style={styles.sectionHeader}>
-            <View style={styles.iconWrapper}>
-              <Icon name="calendar" size={24} color={theme.colors.primary} />
-            </View>
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.primaryLight]}
+              style={styles.headerIconGradient}
+            >
+              <Icon name="calendar" size={32} color={theme.colors.white} />
+            </LinearGradient>
             <Text style={styles.sectionTitle}>Aktivitetskalender</Text>
           </View>
-          <Text style={styles.text}>
+          <Text style={styles.description}>
             Se alle aktiviteter i vår Google Kalender
           </Text>
           <TouchableOpacity
-            style={styles.calendarButton}
+            style={styles.primaryCTA}
             onPress={handleCalendarPress}
-            activeOpacity={0.9}
+            activeOpacity={0.85}
           >
             <LinearGradient
-              colors={[theme.colors.primaryDark, theme.colors.primary, theme.colors.primaryLight, theme.colors.gradientLight]}
+              colors={[theme.colors.primary, theme.colors.primaryLight]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.calendarButtonGradient}
+              end={{ x: 1, y: 1 }}
+              style={styles.primaryCTAGradient}
             >
-              <View style={styles.buttonIconContainer}>
-                <Icon name="calendar-outline" size={22} color={theme.colors.white} />
+              <View style={styles.ctaIconContainer}>
+                <Icon name="calendar" size={28} color={theme.colors.white} />
               </View>
-              <Text style={styles.buttonText}>Åpne kalender</Text>
-              <View style={styles.buttonArrow}>
-                <Icon name="chevron-forward-outline" size={20} color={theme.colors.white} />
-              </View>
+              <Text style={styles.ctaText}>Åpne kalender</Text>
+              <Icon name="arrow-forward" size={24} color={theme.colors.white} />
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Calendar */}
-        <View style={styles.section}>
+        <View style={styles.calendarSection}>
           <Calendar
             current={selectedDate}
             onDayPress={(day) => setSelectedDate(day.dateString)}
@@ -132,80 +146,75 @@ export default function ActivitiesScreen() {
               selectedDayTextColor: theme.colors.white,
               todayTextColor: theme.colors.primary,
               dayTextColor: theme.colors.text,
-              textDisabledColor: theme.colors.border,
+              textDisabledColor: theme.colors.textTertiary,
               dotColor: theme.colors.primary,
               selectedDotColor: theme.colors.white,
               arrowColor: theme.colors.primary,
               monthTextColor: theme.colors.text,
-              textDayFontWeight: '500',
-              textMonthFontWeight: '700',
-              textDayHeaderFontWeight: '600',
-              textDayFontSize: 16,
-              textMonthFontSize: 18,
-              textDayHeaderFontSize: 13,
+              textDayFontWeight: '600',
+              textMonthFontWeight: '800',
+              textDayHeaderFontWeight: '700',
+              textDayFontSize: 17,
+              textMonthFontSize: 20,
+              textDayHeaderFontSize: 14,
             }}
             style={styles.calendar}
           />
         </View>
 
         {/* Activities for Selected Date */}
-        <View style={styles.section}>
+        <View style={styles.activitiesSection}>
           <View style={styles.sectionHeader}>
-            <View style={styles.iconWrapper}>
-              <Icon name="time" size={24} color={theme.colors.primary} />
-            </View>
+            <Icon name="time" size={28} color={theme.colors.primary} />
             <Text style={styles.sectionTitle}>
-              Aktiviteter {selectedDate && formatDate(selectedDate)}
+              {formatDate(selectedDate)}
             </Text>
           </View>
           {selectedActivities.length > 0 ? (
-            selectedActivities.map((activity) => (
-              <TouchableOpacity
-                key={activity.id}
-                style={styles.activityCard}
-                activeOpacity={0.7}
-              >
-                <View style={styles.activityHeader}>
+            <View style={styles.activitiesList}>
+              {selectedActivities.map((activity) => (
+                <TouchableOpacity
+                  key={activity.id}
+                  style={styles.activityCard}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.activityIconContainer}>
                     <LinearGradient
-                      colors={[theme.colors.primary + '20', theme.colors.primaryLight + '20']}
+                      colors={[theme.colors.primary, theme.colors.primaryLight]}
                       style={styles.activityIconGradient}
                     >
                       <Icon
                         name={getActivityIcon(activity.type)}
-                        size={24}
-                        color={theme.colors.primary}
+                        size={28}
+                        color={theme.colors.white}
                       />
                     </LinearGradient>
                   </View>
-                  <View style={styles.activityHeaderText}>
+                  <View style={styles.activityContent}>
                     <Text style={styles.activityTitle}>{activity.title}</Text>
-                    <View style={styles.activityTypeBadge}>
-                      <Text style={styles.activityType}>{activity.type}</Text>
+                    <View style={styles.activityMeta}>
+                      <View style={styles.activityBadge}>
+                        <Text style={styles.activityType}>{activity.type}</Text>
+                      </View>
+                      <Text style={styles.activityTime}>
+                        {activity.multiDay
+                          ? `${formatDate(activity.date)} - ${formatDate(activity.endDate)}`
+                          : activity.time}
+                      </Text>
                     </View>
+                    {activity.location !== 'Har ikke sted' && (
+                      <View style={styles.activityLocation}>
+                        <Icon name="location" size={16} color={theme.colors.textSecondary} />
+                        <Text style={styles.activityLocationText}>{activity.location}</Text>
+                      </View>
+                    )}
                   </View>
-                </View>
-                <View style={styles.activityDetails}>
-                  <View style={styles.detailRow}>
-                    <Icon name="time-outline" size={18} color={theme.colors.textSecondary} />
-                    <Text style={styles.detailText}>
-                      {activity.multiDay
-                        ? `${formatDate(activity.date)} - ${formatDate(activity.endDate)}`
-                        : activity.time}
-                    </Text>
-                  </View>
-                  {activity.location !== 'Har ikke sted' && (
-                    <View style={styles.detailRow}>
-                      <Icon name="location-outline" size={18} color={theme.colors.textSecondary} />
-                      <Text style={styles.detailText}>{activity.location}</Text>
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))
+                </TouchableOpacity>
+              ))}
+            </View>
           ) : (
             <View style={styles.emptyState}>
-              <Icon name="calendar-outline" size={48} color={theme.colors.textLight} />
+              <Icon name="calendar-outline" size={64} color={theme.colors.textTertiary} />
               <Text style={styles.emptyStateText}>
                 Ingen aktiviteter planlagt for denne dagen
               </Text>
@@ -214,28 +223,21 @@ export default function ActivitiesScreen() {
         </View>
 
         {/* Upcoming Major Events */}
-        <View style={styles.section}>
+        <View style={styles.eventsSection}>
           <View style={styles.sectionHeader}>
-            <View style={styles.iconWrapper}>
-              <Icon name="trophy" size={24} color={theme.colors.primary} />
-            </View>
-            <Text style={styles.sectionTitle}>Kommende større arrangementer</Text>
+            <Icon name="trophy" size={28} color={theme.colors.primary} />
+            <Text style={styles.sectionTitle}>Kommende arrangementer</Text>
           </View>
-          {SAMPLE_ACTIVITIES.filter((a) => a.multiDay || a.type === 'Arrangement').map(
-            (activity) => (
-              <TouchableOpacity
-                key={activity.id}
-                style={styles.eventCard}
-                activeOpacity={0.7}
-              >
-                <View style={styles.eventHeader}>
-                  <View style={styles.eventIconContainer}>
-                    <LinearGradient
-                      colors={[theme.colors.primary + '20', theme.colors.primaryLight + '20']}
-                      style={styles.eventIconGradient}
-                    >
-                      <Icon name="trophy" size={20} color={theme.colors.primary} />
-                    </LinearGradient>
+          <View style={styles.eventsList}>
+            {SAMPLE_ACTIVITIES.filter((a) => a.multiDay || a.type === 'Arrangement').map(
+              (activity) => (
+                <TouchableOpacity
+                  key={activity.id}
+                  style={styles.eventCard}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.eventIconContainer, { backgroundColor: theme.colors.warning + '20' }]}>
+                    <Icon name="trophy" size={24} color={theme.colors.warning} />
                   </View>
                   <View style={styles.eventContent}>
                     <Text style={styles.eventTitle}>{activity.title}</Text>
@@ -244,10 +246,11 @@ export default function ActivitiesScreen() {
                       {activity.endDate && ` - ${formatDate(activity.endDate)}`}
                     </Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            )
-          )}
+                  <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+                </TouchableOpacity>
+              )
+            )}
+          </View>
         </View>
 
         <View style={styles.bottomSpacer} />
@@ -263,11 +266,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
-    flexGrow: 1,
+    paddingBottom: theme.spacing.xxxl,
   },
   scrollContentWeb: {
     maxWidth: theme.web.maxContentWidth,
@@ -275,127 +276,125 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: theme.web.sidePadding,
   },
-  section: {
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: isWeb ? 0 : theme.spacing.md,
-    marginBottom: isWeb ? theme.web.cardGap : theme.spacing.lg,
-    padding: isWeb ? theme.spacing.xxl : theme.spacing.xl,
-    borderRadius: theme.borderRadius.xxl,
-    ...theme.shadows.large,
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
-    ...(isWeb && {
-      width: '100%',
-    }),
+  topSpacer: {
+    height: theme.spacing.xl,
   },
+  
+  // Section Headers
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
   },
-  iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.spacing.md,
-    ...theme.shadows.small,
-  },
-  sectionTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    marginLeft: theme.spacing.xs,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  text: {
-    ...theme.typography.body,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    lineHeight: 22,
-  },
-  calendarButton: {
-    borderRadius: theme.borderRadius.xl,
-    overflow: 'hidden',
-    marginTop: theme.spacing.md,
-    ...theme.shadows.xl,
-    ...theme.shadows.glow,
-  },
-  calendarButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.xl,
-  },
-  buttonIconContainer: {
-    marginRight: theme.spacing.sm,
-  },
-  buttonText: {
-    ...theme.typography.body,
-    color: theme.colors.white,
-    fontWeight: '800',
-    fontSize: 20,
-    flex: 1,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  buttonArrow: {
-    marginLeft: theme.spacing.sm,
-  },
-  calendar: {
-    borderRadius: theme.borderRadius.md,
-    overflow: 'hidden',
-  },
-  activityCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: isWeb ? theme.spacing.xl : theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    marginBottom: theme.spacing.md,
-    borderLeftWidth: 5,
-    borderLeftColor: theme.colors.primary,
-    ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
-    ...(isWeb && {
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    }),
-  },
-  activityHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.sm,
-  },
-  activityIconContainer: {
-    marginRight: theme.spacing.md,
-  },
-  activityIconGradient: {
+  headerIconGradient: {
     width: 56,
     height: 56,
     borderRadius: theme.borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    ...theme.shadows.glowSubtle,
+  },
+  sectionTitle: {
+    ...theme.typography.h2,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  description: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xl,
+    lineHeight: 26,
+  },
+  
+  // Calendar Link Section
+  calendarLinkSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  primaryCTA: {
+    borderRadius: theme.borderRadius.xxl,
+    overflow: 'hidden',
+    ...theme.shadows.glow,
+  },
+  primaryCTAGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xl + theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  ctaIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaText: {
+    ...theme.typography.buttonLarge,
+    color: theme.colors.white,
+    flex: 1,
+  },
+  
+  // Calendar Section
+  calendarSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  calendar: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.md,
     ...theme.shadows.small,
   },
-  activityHeaderText: {
+  
+  // Activities Section
+  activitiesSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  activitiesList: {
+    gap: theme.spacing.lg,
+  },
+  activityCard: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  activityIconContainer: {
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  activityIconGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityContent: {
     flex: 1,
   },
   activityTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '800',
+    ...theme.typography.title,
+    color: theme.colors.text,
     marginBottom: theme.spacing.sm,
-    letterSpacing: -0.2,
   },
-  activityTypeBadge: {
-    alignSelf: 'flex-start',
+  activityMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+  },
+  activityBadge: {
     backgroundColor: theme.colors.primary + '20',
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: 4,
@@ -404,79 +403,71 @@ const styles = StyleSheet.create({
   activityType: {
     ...theme.typography.caption,
     color: theme.colors.primary,
-    fontWeight: '600',
-    fontSize: 12,
+    fontWeight: '700',
   },
-  activityDetails: {
-    marginTop: theme.spacing.xs,
-    paddingLeft: 52,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xs,
-  },
-  detailText: {
+  activityTime: {
     ...theme.typography.bodySmall,
     color: theme.colors.textSecondary,
-    marginLeft: theme.spacing.sm,
-    flex: 1,
+  },
+  activityLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  activityLocationText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: theme.spacing.xl,
+    paddingVertical: theme.spacing.xxxl,
   },
   emptyStateText: {
     ...theme.typography.body,
-    color: theme.colors.textLight,
-    fontStyle: 'italic',
+    color: theme.colors.textTertiary,
     textAlign: 'center',
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.lg,
+  },
+  
+  // Events Section
+  eventsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  eventsList: {
+    gap: theme.spacing.md,
   },
   eventCard: {
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: isWeb ? theme.spacing.xl : theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
-    ...(isWeb && {
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    }),
-  },
-  eventHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   eventIconContainer: {
-    marginRight: theme.spacing.md,
-  },
-  eventIconGradient: {
     width: 52,
     height: 52,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.shadows.small,
   },
   eventContent: {
     flex: 1,
   },
   eventTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: theme.spacing.sm,
-    letterSpacing: -0.2,
+    ...theme.typography.body,
+    color: theme.colors.text,
+    fontWeight: '600',
+    marginBottom: theme.spacing.xs / 2,
   },
   eventDate: {
     ...theme.typography.bodySmall,
     color: theme.colors.textSecondary,
   },
+  
   bottomSpacer: {
-    height: theme.spacing.md,
+    height: theme.spacing.xxl,
   },
 });

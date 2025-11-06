@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,27 @@ import {
   StyleSheet,
   TouchableOpacity,
   Linking,
+  Platform,
+  Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { LOCAL_GROUPS } from '../constants/data';
 
-export default function LocalGroupsScreen() {
+const isWeb = Platform.OS === 'web';
+
+export default function LocalGroupsScreen({ navigation }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: theme.animations.normal,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const handlePhonePress = (phone) => {
     if (phone) {
       Linking.openURL(`tel:${phone}`);
@@ -30,144 +45,216 @@ export default function LocalGroupsScreen() {
     }
   };
 
+  const handleGroupPress = (group) => {
+    navigation.navigate('LocalGroupDetail', { group });
+  };
+
+  const AnimatedSection = ({ children, delay = 0 }) => {
+    const sectionFade = useRef(new Animated.Value(0)).current;
+    const sectionSlide = useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(sectionFade, {
+          toValue: 1,
+          duration: theme.animations.normal,
+          delay,
+          useNativeDriver: true,
+        }),
+        Animated.spring(sectionSlide, {
+          toValue: 0,
+          delay,
+          ...theme.animations.spring,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    return (
+      <Animated.View
+        style={{
+          opacity: sectionFade,
+          transform: [{ translateY: sectionSlide }],
+        }}
+      >
+        {children}
+      </Animated.View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isWeb && styles.scrollContentWeb,
+        ]}
       >
-        {/* Intro Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="people" size={24} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>Lokallagene våre</Text>
+        {/* Header Section */}
+        <AnimatedSection>
+          <View style={styles.headerSection}>
+            <View style={styles.headerIconContainer}>
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
+                style={styles.headerIconGradient}
+              >
+                <Icon name="people" size={40} color={theme.colors.white} />
+              </LinearGradient>
+            </View>
+            <Text style={styles.headerTitle}>Lokallagene våre</Text>
+            <Text style={styles.headerDescription}>
+              Her har du en oversikt over våre lokale Facebookgrupper. Hvert enkelt
+              lokallag har faste turer, minst en dag i uken. I tillegg postes det
+              sosiale arrangementer og invitasjoner til større aktiviteter som
+              motivasjonsturer, miljøaksjoner og deltakelse på større sports- og
+              kulturarrangementer som Femundløpet, frivilighetskorps på Tons of Rock,
+              Rein Sognefjord og liknende.
+            </Text>
           </View>
-          <Text style={styles.introText}>
-            Her har du en oversikt over våre lokale Facebookgrupper. Hvert enkelt
-            lokallag har faste turer, minst en dag i uken. I tillegg postes det
-            sosiale arrangementer og invitasjoner til større aktiviteter som
-            motivasjonsturer, miljøaksjoner og deltakelse på større sports- og
-            kulturarrangementer som Femundløpet, frivilighetskorps på Tons of Rock,
-            Rein Sognefjord og liknende.
-          </Text>
-        </View>
+        </AnimatedSection>
 
         {/* Local Groups */}
-        {LOCAL_GROUPS.map((group) => (
-          <View key={group.id} style={styles.groupCard}>
-            <View style={styles.groupHeader}>
-              <View style={styles.groupIconContainer}>
-                <Icon name="people" size={28} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.groupName}>{group.name}</Text>
-            </View>
-
-            {group.coordinator && (
-              <View style={styles.contactRow}>
-                <View style={styles.contactIconContainer}>
-                  <Icon name="person-outline" size={20} color={theme.colors.textSecondary} />
-                </View>
-                <View style={styles.contactContent}>
-                  <Text style={styles.contactLabel}>Koordinator</Text>
-                  <Text style={styles.contactValue}>{group.coordinator}</Text>
-                </View>
-              </View>
-            )}
-
-            {group.phone && (
+        <View style={styles.groupsContainer}>
+          {LOCAL_GROUPS.map((group, index) => (
+            <AnimatedSection key={group.id} delay={100 * (index + 1)}>
               <TouchableOpacity
-                style={styles.contactRow}
-                onPress={() => handlePhonePress(group.phone)}
+                style={styles.groupCard}
+                onPress={() => handleGroupPress(group)}
                 activeOpacity={0.7}
               >
-                <View style={styles.contactIconContainer}>
-                  <Icon name="call-outline" size={20} color={theme.colors.primary} />
-                </View>
-                <View style={styles.contactContent}>
-                  <Text style={styles.contactLabel}>Telefon</Text>
-                  <Text style={styles.contactLink}>{group.phone}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
+                <LinearGradient
+                  colors={[theme.colors.surface, theme.colors.backgroundElevated]}
+                  style={styles.groupCardGradient}
+                >
+                  {/* Group Header */}
+                  <View style={styles.groupHeader}>
+                    <View style={styles.groupIconContainer}>
+                      <LinearGradient
+                        colors={[theme.colors.primary + '40', theme.colors.primary + '20']}
+                        style={styles.groupIcon}
+                      >
+                        <Icon name="people" size={32} color={theme.colors.primary} />
+                      </LinearGradient>
+                    </View>
+                    <Text style={styles.groupName}>{group.name}</Text>
+                    <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+                  </View>
 
-            {group.email && (
-              <TouchableOpacity
-                style={styles.contactRow}
-                onPress={() => handleEmailPress(group.email)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.contactIconContainer}>
-                  <Icon name="mail-outline" size={20} color={theme.colors.primary} />
-                </View>
-                <View style={styles.contactContent}>
-                  <Text style={styles.contactLabel}>E-post</Text>
-                  <Text style={styles.contactLink}>{group.email}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
+                  {/* Group Details */}
+                  <View style={styles.groupDetails}>
+                    {group.coordinator && (
+                      <View style={styles.detailRow}>
+                        <View style={[styles.detailIcon, { backgroundColor: theme.colors.info + '20' }]}>
+                          <Icon name="person" size={18} color={theme.colors.info} />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>Koordinator</Text>
+                          <Text style={styles.detailValue}>{group.coordinator}</Text>
+                        </View>
+                      </View>
+                    )}
 
-            {group.facebook && (
-              <TouchableOpacity
-                style={styles.facebookButton}
-                onPress={() => handleFacebookPress(group.facebook)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.facebookIconContainer}>
-                  <Icon name="logo-facebook" size={22} color="#1877F2" />
-                </View>
-                <Text style={styles.facebookText}>Facebook-gruppe</Text>
-                <View style={styles.facebookArrow}>
-                  <Icon name="chevron-forward-outline" size={20} color="#1877F2" />
-                </View>
+                    {group.phone && (
+                      <TouchableOpacity
+                        style={styles.detailRow}
+                        onPress={() => handlePhonePress(group.phone)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[styles.detailIcon, { backgroundColor: theme.colors.success + '20' }]}>
+                          <Icon name="call" size={18} color={theme.colors.success} />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>Telefon</Text>
+                          <Text style={[styles.detailValue, styles.detailLink]}>{group.phone}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+
+                    {group.email && (
+                      <TouchableOpacity
+                        style={styles.detailRow}
+                        onPress={() => handleEmailPress(group.email)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[styles.detailIcon, { backgroundColor: theme.colors.warning + '20' }]}>
+                          <Icon name="mail" size={18} color={theme.colors.warning} />
+                        </View>
+                        <View style={styles.detailContent}>
+                          <Text style={styles.detailLabel}>E-post</Text>
+                          <Text style={[styles.detailValue, styles.detailLink]}>{group.email}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Facebook Button */}
+                  {group.facebook && (
+                    <TouchableOpacity
+                      style={styles.facebookCTA}
+                      onPress={() => handleFacebookPress(group.facebook)}
+                      activeOpacity={0.8}
+                    >
+                      <LinearGradient
+                        colors={['#1877F2', '#0A66C2']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.facebookCTAGradient}
+                      >
+                        <Icon name="logo-facebook" size={24} color={theme.colors.white} />
+                        <Text style={styles.facebookCTAText}>Facebook-gruppe</Text>
+                        <Icon name="arrow-forward" size={20} color={theme.colors.white} />
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
-            )}
-          </View>
-        ))}
+            </AnimatedSection>
+          ))}
+        </View>
 
         {/* Facebook Links Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="logo-facebook" size={24} color="#1877F2" />
-            <Text style={styles.sectionTitle}>Medvandrerne på Facebook</Text>
-          </View>
-          
-          <TouchableOpacity
-            style={styles.facebookButton}
-            onPress={() =>
-              handleFacebookPress(
-                'https://www.facebook.com/MedNaturenSomMetode/'
-              )
-            }
-            activeOpacity={0.8}
-          >
-            <View style={styles.facebookIconContainer}>
-              <Icon name="logo-facebook" size={22} color="#1877F2" />
+        <AnimatedSection delay={300}>
+          <View style={styles.facebookSection}>
+            <View style={styles.sectionHeaderMinimal}>
+              <Icon name="logo-facebook" size={28} color="#1877F2" />
+              <Text style={styles.sectionTitleLarge}>Medvandrerne på Facebook</Text>
             </View>
-            <Text style={styles.facebookText}>Stiftelsen Medvandrerne - Hjem</Text>
-            <View style={styles.facebookArrow}>
-              <Icon name="chevron-forward-outline" size={20} color="#1877F2" />
-            </View>
-          </TouchableOpacity>
+            
+            <View style={styles.facebookLinksContainer}>
+              <TouchableOpacity
+                style={styles.facebookLinkCard}
+                onPress={() => handleFacebookPress('https://www.facebook.com/MedNaturenSomMetode/')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.facebookLinkIcon}>
+                  <Icon name="logo-facebook" size={32} color="#1877F2" />
+                </View>
+                <View style={styles.facebookLinkText}>
+                  <Text style={styles.facebookLinkTitle}>Stiftelsen Medvandrerne</Text>
+                  <Text style={styles.facebookLinkSubtitle}>Hjem</Text>
+                </View>
+                <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.facebookButton}
-            onPress={() =>
-              handleFacebookPress(
-                'https://www.facebook.com/groups/218262935581083'
-              )
-            }
-            activeOpacity={0.8}
-          >
-            <View style={styles.facebookIconContainer}>
-              <Icon name="logo-facebook" size={22} color="#1877F2" />
+              <TouchableOpacity
+                style={styles.facebookLinkCard}
+                onPress={() => handleFacebookPress('https://www.facebook.com/groups/218262935581083')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.facebookLinkIcon}>
+                  <Icon name="logo-facebook" size={32} color="#1877F2" />
+                </View>
+                <View style={styles.facebookLinkText}>
+                  <Text style={styles.facebookLinkTitle}>Venner av Medvandrerne</Text>
+                  <Text style={styles.facebookLinkSubtitle}>Fellesskap</Text>
+                </View>
+                <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.facebookText}>Venner av Medvandrerne</Text>
-            <View style={styles.facebookArrow}>
-              <Icon name="chevron-forward-outline" size={20} color="#1877F2" />
-            </View>
-          </TouchableOpacity>
-        </View>
+          </View>
+        </AnimatedSection>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -182,135 +269,194 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
-    flexGrow: 1,
+    paddingBottom: theme.spacing.xxxl,
   },
-  section: {
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-    padding: theme.spacing.xl,
-    borderRadius: theme.borderRadius.xxl,
-    ...theme.shadows.large,
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
+  scrollContentWeb: {
+    maxWidth: theme.web.maxContentWidth,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: theme.web.sidePadding,
   },
-  sectionHeader: {
-    flexDirection: 'row',
+  
+  // Header Section
+  headerSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
+    marginBottom: theme.spacing.xxxl,
     alignItems: 'center',
+  },
+  headerIconContainer: {
+    marginBottom: theme.spacing.lg,
+    ...theme.shadows.glowSubtle,
+  },
+  headerIconGradient: {
+    width: 88,
+    height: 88,
+    borderRadius: theme.borderRadius.xxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    ...theme.typography.h1,
+    color: theme.colors.text,
+    textAlign: 'center',
     marginBottom: theme.spacing.md,
   },
-  sectionTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    marginLeft: theme.spacing.sm,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  introText: {
+  headerDescription: {
     ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 28,
+    maxWidth: 600,
+  },
+  
+  // Section Headers
+  sectionHeaderMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
+  },
+  sectionTitleLarge: {
+    ...theme.typography.h2,
     color: theme.colors.text,
-    lineHeight: 24,
+  },
+  
+  // Groups Container
+  groupsContainer: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    gap: theme.spacing.xl,
+    marginBottom: theme.spacing.xxxl,
   },
   groupCard: {
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-    padding: theme.spacing.xl,
     borderRadius: theme.borderRadius.xxl,
-    ...theme.shadows.large,
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
+    overflow: 'hidden',
+    ...theme.shadows.medium,
+  },
+  groupCardGradient: {
+    padding: theme.spacing.xl,
   },
   groupHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
-    paddingBottom: theme.spacing.md,
-    borderBottomWidth: 2,
-    borderBottomColor: theme.colors.borderLight,
+    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   groupIconContainer: {
+    ...theme.shadows.small,
+  },
+  groupIcon: {
     width: 56,
     height: 56,
     borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: theme.spacing.md,
-    ...theme.shadows.small,
   },
   groupName: {
-    ...theme.typography.h2,
-    color: theme.colors.primary,
-    fontSize: 24,
-    fontWeight: '800',
+    ...theme.typography.h3,
+    color: theme.colors.text,
     flex: 1,
-    letterSpacing: -0.3,
   },
-  contactRow: {
+  
+  // Group Details
+  groupDetails: {
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+  },
+  detailRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-  },
-  contactIconContainer: {
-    width: 36,
     alignItems: 'center',
-    marginTop: 2,
+    gap: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
-  contactContent: {
+  detailIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailContent: {
     flex: 1,
   },
-  contactLabel: {
-    ...theme.typography.bodySmall,
+  detailLabel: {
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
     marginBottom: 2,
+    fontWeight: '600',
   },
-  contactValue: {
+  detailValue: {
     ...theme.typography.body,
     color: theme.colors.text,
     fontWeight: '500',
   },
-  contactLink: {
-    ...theme.typography.body,
+  detailLink: {
     color: theme.colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  facebookButton: {
+  
+  // Facebook CTA
+  facebookCTA: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    ...theme.shadows.small,
+  },
+  facebookCTAGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    marginBottom: theme.spacing.md,
-    borderWidth: 1.5,
-    borderColor: '#E4E6EB',
-    ...theme.shadows.medium,
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
-  facebookIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.sm,
-    backgroundColor: '#1877F2' + '15',
+  facebookCTAText: {
+    ...theme.typography.button,
+    color: theme.colors.white,
+    flex: 1,
+    textAlign: 'center',
+  },
+  
+  // Facebook Section
+  facebookSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  facebookLinksContainer: {
+    gap: theme.spacing.lg,
+  },
+  facebookLinkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  facebookLinkIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: '#1877F2' + '20',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: theme.spacing.md,
   },
-  facebookText: {
-    ...theme.typography.body,
-    color: '#1877F2',
-    fontWeight: '600',
+  facebookLinkText: {
     flex: 1,
   },
-  facebookArrow: {
-    marginLeft: theme.spacing.sm,
+  facebookLinkTitle: {
+    ...theme.typography.title,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs / 2,
   },
+  facebookLinkSubtitle: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
+  },
+  
   bottomSpacer: {
-    height: theme.spacing.md,
+    height: theme.spacing.xxl,
   },
 });

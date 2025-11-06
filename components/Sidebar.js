@@ -123,14 +123,14 @@ export default function Sidebar({ navigation, currentRoute }) {
 const styles = StyleSheet.create({
   sidebar: {
     width: 300,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.backgroundElevated,
     borderRightWidth: 1,
-    borderRightColor: theme.colors.borderLight,
+    borderRightColor: theme.colors.border,
     height: '100vh',
     position: 'fixed',
     left: 0,
     top: 0,
-    ...theme.shadows.xl,
+    ...theme.shadows.large,
     zIndex: 1000,
     overflow: 'hidden',
   },

@@ -18,20 +18,26 @@ import { ORGANIZATION_INFO, MISSION, CORE_ACTIVITIES } from '../constants/data';
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: theme.animations.slow,
         useNativeDriver: true,
       }),
-      Animated.timing(slideAnim, {
+      Animated.spring(slideAnim, {
         toValue: 0,
-        duration: 800,
+        ...theme.animations.spring,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        ...theme.animations.springBouncy,
         useNativeDriver: true,
       }),
     ]).start();
@@ -41,22 +47,22 @@ export default function HomeScreen() {
     Linking.openURL(url);
   };
 
-  const AnimatedCard = ({ children, delay = 0, style }) => {
+  const AnimatedSection = ({ children, delay = 0, style }) => {
     const cardFade = useRef(new Animated.Value(0)).current;
-    const cardSlide = useRef(new Animated.Value(30)).current;
+    const cardSlide = useRef(new Animated.Value(20)).current;
 
     useEffect(() => {
       Animated.parallel([
         Animated.timing(cardFade, {
           toValue: 1,
-          duration: 600,
+          duration: theme.animations.normal,
           delay,
           useNativeDriver: true,
         }),
-        Animated.timing(cardSlide, {
+        Animated.spring(cardSlide, {
           toValue: 0,
-          duration: 600,
           delay,
+          ...theme.animations.spring,
           useNativeDriver: true,
         }),
       ]).start();
@@ -87,194 +93,189 @@ export default function HomeScreen() {
           isWeb && styles.scrollContentWeb,
         ]}
       >
-        {/* Hero Section with Premium Gradient */}
+        {/* Hero Section - Modernized */}
         <Animated.View
           style={[
             styles.heroWrapper,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
+              transform: [
+                { translateY: slideAnim },
+                { scale: scaleAnim },
+              ],
             },
           ]}
         >
           <LinearGradient
-            colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd, theme.colors.gradientLight]}
+            colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.heroSection}
           >
             <View style={styles.heroContent}>
-              <View style={styles.heroTitleContainer}>
-                <Text style={styles.heroTitleMain}>Stiftelsen</Text>
-                <Text style={styles.heroTitle}>Medvandrerne</Text>
+              <View style={styles.heroIconContainer}>
+                <Icon name="walk" size={48} color={theme.colors.white} />
               </View>
-              <Text style={styles.heroSubtitle}>Vi vandrer sammen</Text>
-              <View style={styles.heroDivider} />
+              <Text style={styles.heroSubtitle}>STIFTELSEN</Text>
+              <Text style={styles.heroTitle}>Medvandrerne</Text>
+              <Text style={styles.heroTagline}>Vi vandrer sammen</Text>
             </View>
-            {/* Decorative elements */}
+            
+            {/* Decorative blur circles */}
             <View style={styles.heroDecoration1} />
             <View style={styles.heroDecoration2} />
+            <View style={styles.heroDecoration3} />
           </LinearGradient>
         </Animated.View>
 
-        {/* About Section */}
-        <AnimatedCard delay={100}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="information-circle" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Om Medvandrerne</Text>
+        {/* Mission Statement - No card, more space */}
+        <AnimatedSection delay={100}>
+          <View style={styles.missionSection}>
+            <View style={styles.sectionHeaderMinimal}>
+              <Text style={styles.sectionTitleLarge}>Om Medvandrerne</Text>
             </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.text}>{MISSION.description}</Text>
-              <Text style={styles.text}>{MISSION.nature}</Text>
-              <Text style={styles.text}>{MISSION.equality}</Text>
-              <Text style={styles.text}>{MISSION.responsibility}</Text>
+            <Text style={styles.missionText}>{MISSION.description}</Text>
+            <Text style={styles.missionText}>{MISSION.nature}</Text>
+            <Text style={styles.missionText}>{MISSION.equality}</Text>
+            <Text style={styles.missionText}>{MISSION.responsibility}</Text>
+          </View>
+        </AnimatedSection>
+
+        {/* Core Activities - Interactive List */}
+        <AnimatedSection delay={200}>
+          <View style={styles.activitiesSection}>
+            <View style={styles.sectionHeaderMinimal}>
+              <Icon name="trophy" size={28} color={theme.colors.primary} />
+              <Text style={styles.sectionTitleLarge}>Kjernevirksomhet</Text>
+            </View>
+            
+            <View style={styles.activitiesList}>
+              {CORE_ACTIVITIES.map((activity, index) => (
+                <TouchableOpacity
+                  key={activity.id}
+                  activeOpacity={0.6}
+                  style={styles.activityItem}
+                  onPress={() => navigation.navigate('CoreActivityDetail', { activity })}
+                >
+                  <View style={styles.activityIconWrapper}>
+                    <LinearGradient
+                      colors={[theme.colors.primary, theme.colors.primaryLight]}
+                      style={styles.activityIconGradient}
+                    >
+                      <Icon name={activity.icon} size={32} color={theme.colors.white} />
+                    </LinearGradient>
+                  </View>
+                  <View style={styles.activityTextContainer}>
+                    <Text style={styles.activityTitle}>{activity.title}</Text>
+                    <Text style={styles.activityDescription}>{activity.description}</Text>
+                  </View>
+                  <View style={styles.activityChevron}>
+                    <Icon name="chevron-forward" size={24} color={theme.colors.textTertiary} />
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
-        </AnimatedCard>
+        </AnimatedSection>
 
-        {/* Core Activities */}
-        <AnimatedCard delay={200}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="trophy" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Kjernevirksomhet</Text>
+        {/* Support CTA - Large and Prominent */}
+        <AnimatedSection delay={300}>
+          <View style={styles.supportSection}>
+            <View style={styles.sectionHeaderMinimal}>
+              <Icon name="heart" size={28} color={theme.colors.primary} />
+              <Text style={styles.sectionTitleLarge}>Støtt oss</Text>
             </View>
-            {CORE_ACTIVITIES.map((activity, index) => (
-              <TouchableOpacity
-                key={activity.id}
-                activeOpacity={0.7}
-                style={[
-                  styles.activityCard,
-                  index === CORE_ACTIVITIES.length - 1 && styles.lastCard,
-                ]}
-              >
-                <View style={styles.activityIconContainer}>
-                  <LinearGradient
-                    colors={[theme.colors.primary + '20', theme.colors.primaryLight + '20']}
-                    style={styles.activityIconGradient}
-                  >
-                    <Icon name={activity.icon} size={28} color={theme.colors.primary} />
-                  </LinearGradient>
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>{activity.title}</Text>
-                  <Text style={styles.activityDescription}>{activity.description}</Text>
-                </View>
-                <View style={styles.activityArrow}>
-                  <Icon name="chevron-forward-outline" size={20} color={theme.colors.textLight} />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </AnimatedCard>
-
-        {/* Support Section */}
-        <AnimatedCard delay={300}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="heart" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Støtt oss</Text>
-            </View>
+            
+            {/* Large Primary CTA */}
             <TouchableOpacity
-              style={styles.supportButton}
+              style={styles.primaryCTA}
               onPress={() => handlePress(ORGANIZATION_INFO.spleis)}
-              activeOpacity={0.9}
+              activeOpacity={0.85}
             >
               <LinearGradient
-                colors={[theme.colors.primaryDark, theme.colors.primary, theme.colors.primaryLight, theme.colors.gradientLight]}
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.supportButtonGradient}
+                end={{ x: 1, y: 1 }}
+                style={styles.primaryCTAGradient}
               >
-                <View style={styles.supportIconContainer}>
-                  <Icon name="heart-outline" size={24} color={theme.colors.white} />
+                <View style={styles.ctaIconContainer}>
+                  <Icon name="heart" size={32} color={theme.colors.white} />
                 </View>
-                <Text style={styles.supportButtonText}>Støtt på Spleis.no</Text>
-                <View style={styles.supportArrow}>
-                  <Icon name="chevron-forward-outline" size={20} color={theme.colors.white} />
+                <View style={styles.ctaTextContainer}>
+                  <Text style={styles.ctaTitle}>Støtt på Spleis.no</Text>
+                  <Text style={styles.ctaSubtitle}>Hjelp oss å fortsette arbeidet</Text>
                 </View>
+                <Icon name="arrow-forward" size={28} color={theme.colors.white} />
               </LinearGradient>
             </TouchableOpacity>
             
-            <View style={styles.paymentInfoContainer}>
-              <View style={styles.paymentRow}>
-                <View style={styles.paymentIconContainer}>
-                  <LinearGradient
-                    colors={[theme.colors.primary + '15', theme.colors.primaryLight + '15']}
-                    style={styles.paymentIconGradient}
-                  >
-                    <Icon name="phone-portrait" size={20} color={theme.colors.primary} />
-                  </LinearGradient>
+            {/* Payment Info - Glassmorphism Cards */}
+            <View style={styles.paymentGrid}>
+              <View style={styles.paymentCard}>
+                <View style={[styles.paymentIconContainer, { backgroundColor: theme.colors.warning + '20' }]}>
+                  <Icon name="phone-portrait" size={28} color={theme.colors.warning} />
                 </View>
-                <View style={styles.paymentContent}>
-                  <Text style={styles.paymentLabel}>VIPPS</Text>
-                  <Text style={styles.paymentValue}>{ORGANIZATION_INFO.vipps}</Text>
-                </View>
+                <Text style={styles.paymentLabel}>VIPPS</Text>
+                <Text style={styles.paymentValue}>{ORGANIZATION_INFO.vipps}</Text>
               </View>
               
-              <View style={styles.paymentRow}>
-                <View style={styles.paymentIconContainer}>
-                  <LinearGradient
-                    colors={[theme.colors.primary + '15', theme.colors.primaryLight + '15']}
-                    style={styles.paymentIconGradient}
-                  >
-                    <Icon name="card" size={20} color={theme.colors.primary} />
-                  </LinearGradient>
+              <View style={styles.paymentCard}>
+                <View style={[styles.paymentIconContainer, { backgroundColor: theme.colors.info + '20' }]}>
+                  <Icon name="card" size={28} color={theme.colors.info} />
                 </View>
-                <View style={styles.paymentContent}>
-                  <Text style={styles.paymentLabel}>Bankkonto</Text>
-                  <Text style={styles.paymentValue}>{ORGANIZATION_INFO.bankAccount}</Text>
-                </View>
+                <Text style={styles.paymentLabel}>Bankkonto</Text>
+                <Text style={styles.paymentValue}>{ORGANIZATION_INFO.bankAccount}</Text>
               </View>
             </View>
           </View>
-        </AnimatedCard>
+        </AnimatedSection>
 
-        {/* Contact Information */}
-        <AnimatedCard delay={400}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.iconWrapper}>
-                <Icon name="call" size={24} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.sectionTitle}>Kontaktinformasjon</Text>
+        {/* Contact Information - Clean List */}
+        <AnimatedSection delay={400}>
+          <View style={styles.contactSection}>
+            <View style={styles.sectionHeaderMinimal}>
+              <Icon name="information-circle" size={28} color={theme.colors.primary} />
+              <Text style={styles.sectionTitleLarge}>Kontaktinformasjon</Text>
             </View>
-            <View style={styles.contactInfoContainer}>
+            
+            <View style={styles.contactList}>
               <TouchableOpacity 
-                style={styles.contactRow}
+                style={styles.contactItem}
                 onPress={() => handlePress(ORGANIZATION_INFO.website)}
                 activeOpacity={0.7}
               >
-                <View style={styles.contactIconContainer}>
-                  <Icon name="globe-outline" size={22} color={theme.colors.primary} />
+                <View style={[styles.contactIconWrapper, { backgroundColor: theme.colors.info + '20' }]}>
+                  <Icon name="globe" size={24} color={theme.colors.info} />
                 </View>
-                <Text style={styles.contactLink}>{ORGANIZATION_INFO.website}</Text>
-                <Icon name="chevron-forward-outline" size={18} color={theme.colors.textLight} />
+                <View style={styles.contactTextContainer}>
+                  <Text style={styles.contactLabel}>Nettside</Text>
+                  <Text style={styles.contactValue}>{ORGANIZATION_INFO.website}</Text>
+                </View>
+                <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
               </TouchableOpacity>
               
-              <View style={styles.contactRow}>
-                <View style={styles.contactIconContainer}>
-                  <Icon name="location-outline" size={22} color={theme.colors.primary} />
+              <View style={styles.contactItem}>
+                <View style={[styles.contactIconWrapper, { backgroundColor: theme.colors.success + '20' }]}>
+                  <Icon name="location" size={24} color={theme.colors.success} />
                 </View>
-                <Text style={styles.contactText}>{ORGANIZATION_INFO.address}</Text>
+                <View style={styles.contactTextContainer}>
+                  <Text style={styles.contactLabel}>Adresse</Text>
+                  <Text style={styles.contactValue}>{ORGANIZATION_INFO.address}</Text>
+                </View>
               </View>
               
-              <View style={styles.contactRow}>
-                <View style={styles.contactIconContainer}>
-                  <Icon name="business-outline" size={22} color={theme.colors.primary} />
+              <View style={styles.contactItem}>
+                <View style={[styles.contactIconWrapper, { backgroundColor: theme.colors.primary + '20' }]}>
+                  <Icon name="business" size={24} color={theme.colors.primary} />
                 </View>
-                <Text style={styles.contactText}>Org.nr: {ORGANIZATION_INFO.orgNumber}</Text>
+                <View style={styles.contactTextContainer}>
+                  <Text style={styles.contactLabel}>Org.nr</Text>
+                  <Text style={styles.contactValue}>{ORGANIZATION_INFO.orgNumber}</Text>
+                </View>
               </View>
             </View>
           </View>
-        </AnimatedCard>
+        </AnimatedSection>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -289,11 +290,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
-    flexGrow: 1,
+    paddingBottom: theme.spacing.xxxl,
   },
   scrollContentWeb: {
     maxWidth: theme.web.maxContentWidth,
@@ -301,155 +300,138 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: theme.web.sidePadding,
   },
+  
+  // Hero Section
   heroWrapper: {
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
   },
   heroSection: {
-    paddingVertical: theme.spacing.xxxl,
+    paddingVertical: theme.spacing.xxxl * 1.5,
     paddingHorizontal: theme.spacing.xl,
-    marginTop: theme.spacing.lg,
-    marginHorizontal: isWeb ? 0 : theme.spacing.md,
+    marginTop: theme.spacing.xl,
+    marginHorizontal: isWeb ? 0 : theme.spacing.lg,
     borderRadius: theme.borderRadius.xxl,
     overflow: 'hidden',
-    ...theme.shadows.xl,
     ...theme.shadows.glow,
-    ...(isWeb && {
-      paddingVertical: theme.spacing.xxl * 1.5,
-      paddingHorizontal: theme.spacing.xxl,
-    }),
+  },
+  heroContent: {
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  heroIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: theme.borderRadius.xxl,
+    backgroundColor: theme.colors.white + '25',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+    ...theme.shadows.medium,
+  },
+  heroSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    opacity: 0.9,
+    letterSpacing: 3,
+    fontWeight: '800',
+    marginBottom: theme.spacing.xs,
+  },
+  heroTitle: {
+    ...theme.typography.display,
+    fontSize: isWeb ? 64 : 52,
+    fontWeight: '900',
+    color: theme.colors.white,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 12,
+  },
+  heroTagline: {
+    ...theme.typography.title,
+    color: theme.colors.white,
+    opacity: 0.95,
+    fontStyle: 'italic',
+    fontWeight: '500',
   },
   heroDecoration1: {
-    position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: theme.colors.white + '15',
-    top: -80,
-    right: -80,
-  },
-  heroDecoration2: {
     position: 'absolute',
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: theme.colors.white + '12',
-    bottom: -50,
-    left: -50,
-  },
-  heroContent: {
-    alignItems: 'center',
+    backgroundColor: theme.colors.white + '15',
+    top: -50,
+    right: -50,
     zIndex: 1,
   },
-  heroTitleContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+  heroDecoration2: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: theme.colors.white + '10',
+    bottom: -30,
+    left: -30,
+    zIndex: 1,
   },
-  heroTitleMain: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: theme.colors.white,
-    opacity: 0.95,
-    letterSpacing: 1.5,
-    marginBottom: 6,
-    textTransform: 'uppercase',
+  heroDecoration3: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.white + '08',
+    bottom: 50,
+    right: 30,
+    zIndex: 1,
   },
-  heroTitle: {
-    ...theme.typography.display,
-    fontSize: isWeb ? 56 : 42,
-    fontWeight: '900',
-    color: theme.colors.white,
-    textAlign: 'center',
-    letterSpacing: -1,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  heroSubtitle: {
-    ...theme.typography.body,
-    color: theme.colors.white,
-    opacity: 0.98,
-    fontStyle: 'italic',
-    marginBottom: theme.spacing.lg,
-    fontSize: 20,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-  heroDivider: {
-    width: 80,
-    height: 5,
-    backgroundColor: theme.colors.white,
-    opacity: 0.95,
-    borderRadius: theme.borderRadius.sm,
-    marginTop: theme.spacing.md,
-    ...theme.shadows.small,
-  },
-  section: {
-    backgroundColor: theme.colors.surface,
-    marginHorizontal: isWeb ? 0 : theme.spacing.md,
-    marginBottom: isWeb ? theme.web.cardGap : theme.spacing.lg,
-    padding: isWeb ? theme.spacing.xxl : theme.spacing.xl,
-    borderRadius: theme.borderRadius.xxl,
-    ...theme.shadows.large,
-    borderWidth: 1.5,
-    borderColor: theme.colors.border,
-    ...(isWeb && {
-      width: '100%',
-    }),
-  },
-  sectionHeader: {
+  
+  // Section Headers - Minimal
+  sectionHeaderMinimal: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.md,
   },
-  iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.spacing.md,
-    ...theme.shadows.small,
-  },
-  sectionTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    marginLeft: theme.spacing.xs,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  textContainer: {
-    marginTop: theme.spacing.sm,
-  },
-  text: {
-    ...theme.typography.body,
+  sectionTitleLarge: {
+    ...theme.typography.h2,
     color: theme.colors.text,
+  },
+  
+  // Mission Section - No cards
+  missionSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  missionText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.lg,
     lineHeight: 28,
-    fontSize: 17,
   },
-  activityCard: {
+  
+  // Activities Section
+  activitiesSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  activitiesList: {
+    gap: theme.spacing.md,
+  },
+  activityItem: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: isWeb ? theme.spacing.xl : theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    marginBottom: theme.spacing.md,
-    borderLeftWidth: 5,
-    borderLeftColor: theme.colors.primary,
     alignItems: 'center',
-    ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
-    ...(isWeb && {
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    }),
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
   },
-  lastCard: {
-    marginBottom: 0,
-  },
-  activityIconContainer: {
-    marginRight: theme.spacing.md,
+  activityIconWrapper: {
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   activityIconGradient: {
     width: 64,
@@ -457,132 +439,137 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.shadows.small,
   },
-  activityContent: {
+  activityTextContainer: {
     flex: 1,
   },
   activityTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.primary,
-    marginBottom: theme.spacing.sm,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    ...theme.typography.title,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
   },
   activityDescription: {
     ...theme.typography.bodySmall,
     color: theme.colors.textSecondary,
     lineHeight: 22,
-    fontSize: 15,
   },
-  activityArrow: {
-    marginLeft: theme.spacing.sm,
+  activityChevron: {
+    opacity: 0.5,
   },
-  supportButton: {
-    borderRadius: theme.borderRadius.xl,
+  
+  // Support Section
+  supportSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  primaryCTA: {
+    borderRadius: theme.borderRadius.xxl,
     overflow: 'hidden',
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.xl,
+    marginBottom: theme.spacing.xl,
     ...theme.shadows.glow,
   },
-  supportButtonGradient: {
+  primaryCTAGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.xl,
+    paddingVertical: theme.spacing.xl + theme.spacing.sm,
     paddingHorizontal: theme.spacing.xl,
+    gap: theme.spacing.lg,
   },
-  supportIconContainer: {
-    marginRight: theme.spacing.sm,
-  },
-  supportButtonText: {
-    ...theme.typography.body,
-    color: theme.colors.white,
-    fontWeight: '800',
-    fontSize: 20,
-    flex: 1,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  supportArrow: {
-    marginLeft: theme.spacing.sm,
-  },
-  paymentInfoContainer: {
-    marginTop: theme.spacing.sm,
-  },
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceElevated,
-    padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.xl,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
-  },
-  paymentIconContainer: {
-    marginRight: theme.spacing.md,
-  },
-  paymentIconGradient: {
+  ctaIconContainer: {
     width: 56,
     height: 56,
     borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '20',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  ctaTextContainer: {
+    flex: 1,
+  },
+  ctaTitle: {
+    ...theme.typography.buttonLarge,
+    color: theme.colors.white,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  ctaSubtitle: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.white,
+    opacity: 0.9,
+  },
+  
+  // Payment Grid
+  paymentGrid: {
+    flexDirection: isWeb ? 'row' : 'column',
+    gap: theme.spacing.lg,
+  },
+  paymentCard: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.xl,
+    alignItems: 'center',
     ...theme.shadows.small,
   },
-  paymentContent: {
-    flex: 1,
+  paymentIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.md,
   },
   paymentLabel: {
-    ...theme.typography.bodySmall,
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    marginBottom: 2,
-    fontWeight: '600',
+    marginBottom: theme.spacing.xs,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   paymentValue: {
-    ...theme.typography.body,
+    ...theme.typography.title,
     color: theme.colors.text,
-    fontWeight: '800',
-    fontSize: 18,
-    letterSpacing: 0.3,
+    fontWeight: '700',
   },
-  contactInfoContainer: {
-    marginTop: theme.spacing.sm,
+  
+  // Contact Section
+  contactSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
   },
-  contactRow: {
+  contactList: {
+    gap: theme.spacing.md,
+  },
+  contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.sm,
-    backgroundColor: theme.colors.surfaceElevated,
-    ...theme.shadows.small,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
-  contactIconContainer: {
-    width: 44,
+  contactIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.md,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  contactLink: {
-    ...theme.typography.body,
-    color: theme.colors.primary,
-    fontWeight: '700',
+  contactTextContainer: {
     flex: 1,
-    fontSize: 17,
   },
-  contactText: {
+  contactLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs / 2,
+    fontWeight: '600',
+  },
+  contactValue: {
     ...theme.typography.body,
     color: theme.colors.text,
-    flex: 1,
-    fontSize: 17,
+    fontWeight: '500',
   },
+  
   bottomSpacer: {
-    height: theme.spacing.md,
+    height: theme.spacing.xxl,
   },
 });

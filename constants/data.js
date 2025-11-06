@@ -143,7 +143,7 @@ export const ADMINISTRATION = [
     role: 'Lokallagskoordinator',
     name: 'Elin Larsen',
     phone: '95932919',
-    email: 'elin.larsen@medvanderne.org',
+    email: 'elin.larsen@medvandrerne.org',
   },
   {
     id: 3,
@@ -156,14 +156,14 @@ export const ADMINISTRATION = [
     id: 4,
     role: 'Utstyrsansvarlig',
     name: 'Ivar Brecke Nygaard',
-    phone: '923 18 386',
+    phone: '',
     email: 'ivar@medvandrerne.org',
   },
   {
     id: 5,
     role: 'Miljø og samfunnsansvar',
     name: 'Siri Otterskred',
-    phone: '988 65 645',
+    phone: '',
     email: 'siri@medvandrerne.org',
   },
   {
@@ -179,8 +179,9 @@ export const ADMINISTRATION = [
 export const BOARD = {
   leader: 'Sigmund Aunan',
   members: [
+    'Are Lerstein',
+    'Ivar Brecke Nygaard',
     'Pål Berger',
-    'Kristine Olsen',
     'Per Sandvik',
     'Raymond Tollefsen',
     'Aina Rype',
@@ -249,11 +250,9 @@ export const SAMPLE_ACTIVITIES = [
 export const SUPPORTERS = {
   financial: [
     'Gjensidigestiftelsen',
-    'Fred. Olsen Social Engagement Group (FOSEG)',
-    'Helle Bennetts Almennyttige Fond (HBAF)',
     'Kavlifondet',
-    'Norsk narkotikaforebyggende forening (NNF)',
-    'LAFT',
+    'Helle Bennets Fond',
+    'Fred. Olsen Social Engagement Group',
   ],
   partners: [
     'Brynje of Norway',
