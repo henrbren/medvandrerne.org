@@ -29,7 +29,6 @@
       "expo-web-browser"
     ],
     "notification": {
-      "icon": "./assets/icon.png",
       "color": "#FF453A"
     },
     "extra": {
