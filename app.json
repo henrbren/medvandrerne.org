@@ -25,7 +25,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-web-browser"
     ],
     "notification": {
       "icon": "./assets/icon.png",
