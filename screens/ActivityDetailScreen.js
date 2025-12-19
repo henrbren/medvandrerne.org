@@ -13,12 +13,15 @@ import {
   Image,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Calendar from 'expo-calendar';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useRegistrations } from '../hooks/useRegistrations';
+import { useActivityStats } from '../hooks/useActivityStats';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -28,7 +31,9 @@ export default function ActivityDetailScreen() {
   const navigation = useNavigation();
   const { activity } = route.params || {};
   const { isRegistered, registerForActivity, unregisterFromActivity } = useRegistrations();
+  const { completeActivity, uncompleteActivity, isActivityCompleted } = useActivityStats();
   const [isRegisteredState, setIsRegisteredState] = useState(false);
+  const [isCompletedState, setIsCompletedState] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -36,8 +41,37 @@ export default function ActivityDetailScreen() {
   useEffect(() => {
     if (activity) {
       setIsRegisteredState(isRegistered(activity.id));
+      setIsCompletedState(isActivityCompleted(activity.id));
     }
-  }, [activity, isRegistered]);
+  }, [activity, isRegistered, isActivityCompleted]);
+
+  // Update header with registration indicator
+  useFocusEffect(
+    useCallback(() => {
+      if (activity) {
+        const registered = isRegistered(activity.id);
+        setIsRegisteredState(registered);
+        
+        navigation.setOptions({
+          headerRight: () => (
+            registered ? (
+              <View style={styles.headerIndicator}>
+                <View style={styles.headerIndicatorBadge}>
+                  <Icon name="checkmark-circle" size={18} color={theme.colors.success} />
+                </View>
+              </View>
+            ) : null
+          ),
+        });
+      }
+      
+      return () => {
+        navigation.setOptions({
+          headerRight: undefined,
+        });
+      };
+    }, [activity, isRegistered, navigation])
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -114,23 +148,23 @@ export default function ActivityDetailScreen() {
               style={styles.heroBackgroundImage}
               resizeMode="cover"
             />
-            <LinearGradient
+          <LinearGradient
               colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
               style={styles.heroImageOverlay}
             />
             <View style={styles.heroContent}>
-              <View style={styles.heroIconContainer}>
-                <Icon
-                  name={getActivityIcon(activity.type)}
+            <View style={styles.heroIconContainer}>
+              <Icon
+                name={getActivityIcon(activity.type)}
                   size={32}
-                  color={theme.colors.white}
-                />
-              </View>
-              <Text style={styles.heroTitle}>{activity.title}</Text>
+                color={theme.colors.white}
+              />
+            </View>
+            <Text style={styles.heroTitle}>{activity.title}</Text>
               {activity.location && activity.location !== 'Har ikke sted' && (
-                <View style={styles.heroBadge}>
+            <View style={styles.heroBadge}>
                   <Icon name="location" size={14} color={theme.colors.white} />
                   <Text style={styles.heroBadgeText}>{activity.location}</Text>
                 </View>
@@ -297,29 +331,51 @@ export default function ActivityDetailScreen() {
           {/* Two Column Layout for Web */}
           <View style={styles.columnsContainer}>
             <View style={styles.columnSection}>
-              <View style={styles.descriptionSection}>
-                <View style={styles.sectionHeader}>
-                  <Icon name="information-circle" size={28} color={theme.colors.primary} />
-                  <Text style={styles.sectionTitle}>Om aktiviteten</Text>
-                </View>
-                <Text style={styles.descriptionText}>
-                  {activity.description || 
-                    'Dette er en spennende aktivitet arrangert av Medvandrerne. ' +
-                    'Vi inviterer deg til å være med på en opplevelse som gir muligheter ' +
-                    'for vekst, mestring og fellesskap i naturen.'}
-                </Text>
+          <View style={styles.descriptionSection}>
+            <View style={styles.sectionHeader}>
+              <Icon name="information-circle" size={28} color={theme.colors.primary} />
+              <Text style={styles.sectionTitle}>Om aktiviteten</Text>
+            </View>
+            <Text style={styles.descriptionText}>
+              {activity.description || 
+                'Dette er en spennende aktivitet arrangert av Medvandrerne. ' +
+                'Vi inviterer deg til å være med på en opplevelse som gir muligheter ' +
+                'for vekst, mestring og fellesskap i naturen.'}
+            </Text>
               </View>
             </View>
 
             <View style={styles.columnSection}>
-              {/* Registration Button */}
-              <TouchableOpacity
-                style={styles.actionCTA}
-                activeOpacity={0.85}
+              {/* Social Registration Section */}
+              <View style={styles.registrationSection}>
+                {/* Registration Stats */}
+                <View style={styles.registrationStats}>
+                  <View style={styles.statItem}>
+                    <Icon name="people" size={20} color={theme.colors.primary} />
+                    <Text style={styles.statText}>
+                      {isRegisteredState ? 'Du er påmeldt' : 'Bli med'}
+                    </Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Icon name="person-add" size={20} color={theme.colors.textSecondary} />
+                    <Text style={styles.statNumber}>12</Text>
+                    <Text style={styles.statLabel}>påmeldte</Text>
+                  </View>
+          </View>
+
+                {/* Registration Button - Social Style */}
+          <TouchableOpacity
+                  style={styles.socialRegistrationButton}
+            activeOpacity={0.85}
                 onPress={async () => {
                   if (isRegisteredState) {
                     await unregisterFromActivity(activity.id);
                     setIsRegisteredState(false);
+                    // Update header
+                    navigation.setOptions({
+                      headerRight: () => null,
+                    });
                     Alert.alert(
                       'Avmeldt',
                       'Du er nå avmeldt fra aktiviteten',
@@ -328,6 +384,16 @@ export default function ActivityDetailScreen() {
                   } else {
                     await registerForActivity(activity);
                     setIsRegisteredState(true);
+                    // Update header
+                    navigation.setOptions({
+                      headerRight: () => (
+                        <View style={styles.headerIndicator}>
+                          <View style={styles.headerIndicatorBadge}>
+                            <Icon name="checkmark-circle" size={18} color={theme.colors.success} />
+                          </View>
+                        </View>
+                      ),
+                    });
                     Alert.alert(
                       'Påmeldt',
                       'Du er nå påmeldt på aktiviteten!',
@@ -335,61 +401,91 @@ export default function ActivityDetailScreen() {
                     );
                   }
                 }}
-              >
-                <LinearGradient
-                  colors={isRegisteredState 
-                    ? [theme.colors.textSecondary, theme.colors.textTertiary]
-                    : [theme.colors.primary, theme.colors.primaryLight]
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.actionCTAGradient}
-                >
-                  <View style={styles.ctaIconContainer}>
-                    <Icon 
-                      name={isRegisteredState ? "checkmark-circle" : "person-add"} 
-                      size={28} 
-                      color={theme.colors.white} 
-                    />
-                  </View>
-                  <Text style={styles.ctaText}>
-                    {isRegisteredState ? 'Påmeldt' : 'Meld deg på'}
-                  </Text>
-                  {!isRegisteredState && (
-                    <Icon name="arrow-forward" size={24} color={theme.colors.white} />
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
+          >
+            <LinearGradient
+                    colors={isRegisteredState 
+                      ? [theme.colors.success, '#4AE85C']
+                      : [theme.colors.primary, theme.colors.primaryLight]
+                    }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+                    style={styles.socialRegistrationGradient}
+                  >
+                    <View style={styles.socialRegistrationIcon}>
+                      <Icon 
+                        name={isRegisteredState ? "checkmark-circle" : "person-add"} 
+                        size={32} 
+                        color={theme.colors.white} 
+                      />
+                    </View>
+                    <View style={styles.socialRegistrationContent}>
+                      <Text style={styles.socialRegistrationTitle}>
+                        {isRegisteredState ? 'Du er påmeldt!' : 'Meld deg på'}
+                      </Text>
+                      <Text style={styles.socialRegistrationSubtitle}>
+                        {isRegisteredState 
+                          ? 'Trykk for å melde deg av' 
+                          : 'Bli med på denne aktiviteten'}
+                      </Text>
+                    </View>
+                    {isRegisteredState && (
+                      <View style={styles.socialRegistrationBadge}>
+                        <Icon name="checkmark-circle" size={24} color={theme.colors.white} />
+                      </View>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
 
-              {/* Calendar Button */}
-              <TouchableOpacity
-                style={styles.secondaryCTA}
-                activeOpacity={0.85}
-                onPress={async () => {
-                  // Create calendar event URL
-                  const startDate = new Date(activity.date);
-                  if (activity.time && !activity.multiDay) {
-                    const [hours, minutes] = activity.time.split(':');
-                    startDate.setHours(parseInt(hours), parseInt(minutes));
-                  }
-                  const endDate = activity.multiDay ? new Date(activity.endDate) : new Date(startDate);
-                  if (!activity.multiDay) {
-                    endDate.setHours(startDate.getHours() + 2); // Default 2 hour duration
-                  }
+                {/* Secondary Actions */}
+                <View style={styles.secondaryActions}>
+                  <TouchableOpacity
+                    style={styles.secondaryActionButton}
+                    activeOpacity={0.7}
+                    onPress={async () => {
+                      const startDate = new Date(activity.date);
+                      if (activity.time && !activity.multiDay) {
+                        const [hours, minutes] = activity.time.split(':');
+                        startDate.setHours(parseInt(hours), parseInt(minutes));
+                      }
+                      const endDate = activity.multiDay ? new Date(activity.endDate) : new Date(startDate);
+                      if (!activity.multiDay) {
+                        endDate.setHours(startDate.getHours() + 2);
+                      }
+                      
+                      const formatCalendarDate = (date) => {
+                        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                      };
+                      
+                      const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(activity.title)}&dates=${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}${activity.location && activity.location !== 'Har ikke sted' ? `&location=${encodeURIComponent(activity.location)}` : ''}&details=${encodeURIComponent(activity.description || '')}`;
+                      await WebBrowser.openBrowserAsync(calendarUrl);
+                    }}
+                  >
+                    <Icon name="calendar-outline" size={18} color={theme.colors.textSecondary} />
+                    <Text style={styles.secondaryActionText}>Kalender</Text>
+                  </TouchableOpacity>
                   
-                  const formatCalendarDate = (date) => {
-                    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-                  };
-                  
-                  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(activity.title)}&dates=${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}${activity.location && activity.location !== 'Har ikke sted' ? `&location=${encodeURIComponent(activity.location)}` : ''}&details=${encodeURIComponent(activity.description || '')}`;
-                  await WebBrowser.openBrowserAsync(calendarUrl);
-                }}
-              >
-                <View style={styles.secondaryCTAContent}>
-                  <Icon name="calendar" size={20} color={theme.colors.primary} />
-                  <Text style={styles.secondaryCTAText}>Legg til i kalender</Text>
+                  {activity.location && activity.location !== 'Har ikke sted' && (
+                    <TouchableOpacity
+                      style={styles.secondaryActionButton}
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        const encodedLocation = encodeURIComponent(activity.location);
+                        const url = Platform.select({
+                          ios: `maps://maps.apple.com/?q=${encodedLocation}`,
+                          android: `geo:0,0?q=${encodedLocation}`,
+                          default: `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`,
+                        });
+                        Linking.openURL(url).catch(err => {
+                          Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodedLocation}`);
+                        });
+                      }}
+                    >
+                      <Icon name="location-outline" size={18} color={theme.colors.textSecondary} />
+                      <Text style={styles.secondaryActionText}>Kart</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -580,53 +676,136 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   
-  // Action CTA
-  actionCTA: {
-    borderRadius: theme.borderRadius.xxl,
-    overflow: 'hidden',
-    ...theme.shadows.glow,
-    marginBottom: theme.spacing.xl,
+  // Social Registration Section
+  registrationSection: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+    ...theme.shadows.medium,
   },
-  actionCTAGradient: {
+  registrationStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: theme.spacing.xl + theme.spacing.sm,
-    paddingHorizontal: theme.spacing.xl,
+    justifyContent: 'space-around',
+    paddingVertical: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  statText: {
+    ...theme.typography.body,
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: theme.colors.borderLight,
+  },
+  statNumber: {
+    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '800',
+    color: theme.colors.text,
+    marginRight: theme.spacing.xs / 2,
+  },
+  statLabel: {
+    ...theme.typography.caption,
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  socialRegistrationButton: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.large,
+    ...theme.shadows.glow,
+  },
+  socialRegistrationGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
     gap: theme.spacing.md,
   },
-  ctaIconContainer: {
-    width: 56,
-    height: 56,
+  socialRegistrationIcon: {
+    width: 64,
+    height: 64,
     borderRadius: theme.borderRadius.lg,
-    backgroundColor: theme.colors.white + '20',
+    backgroundColor: theme.colors.white + '25',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaText: {
-    ...theme.typography.buttonLarge,
-    color: theme.colors.white,
+  socialRegistrationContent: {
     flex: 1,
   },
-  secondaryCTA: {
-    borderRadius: theme.borderRadius.xl,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    ...theme.shadows.small,
+  socialRegistrationTitle: {
+    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '800',
+    color: theme.colors.white,
+    marginBottom: theme.spacing.xs / 2,
   },
-  secondaryCTAContent: {
+  socialRegistrationSubtitle: {
+    ...theme.typography.bodySmall,
+    fontSize: 13,
+    color: theme.colors.white,
+    opacity: 0.9,
+  },
+  socialRegistrationBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '25',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  secondaryActionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.xl,
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: theme.borderRadius.lg,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
   },
-  secondaryCTAText: {
-    ...theme.typography.body,
-    color: theme.colors.primary,
-    fontWeight: '700',
-    fontSize: 16,
+  secondaryActionText: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  
+  // Header Indicator
+  headerIndicator: {
+    marginRight: theme.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIndicatorBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.success + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.success + '40',
   },
   
   bottomSpacer: {

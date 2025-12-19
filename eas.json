@@ -1,0 +1,46 @@
+{
+  "submit": {
+    "SUBMIT_PROFILE_NAME_1": {
+      "ios": {
+        "appleId": "henrik.brendhagen@newgencom.com",
+        "ascAppId": "1628178056",
+        "appleTeamId": "RZR3VMLE6"
+      }
+    }
+  },
+  "build": {
+    "production": {
+      "channel": "production",
+      "env": {
+        "EAS_BUILD_DISABLE_NPM_CACHE": "1"
+      }
+    },
+    "previewAndroid": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "environment": "preview",
+      "extends": "production",
+      "distribution": "internal",
+      "channel": "preview"
+    },
+    "simulator": {
+      "ios": {
+        "simulator": true
+      },
+      "channel": "simulator"
+    },
+    "development": {
+      "environment": "development",
+      "developmentClient": "true",
+      "channel": "production",
+      "distribution": "internal"
+    }
+  },
+  "cli": {
+    "version": ">= 0.52.0",
+    "requireCommit": true
+  }
+}

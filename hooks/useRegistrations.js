@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { scheduleActivityNotification, cancelActivityNotification } from '../services/notifications';
+import * as Notifications from 'expo-notifications';
+import { scheduleActivityNotification, cancelActivityNotification, cleanupNotifications } from '../services/notifications';
 import { SAMPLE_ACTIVITIES } from '../constants/data';
 
 const STORAGE_KEY = '@medvandrerne_registrations';
@@ -15,23 +17,40 @@ export const useRegistrations = () => {
 
   const loadRegistrations = async () => {
     try {
+      // Clean up old and duplicate notifications first
+      await cleanupNotifications();
+      
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       if (stored) {
         const loadedRegistrations = JSON.parse(stored);
         setRegistrations(loadedRegistrations);
         
-        // Sync notifications for loaded registrations
-        if (loadedRegistrations.length > 0) {
+        // Sync notifications for loaded registrations - only schedule if not already scheduled
+        if (loadedRegistrations.length > 0 && Platform.OS !== 'web') {
+          // Get existing notifications to check for duplicates
+          const existingNotifications = await Notifications.getAllScheduledNotificationsAsync();
+          const existingActivityIds = new Set(
+            existingNotifications
+              .filter(n => n.content.data?.activityId)
+              .map(n => n.content.data.activityId)
+          );
+
           for (const activityId of loadedRegistrations) {
-            const activity = SAMPLE_ACTIVITIES.find(a => a.id === activityId);
-            if (activity) {
-              await scheduleActivityNotification(activity);
+            // Only schedule if not already scheduled
+            if (!existingActivityIds.has(activityId)) {
+              const activity = SAMPLE_ACTIVITIES.find(a => a.id === activityId);
+              if (activity) {
+                await scheduleActivityNotification(activity);
+              }
             }
           }
         }
+      } else {
+        setRegistrations([]);
       }
     } catch (error) {
       console.error('Error loading registrations:', error);
+      setRegistrations([]);
     } finally {
       setLoading(false);
     }

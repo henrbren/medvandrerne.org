@@ -113,7 +113,7 @@ export const LOCAL_GROUPS = [
   },
   {
     id: 5,
-    name: 'Telemark/Viken',
+    name: 'Grenland',
     coordinator: 'Ivar Brecke Nygaard',
     phone: '923 18 386',
     email: 'ivar@medvandrerne.org',
@@ -141,11 +141,11 @@ export const LOCAL_GROUPS = [
   {
     id: 8,
     name: 'Oslofjorden',
-    coordinator: 'Ivar Brecke Nygaard',
-    phone: '923 18 386',
-    email: 'ivar@medvandrerne.org',
+    coordinator: 'Elin Larsen og Patrick Larsen',
+    phone: '95932919',
+    email: 'elin.larsen@medvandrerne.org',
     facebook: 'https://www.facebook.com/groups/189498986112969',
-    coordinatorImage: require('../assets/img/folk/ivar.jpg'),
+    coordinatorImage: require('../assets/img/folk/elin.png'),
   },
   {
     id: 9,
@@ -231,7 +231,7 @@ export const SAMPLE_ACTIVITIES = [
     title: 'Admmøte',
     date: '2025-11-09',
     time: '18:00-19:00',
-    location: 'Har ikke sted',
+    location: 'Google Meet',
     type: 'Møte',
   },
   {

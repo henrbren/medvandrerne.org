@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,11 @@ import {
   Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
+import { useFavorites } from '../hooks/useFavorites';
 
 const isWeb = Platform.OS === 'web';
 
@@ -21,6 +23,13 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
   const { group } = route.params || {};
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+  const { isGroupFavorite, addFavoriteGroup, removeFavoriteGroup, loadFavorites } = useFavorites();
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [])
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -45,6 +54,16 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
       </View>
     );
   }
+
+  const isFavorite = isGroupFavorite(group.id);
+
+  const handleToggleFavorite = async () => {
+    if (isFavorite) {
+      await removeFavoriteGroup(group.id);
+    } else {
+      await addFavoriteGroup(group.id);
+    }
+  };
 
   const headerStyle = {
     opacity: fadeAnim,
@@ -153,6 +172,35 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
           </View>
         )}
 
+        {/* Favorite Button - Compact */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.compactFavoriteButton}
+            onPress={handleToggleFavorite}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.compactFavoriteContent,
+              { backgroundColor: isFavorite ? theme.colors.success + '20' : theme.colors.warning + '20' }
+            ]}>
+              <Icon 
+                name={isFavorite ? "star" : "star-outline"} 
+                size={18} 
+                color={isFavorite ? theme.colors.success : theme.colors.warning} 
+              />
+              <Text style={[
+                styles.compactFavoriteText,
+                { color: isFavorite ? theme.colors.success : theme.colors.warning }
+              ]}>
+                {isFavorite ? 'Lagret i favoritter' : 'Lagre i favoritter'}
+              </Text>
+              {isFavorite && (
+                <Icon name="checkmark-circle" size={16} color={theme.colors.success} />
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Contact CTAs */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -164,45 +212,27 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
 
           {group.phone && (
             <TouchableOpacity
-              style={styles.ctaButton}
+              style={styles.contactButton}
               onPress={() => handlePhonePress(group.phone)}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <LinearGradient
-                colors={[
-                  theme.colors.primaryDark,
-                  theme.colors.primary,
-                  theme.colors.primaryLight,
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.ctaGradient}
-              >
-                <Icon name="call-outline" size={24} color={theme.colors.white} />
-                <Text style={styles.ctaText}>Ring koordinator</Text>
-              </LinearGradient>
+              <View style={styles.contactButtonContent}>
+                <Icon name="call-outline" size={20} color={theme.colors.primary} />
+                <Text style={styles.contactButtonText}>Ring koordinator</Text>
+              </View>
             </TouchableOpacity>
           )}
 
           {group.email && (
             <TouchableOpacity
-              style={styles.ctaButton}
+              style={styles.contactButton}
               onPress={() => handleEmailPress(group.email)}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <LinearGradient
-                colors={[
-                  theme.colors.primaryDark,
-                  theme.colors.primary,
-                  theme.colors.primaryLight,
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.ctaGradient}
-              >
-                <Icon name="mail-outline" size={24} color={theme.colors.white} />
-                <Text style={styles.ctaText}>Send e-post</Text>
-              </LinearGradient>
+              <View style={styles.contactButtonContent}>
+                <Icon name="mail-outline" size={20} color={theme.colors.primary} />
+                <Text style={styles.contactButtonText}>Send e-post</Text>
+              </View>
             </TouchableOpacity>
           )}
 
@@ -213,7 +243,7 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
               activeOpacity={0.8}
             >
               <View style={styles.facebookCtaContent}>
-                <Icon name="logo-facebook" size={24} color="#1877F2" />
+                <Icon name="logo-facebook" size={20} color="#1877F2" />
                 <Text style={styles.facebookCtaText}>
                   Gå til Facebook-gruppe
                 </Text>
@@ -498,6 +528,49 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: '500',
     marginBottom: theme.spacing.xs,
+  },
+  // Compact Favorite Button
+  compactFavoriteButton: {
+    marginBottom: theme.spacing.md,
+  },
+  compactFavoriteContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    gap: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+  },
+  compactFavoriteText: {
+    ...theme.typography.body,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  // Contact Buttons - Smaller, less prominent
+  contactButton: {
+    backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadows.small,
+  },
+  contactButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  contactButtonText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: 16,
   },
   ctaButton: {
     borderRadius: theme.borderRadius.xl,

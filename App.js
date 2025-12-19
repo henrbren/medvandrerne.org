@@ -12,6 +12,7 @@ import { requestPermissions } from './services/notifications';
 
 import HomeScreen from './screens/HomeScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
+import FlokkenScreen from './screens/FlokkenScreen';
 import LocalGroupsScreen from './screens/LocalGroupsScreen';
 import AboutScreen from './screens/AboutScreen';
 import ContactScreen from './screens/ContactScreen';
@@ -19,6 +20,12 @@ import PersonDetailScreen from './screens/PersonDetailScreen';
 import LocalGroupDetailScreen from './screens/LocalGroupDetailScreen';
 import CoreActivityDetailScreen from './screens/CoreActivityDetailScreen';
 import ActivityDetailScreen from './screens/ActivityDetailScreen';
+import MasteryLogScreen from './screens/MasteryLogScreen';
+import MyJourneyScreen from './screens/MyJourneyScreen';
+import SkillsScreen from './screens/SkillsScreen';
+import MilestonesScreen from './screens/MilestonesScreen';
+import ExpeditionsScreen from './screens/ExpeditionsScreen';
+import EnvironmentActionsScreen from './screens/EnvironmentActionsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -46,14 +53,12 @@ function TabNavigator({ navigationRef, currentRoute }) {
 
                 if (route.name === 'Hjem') {
                   iconName = focused ? 'home' : 'home-outline';
+                } else if (route.name === 'Min vandring') {
+                  iconName = focused ? 'map' : 'map-outline';
                 } else if (route.name === 'Aktiviteter') {
                   iconName = focused ? 'calendar' : 'calendar-outline';
-                } else if (route.name === 'Lokallag') {
+                } else if (route.name === 'Flokken') {
                   iconName = focused ? 'people' : 'people-outline';
-                } else if (route.name === 'Om oss') {
-                  iconName = focused ? 'information-circle' : 'information-circle-outline';
-                } else if (route.name === 'Kontakt') {
-                  iconName = focused ? 'call' : 'call-outline';
                 }
 
                 return <Ionicons name={iconName} size={size} color={color} />;
@@ -111,10 +116,21 @@ function TabNavigator({ navigationRef, currentRoute }) {
                 headerBlurEffect: 'dark',
               })}
             />
+            <Tab.Screen 
+              name="Min vandring" 
+              component={MyJourneyScreen}
+              options={{
+                headerTitle: 'Min vandring',
+              }}
+            />
             <Tab.Screen name="Aktiviteter" component={ActivitiesScreen} />
-            <Tab.Screen name="Lokallag" component={LocalGroupsScreen} />
-            <Tab.Screen name="Om oss" component={AboutScreen} />
-            <Tab.Screen name="Kontakt" component={ContactScreen} />
+            <Tab.Screen 
+              name="Flokken" 
+              component={FlokkenScreen}
+              options={{
+                headerTitle: 'Flokken',
+              }}
+            />
           </Tab.Navigator>
         )}
       </Stack.Screen>
@@ -186,6 +202,142 @@ function TabNavigator({ navigationRef, currentRoute }) {
           title: 'Aktivitet',
         }}
       />
+      <Stack.Screen
+        name="MasteryLog"
+        component={MasteryLogScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Reisebok',
+        }}
+      />
+      <Stack.Screen
+        name="Skills"
+        component={SkillsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Ferdigheter',
+        }}
+      />
+      <Stack.Screen
+        name="Milestones"
+        component={MilestonesScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Alle milepæler',
+        }}
+      />
+      <Stack.Screen
+        name="Lokallag"
+        component={LocalGroupsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Lokallag',
+        }}
+      />
+      <Stack.Screen
+        name="Om oss"
+        component={AboutScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Om oss',
+        }}
+      />
+      <Stack.Screen
+        name="Kontakt"
+        component={ContactScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Kontakt',
+        }}
+      />
+      <Stack.Screen
+        name="Expeditions"
+        component={ExpeditionsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Ekspedisjoner',
+        }}
+      />
+      <Stack.Screen
+        name="EnvironmentActions"
+        component={EnvironmentActionsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Miljøaksjoner',
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -241,10 +393,12 @@ function AppWithNavigation() {
 
 export default function App() {
   useEffect(() => {
-    // Request notification permissions on app start
-    requestPermissions().catch((error) => {
-      console.error('Error requesting notification permissions:', error);
-    });
+    // Request notification permissions on app start (skip on web)
+    if (Platform.OS !== 'web') {
+      requestPermissions().catch((error) => {
+        console.error('Error requesting notification permissions:', error);
+      });
+    }
   }, []);
 
   return (

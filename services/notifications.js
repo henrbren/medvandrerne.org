@@ -47,6 +47,10 @@ export const requestPermissions = async () => {
  * Schedule a notification for an activity
  */
 export const scheduleActivityNotification = async (activity) => {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
   if (!activity || !activity.id || !activity.date) {
     return null;
   }
@@ -59,6 +63,9 @@ export const scheduleActivityNotification = async (activity) => {
   }
 
   try {
+    // Cancel existing notifications for this activity first to avoid duplicates
+    await cancelActivityNotification(activity.id);
+
     // Calculate notification time (1 day before activity)
     const activityDate = new Date(activity.date);
     const notificationDate = new Date(activityDate);
@@ -105,7 +112,10 @@ export const scheduleActivityNotification = async (activity) => {
         },
         sound: true,
       },
-      trigger: notificationDate,
+      trigger: {
+        type: 'date',
+        date: notificationDate,
+      },
     });
 
     console.log(`Scheduled notification ${notificationId} for activity ${activity.id}`);
@@ -120,6 +130,10 @@ export const scheduleActivityNotification = async (activity) => {
  * Cancel a notification for an activity
  */
 export const cancelActivityNotification = async (activityId) => {
+  if (Platform.OS === 'web') {
+    return;
+  }
+
   try {
     // Get all scheduled notifications
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
@@ -142,6 +156,10 @@ export const cancelActivityNotification = async (activityId) => {
  * Cancel all activity notifications
  */
 export const cancelAllActivityNotifications = async () => {
+  if (Platform.OS === 'web') {
+    return;
+  }
+
   try {
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
     
@@ -159,6 +177,10 @@ export const cancelAllActivityNotifications = async () => {
  * Get all scheduled notifications for activities
  */
 export const getScheduledActivityNotifications = async () => {
+  if (Platform.OS === 'web') {
+    return [];
+  }
+
   try {
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
     return scheduledNotifications.filter(
@@ -167,6 +189,70 @@ export const getScheduledActivityNotifications = async () => {
   } catch (error) {
     console.error('Error getting scheduled notifications:', error);
     return [];
+  }
+};
+
+/**
+ * Clean up old and duplicate notifications
+ */
+export const cleanupNotifications = async () => {
+  if (Platform.OS === 'web') {
+    return 0;
+  }
+
+  try {
+    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+    const now = new Date();
+    let cleanedCount = 0;
+
+    // Track activity IDs to find duplicates
+    const activityNotifications = new Map();
+
+    for (const notification of scheduledNotifications) {
+      const activityId = notification.content.data?.activityId;
+      
+      if (activityId) {
+        // Check if notification trigger date is in the past
+        const triggerDate = notification.trigger?.date 
+          ? new Date(notification.trigger.date) 
+          : null;
+        
+        if (triggerDate && triggerDate < now) {
+          // Cancel past notifications
+          await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+          cleanedCount++;
+          continue;
+        }
+
+        // Track duplicates - keep only the most recent one
+        if (activityNotifications.has(activityId)) {
+          const existing = activityNotifications.get(activityId);
+          const existingDate = existing.trigger?.date ? new Date(existing.trigger.date) : null;
+          
+          if (!triggerDate || (existingDate && triggerDate < existingDate)) {
+            // Cancel the older duplicate
+            await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+            cleanedCount++;
+            continue;
+          } else {
+            // Cancel the existing one, keep this one
+            await Notifications.cancelScheduledNotificationAsync(existing.identifier);
+            cleanedCount++;
+          }
+        }
+        
+        activityNotifications.set(activityId, notification);
+      }
+    }
+
+    if (cleanedCount > 0) {
+      console.log(`Cleaned up ${cleanedCount} old or duplicate notifications`);
+    }
+    
+    return cleanedCount;
+  } catch (error) {
+    console.error('Error cleaning up notifications:', error);
+    return 0;
   }
 };
 

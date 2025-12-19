@@ -49,3 +49,4 @@
 
 For spørsmål eller problemer, se README.md eller kontakt utvikleren.
 
+

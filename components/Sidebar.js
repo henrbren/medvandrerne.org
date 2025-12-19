@@ -8,10 +8,9 @@ const isWeb = Platform.OS === 'web';
 
 const menuItems = [
   { name: 'Hjem', icon: 'home', route: 'Hjem', color: theme.colors.primary },
+  { name: 'Min vandring', icon: 'map', route: 'Min vandring', color: theme.colors.success },
   { name: 'Aktiviteter', icon: 'calendar', route: 'Aktiviteter', color: theme.colors.primaryLight },
-  { name: 'Lokallag', icon: 'people', route: 'Lokallag', color: theme.colors.secondary },
-  { name: 'Om oss', icon: 'information-circle', route: 'Om oss', color: theme.colors.accent },
-  { name: 'Kontakt', icon: 'call', route: 'Kontakt', color: theme.colors.primary },
+  { name: 'Flokken', icon: 'people', route: 'Flokken', color: theme.colors.info },
 ];
 
 export default function Sidebar({ navigation, currentRoute }) {

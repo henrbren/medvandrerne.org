@@ -49,3 +49,4 @@ Hvis du ikke har bilder klar ennå, kan du:
 2. Opprette enkle placeholder-bilder med en grønn bakgrunn og tekst
 3. Bruke organisasjonens eksisterende logo fra nettstedet
 
+

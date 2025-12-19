@@ -2,6 +2,7 @@
   "expo": {
     "name": "Medvandrerne",
     "slug": "medvandrerne-app",
+    "owner": "henrbren",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -29,6 +30,11 @@
     "notification": {
       "icon": "./assets/icon.png",
       "color": "#FF453A"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d0b7a060-9efc-481c-b7c5-5a44ae3e5785"
+      }
     }
   }
 }

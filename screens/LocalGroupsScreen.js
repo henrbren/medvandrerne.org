@@ -8,6 +8,7 @@ import {
   Linking,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
@@ -93,19 +94,42 @@ export default function LocalGroupsScreen({ navigation }) {
           isWeb && styles.scrollContentWeb,
         ]}
       >
-        {/* Header Section */}
+        {/* Hero Header - Full Width */}
         <AnimatedSection>
-          <View style={styles.headerSection}>
-            <View style={styles.headerIconContainer}>
+          <View style={styles.heroWrapper}>
+            <View style={styles.heroImageContainer}>
+              <Image 
+                source={require('../assets/img/lok1.jpg')} 
+                style={styles.heroBackgroundImage}
+                resizeMode="cover"
+              />
               <LinearGradient
-                colors={[theme.colors.primary, theme.colors.primaryLight]}
-                style={styles.headerIconGradient}
-              >
-                <Icon name="people" size={40} color={theme.colors.white} />
-              </LinearGradient>
+                colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroImageOverlay}
+              />
+              <View style={styles.heroContent}>
+                <View style={styles.heroIconContainer}>
+                  <Image 
+                    source={require('../assets/img/logo.png')} 
+                    style={styles.heroLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.heroTitle}>Lokallagene våre</Text>
+                <Text style={styles.heroSubtitle}>
+                  Faste turer og sosiale arrangementer
+                </Text>
+              </View>
             </View>
-            <Text style={styles.headerTitle}>Lokallagene våre</Text>
-            <Text style={styles.headerDescription}>
+          </View>
+        </AnimatedSection>
+
+        {/* Description Section */}
+        <AnimatedSection delay={100}>
+          <View style={styles.descriptionSection}>
+            <Text style={styles.descriptionText}>
               Her har du en oversikt over våre lokale Facebookgrupper. Hvert enkelt
               lokallag har faste turer, minst en dag i uken. I tillegg postes det
               sosiale arrangementer og invitasjoner til større aktiviteter som
@@ -281,36 +305,100 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.web.sidePadding,
   },
   
-  // Header Section
-  headerSection: {
-    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
-    marginBottom: theme.spacing.xxxl,
-    alignItems: 'center',
+  // Hero Section
+  heroWrapper: {
+    width: '100%',
+    marginBottom: theme.spacing.xl,
   },
-  headerIconContainer: {
-    marginBottom: theme.spacing.lg,
-    ...theme.shadows.glowSubtle,
+  heroImageContainer: {
+    width: '100%',
+    height: 240,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  headerIconGradient: {
-    width: 88,
-    height: 88,
-    borderRadius: theme.borderRadius.xxl,
+  heroBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  heroImageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  heroContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xl,
+    zIndex: 2,
   },
-  headerTitle: {
-    ...theme.typography.h1,
-    color: theme.colors.text,
-    textAlign: 'center',
+  heroIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '30',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: theme.spacing.md,
+    padding: theme.spacing.xs,
+    ...theme.shadows.small,
+    zIndex: 3,
   },
-  headerDescription: {
+  heroLogo: {
+    width: '100%',
+    height: '100%',
+  },
+  heroTitle: {
+    ...theme.typography.h2,
+    fontSize: isWeb ? 24 : 22,
+    fontWeight: '800',
+    color: theme.colors.white,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+    zIndex: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    paddingHorizontal: theme.spacing.md,
+  },
+  heroSubtitle: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.white,
+    opacity: 0.95,
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    zIndex: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  
+  // Description Section
+  descriptionSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  descriptionText: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 28,
     maxWidth: 600,
+    alignSelf: 'center',
   },
   
   // Section Headers

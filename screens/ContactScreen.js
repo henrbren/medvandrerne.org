@@ -199,7 +199,7 @@ export default function ContactScreen({ navigation }) {
             {/* Board Leader */}
             <TouchableOpacity
               style={styles.boardLeaderCard}
-              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder', image: BOARD.leaderImage }, 'board')}
+              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder' }, 'board')}
               activeOpacity={0.7}
             >
               <LinearGradient
@@ -207,15 +207,7 @@ export default function ContactScreen({ navigation }) {
                 style={styles.boardLeaderGradient}
               >
                 <View style={styles.leaderIconContainer}>
-                  {BOARD.leaderImage ? (
-                    <Image 
-                      source={BOARD.leaderImage} 
-                      style={styles.leaderImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Icon name="trophy" size={32} color={theme.colors.white} />
-                  )}
+                  <Icon name="trophy" size={32} color={theme.colors.white} />
                 </View>
                 <View style={styles.leaderInfo}>
                   <Text style={styles.leaderRole}>Styreleder</Text>
@@ -233,19 +225,11 @@ export default function ContactScreen({ navigation }) {
                   <TouchableOpacity
                     key={index}
                     style={styles.memberCard}
-                    onPress={() => handlePersonPress({ name: member.name, role: 'Styremedlem', image: member.image }, 'board')}
+                    onPress={() => handlePersonPress({ name: member.name, role: 'Styremedlem' }, 'board')}
                     activeOpacity={0.7}
                   >
                     <View style={styles.memberIconContainer}>
-                      {member.image ? (
-                        <Image 
-                          source={member.image} 
-                          style={styles.memberImage}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <Icon name="person" size={20} color={theme.colors.primary} />
-                      )}
+                      <Icon name="person" size={20} color={theme.colors.primary} />
                     </View>
                     <Text style={styles.memberName}>{member.name}</Text>
                     <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />

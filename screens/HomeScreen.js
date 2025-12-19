@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -17,31 +16,101 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
-import { ORGANIZATION_INFO, MISSION, CORE_ACTIVITIES, SAMPLE_ACTIVITIES } from '../constants/data';
+import { ORGANIZATION_INFO, MISSION, CORE_ACTIVITIES, SAMPLE_ACTIVITIES, ADMINISTRATION, BOARD, LOCAL_GROUPS } from '../constants/data';
 import { useRegistrations } from '../hooks/useRegistrations';
+import { useFavorites } from '../hooks/useFavorites';
+import { useActivityStats } from '../hooks/useActivityStats';
+import { useMasteryLog } from '../hooks/useMasteryLog';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 export default function HomeScreen({ navigation }) {
-  const insets = useSafeAreaInsets();
   const { registrations, loading, loadRegistrations } = useRegistrations();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  
-  const headerHeight = Platform.OS === 'ios' ? 44 + insets.top : 64;
+  const { favoriteContacts, favoriteGroups, loadFavorites } = useFavorites();
+  const { stats: activityStats } = useActivityStats();
+  const { getStats: getMasteryStats } = useMasteryLog();
+  const hasAnimatedRef = useRef(false);
 
-  // Refresh registrations when screen is focused
+  // AnimatedSection component - checks shared ref to prevent re-animation
+  const AnimatedSection = ({ children, delay = 0, style }) => {
+    const cardFade = useRef(new Animated.Value(hasAnimatedRef.current ? 1 : 0)).current;
+    const cardSlide = useRef(new Animated.Value(hasAnimatedRef.current ? 0 : 20)).current;
+
+    useEffect(() => {
+      // Only animate if we haven't animated before
+      if (!hasAnimatedRef.current) {
+        Animated.parallel([
+          Animated.timing(cardFade, {
+            toValue: 1,
+            duration: theme.animations.normal,
+            delay,
+            useNativeDriver: true,
+          }),
+          Animated.spring(cardSlide, {
+            toValue: 0,
+            delay,
+            ...theme.animations.spring,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          // Mark as animated after the longest delay completes
+          setTimeout(() => {
+            hasAnimatedRef.current = true;
+          }, delay + theme.animations.normal);
+        });
+      }
+    }, [delay]);
+
+    return (
+      <Animated.View
+        style={[
+          style,
+          {
+            opacity: cardFade,
+            transform: [{ translateY: cardSlide }],
+          },
+        ]}
+      >
+        {children}
+      </Animated.View>
+    );
+  };
+
+  // Refresh registrations and favorites when screen is focused
   useFocusEffect(
     useCallback(() => {
       loadRegistrations();
+      loadFavorites();
     }, [])
   );
 
   // Get registered activities
   const registeredActivities = SAMPLE_ACTIVITIES.filter(activity => 
     registrations.includes(activity.id)
+  );
+
+  // Get favorite contacts (from ADMINISTRATION and BOARD)
+  const allContacts = [
+    ...ADMINISTRATION,
+    ...(BOARD.leader ? [{ id: `board-leader`, name: BOARD.leader, role: 'Styreleder' }] : []),
+    ...BOARD.members.map((member, index) => ({ 
+      id: `board-${index}`, 
+      name: member.name, 
+      role: 'Styremedlem',
+      image: member.image 
+    }))
+  ];
+  const favoriteContactObjects = allContacts.filter(contact => 
+    favoriteContacts.includes(contact.id)
+  );
+  
+  // Get all contacts for social network section (limit to 6 for preview)
+  const previewContacts = allContacts.slice(0, 6);
+
+  // Get favorite groups
+  const favoriteGroupObjects = LOCAL_GROUPS.filter(group => 
+    favoriteGroups.includes(group.id)
   );
 
   const formatDate = (dateString) => {
@@ -68,65 +137,10 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: theme.animations.slow,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        ...theme.animations.spring,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        ...theme.animations.springBouncy,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
   const handlePress = (url) => {
     Linking.openURL(url);
   };
 
-  const AnimatedSection = ({ children, delay = 0, style }) => {
-    const cardFade = useRef(new Animated.Value(0)).current;
-    const cardSlide = useRef(new Animated.Value(20)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(cardFade, {
-          toValue: 1,
-          duration: theme.animations.normal,
-          delay,
-          useNativeDriver: true,
-        }),
-        Animated.spring(cardSlide, {
-          toValue: 0,
-          delay,
-          ...theme.animations.spring,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    return (
-      <Animated.View
-        style={[
-          style,
-          {
-            opacity: cardFade,
-            transform: [{ translateY: cardSlide }],
-          },
-        ]}
-      >
-        {children}
-      </Animated.View>
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -139,45 +153,34 @@ export default function HomeScreen({ navigation }) {
         ]}
       >
         {/* Hero Section - With Image Background */}
-        <Animated.View
-          style={[
-            styles.heroWrapper,
-            {
-              opacity: fadeAnim,
-              transform: [
-                { translateY: slideAnim },
-                { scale: scaleAnim },
-              ],
-              marginTop: -headerHeight,
-            },
-          ]}
-        >
-          <View style={[styles.heroImageContainer, { paddingTop: headerHeight + theme.spacing.md }]}>
-            <Image 
-              source={require('../assets/img/hero/hero1.jpg')} 
-              style={styles.heroBackgroundImage}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroImageOverlay}
-            />
-            <View style={styles.heroContent}>
-              <View style={styles.heroIconContainer}>
-                <Image 
-                  source={require('../assets/img/logo.png')} 
-                  style={styles.heroLogo}
-                  resizeMode="contain"
-                />
+        <AnimatedSection>
+          <View style={styles.heroWrapper}>
+            <View style={styles.heroImageContainer}>
+              <Image 
+                source={require('../assets/img/lok1.jpg')} 
+                style={styles.heroBackgroundImage}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.7)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroImageOverlay}
+              />
+              <View style={styles.heroContent}>
+                <View style={styles.heroIconContainer}>
+                  <Image 
+                    source={require('../assets/img/logo.png')} 
+                    style={styles.heroLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.heroTitle}>Medvandrerne</Text>
+                <Text style={styles.heroSubtitle}>Vi vandrer sammen</Text>
               </View>
-              <Text style={styles.heroSubtitle}>STIFTELSEN</Text>
-              <Text style={styles.heroTitle}>Medvandrerne</Text>
-              <Text style={styles.heroTagline}>Vi vandrer sammen</Text>
             </View>
           </View>
-        </Animated.View>
+        </AnimatedSection>
 
         {/* My Registrations */}
         {registeredActivities.length > 0 && (
@@ -185,7 +188,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.registrationsSection}>
               <View style={styles.sectionHeaderMinimal}>
                 <LinearGradient
-                  colors={[theme.colors.primary, theme.colors.primaryLight]}
+                  colors={[theme.colors.success, '#4AE85C']}
                   style={styles.headerIconGradient}
                 >
                   <Icon name="checkmark-circle" size={28} color={theme.colors.white} />
@@ -201,25 +204,37 @@ export default function HomeScreen({ navigation }) {
                     onPress={() => navigation.navigate('ActivityDetail', { activity })}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.registrationIconContainer}>
-                      <LinearGradient
-                        colors={[theme.colors.primary + '40', theme.colors.primary + '20']}
-                        style={styles.registrationIconGradient}
-                      >
-                        <Icon name={getActivityIcon(activity.type)} size={24} color={theme.colors.primary} />
-                      </LinearGradient>
-                    </View>
-                    <View style={styles.registrationContent}>
-                      <Text style={styles.registrationTitle}>{activity.title}</Text>
-                      <View style={styles.registrationMeta}>
-                        <Icon name="time" size={14} color={theme.colors.textSecondary} />
-                        <Text style={styles.registrationDate}>
-                          {formatDate(activity.date)}
-                          {activity.time && ` • ${activity.time}`}
-                        </Text>
+                    <View style={styles.registrationCardHeader}>
+                      <View style={styles.registrationAvatarContainer}>
+                        <LinearGradient
+                          colors={[theme.colors.success, '#4AE85C']}
+                          style={styles.registrationAvatar}
+                        >
+                          <Icon name={getActivityIcon(activity.type)} size={28} color={theme.colors.white} />
+                        </LinearGradient>
+                        <View style={styles.registrationBadge}>
+                          <Icon name="checkmark-circle" size={16} color={theme.colors.success} />
+                        </View>
+                      </View>
+                      <View style={styles.registrationHeaderContent}>
+                        <Text style={styles.registrationTitle}>{activity.title}</Text>
+                        <View style={styles.registrationMeta}>
+                          <Icon name="time-outline" size={14} color={theme.colors.textSecondary} />
+                          <Text style={styles.registrationDate}>
+                            {formatDate(activity.date)}
+                            {activity.time && ` • ${activity.time}`}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                    <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                    {activity.location && activity.location !== 'Har ikke sted' && (
+                      <View style={styles.registrationFooter}>
+                        <Icon name="location-outline" size={14} color={theme.colors.textTertiary} />
+                        <Text style={styles.registrationLocation} numberOfLines={1}>
+                          {activity.location}
+                        </Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -227,8 +242,245 @@ export default function HomeScreen({ navigation }) {
           </AnimatedSection>
         )}
 
-        {/* Mission Statement - No card, more space */}
+        {/* Favorite Contacts and Groups */}
+        {(favoriteContactObjects.length > 0 || favoriteGroupObjects.length > 0) && (
+          <AnimatedSection delay={registeredActivities.length > 0 ? 200 : 100}>
+            <View style={styles.favoritesSection}>
+              <View style={styles.sectionHeaderMinimal}>
+                <LinearGradient
+                  colors={[theme.colors.warning, '#FFD60A']}
+                  style={styles.headerIconGradient}
+                >
+                  <Icon name="star" size={28} color={theme.colors.white} />
+                </LinearGradient>
+                <Text style={styles.sectionTitleLarge}>Mine favoritter</Text>
+              </View>
+              
+              {favoriteContactObjects.length > 0 && (
+                <View style={styles.favoritesList}>
+                  {favoriteContactObjects.map((contact) => (
+                    <TouchableOpacity
+                      key={contact.id}
+                      style={styles.favoriteCard}
+                      onPress={() => navigation.navigate('PersonDetail', { person: contact, type: 'contact' })}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.favoriteCardHeader}>
+                        <View style={styles.favoriteAvatarContainer}>
+                          {contact.image ? (
+                            <Image 
+                              source={contact.image} 
+                              style={styles.favoriteAvatarImage}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <LinearGradient
+                              colors={[theme.colors.info, theme.colors.info + 'CC']}
+                              style={styles.favoriteAvatarGradient}
+                            >
+                              <Icon name="person" size={32} color={theme.colors.white} />
+                            </LinearGradient>
+                          )}
+                          <View style={styles.favoriteBadge}>
+                            <Icon name="star" size={14} color={theme.colors.warning} />
+                          </View>
+                        </View>
+                        <View style={styles.favoriteHeaderContent}>
+                          <Text style={styles.favoriteTitle}>{contact.name}</Text>
+                          {contact.role && (
+                            <Text style={styles.favoriteSubtitle}>{contact.role}</Text>
+                          )}
+                        </View>
+                        <View style={styles.favoriteActionButton}>
+                          <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                        </View>
+                      </View>
+                      {(contact.phone || contact.email) && (
+                        <View style={styles.favoriteFooter}>
+                          {contact.phone && (
+                            <View style={styles.favoriteContactInfo}>
+                              <Icon name="call-outline" size={12} color={theme.colors.textTertiary} />
+                              <Text style={styles.favoriteContactText}>{contact.phone}</Text>
+                            </View>
+                          )}
+                          {contact.email && (
+                            <View style={styles.favoriteContactInfo}>
+                              <Icon name="mail-outline" size={12} color={theme.colors.textTertiary} />
+                              <Text style={styles.favoriteContactText} numberOfLines={1}>
+                                {contact.email.split('@')[0]}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {favoriteGroupObjects.length > 0 && (
+                <View style={styles.favoritesList}>
+                  {favoriteGroupObjects.map((group) => (
+                    <TouchableOpacity
+                      key={group.id}
+                      style={styles.favoriteCard}
+                      onPress={() => navigation.navigate('LocalGroupDetail', { group })}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.favoriteCardHeader}>
+                        <View style={styles.favoriteAvatarContainer}>
+                          {group.coordinatorImage ? (
+                            <Image 
+                              source={group.coordinatorImage} 
+                              style={styles.favoriteAvatarImage}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <LinearGradient
+                              colors={[theme.colors.primary, theme.colors.primaryLight]}
+                              style={styles.favoriteAvatarGradient}
+                            >
+                              <Icon name="people" size={32} color={theme.colors.white} />
+                            </LinearGradient>
+                          )}
+                          <View style={styles.favoriteBadge}>
+                            <Icon name="star" size={14} color={theme.colors.warning} />
+                          </View>
+                        </View>
+                        <View style={styles.favoriteHeaderContent}>
+                          <Text style={styles.favoriteTitle}>{group.name}</Text>
+                          {group.coordinator && (
+                            <Text style={styles.favoriteSubtitle}>{group.coordinator}</Text>
+                          )}
+                        </View>
+                        <View style={styles.favoriteActionButton}>
+                          <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                        </View>
+                      </View>
+                      {(group.phone || group.email) && (
+                        <View style={styles.favoriteFooter}>
+                          {group.phone && (
+                            <View style={styles.favoriteContactInfo}>
+                              <Icon name="call-outline" size={12} color={theme.colors.textTertiary} />
+                              <Text style={styles.favoriteContactText}>{group.phone}</Text>
+                            </View>
+                          )}
+                          {group.email && (
+                            <View style={styles.favoriteContactInfo}>
+                              <Icon name="mail-outline" size={12} color={theme.colors.textTertiary} />
+                              <Text style={styles.favoriteContactText} numberOfLines={1}>
+                                {group.email.split('@')[0]}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </AnimatedSection>
+        )}
+
+        {/* Quick Link to My Journey */}
         <AnimatedSection delay={registeredActivities.length > 0 ? 200 : 100}>
+          <TouchableOpacity
+            style={styles.myJourneyCard}
+            onPress={() => navigation.navigate('Min vandring')}
+            activeOpacity={0.7}
+          >
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.primaryLight]}
+              style={styles.myJourneyGradient}
+            >
+              <View style={styles.myJourneyContent}>
+                <View style={styles.myJourneyIconContainer}>
+                  <Icon name="map" size={32} color={theme.colors.white} />
+                </View>
+                <View style={styles.myJourneyTextContainer}>
+                  <Text style={styles.myJourneyTitle}>Min vandring</Text>
+                  <Text style={styles.myJourneySubtitle}>
+                    Se din personlige fremgang og refleksjoner
+                  </Text>
+                </View>
+                <Icon name="chevron-forward" size={24} color={theme.colors.white} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </AnimatedSection>
+
+        {/* Contacts Network Section */}
+        <AnimatedSection delay={registeredActivities.length > 0 ? 300 : 200}>
+          <View style={styles.contactsSection}>
+            <View style={styles.contactsSectionHeader}>
+              <View style={[styles.sectionHeaderMinimal, { marginBottom: 0 }]}>
+                <LinearGradient
+                  colors={[theme.colors.info, theme.colors.info + 'CC']}
+                  style={styles.headerIconGradient}
+                >
+                  <Icon name="people" size={28} color={theme.colors.white} />
+                </LinearGradient>
+                <View style={styles.sectionHeaderText}>
+                  <Text style={styles.sectionTitleLarge}>Kontakter</Text>
+                  <Text style={styles.sectionSubtitle}>Nettverk og personer</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Kontakt')}
+                activeOpacity={0.7}
+                style={styles.seeAllButton}
+              >
+                <Text style={styles.seeAllLink}>Se alle</Text>
+                <Icon name="chevron-forward" size={16} color={theme.colors.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.contactsGrid}>
+              {previewContacts.map((contact) => (
+                <TouchableOpacity
+                  key={contact.id}
+                  style={styles.contactCard}
+                  onPress={() => navigation.navigate('PersonDetail', { person: contact, type: 'contact' })}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.contactAvatarContainer}>
+                    {contact.image ? (
+                      <Image 
+                        source={contact.image} 
+                        style={styles.contactAvatarImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <LinearGradient
+                        colors={[theme.colors.info, theme.colors.info + 'CC']}
+                        style={styles.contactAvatarGradient}
+                      >
+                        <Icon name="person" size={24} color={theme.colors.white} />
+                      </LinearGradient>
+                    )}
+                    {favoriteContacts.includes(contact.id) && (
+                      <View style={styles.contactFavoriteBadge}>
+                        <Icon name="star" size={10} color={theme.colors.warning} />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.contactName} numberOfLines={1}>
+                    {contact.name.split(' ')[0]}
+                  </Text>
+                  {contact.role && (
+                    <Text style={styles.contactRole} numberOfLines={1}>
+                      {contact.role}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </AnimatedSection>
+
+        {/* Mission Statement - No card, more space */}
+        <AnimatedSection delay={registeredActivities.length > 0 ? 300 : 200}>
           <View style={styles.missionSection}>
             <View style={styles.sectionHeaderMinimal}>
               <Text style={styles.sectionTitleLarge}>Om Medvandrerne</Text>
@@ -402,11 +654,12 @@ const styles = StyleSheet.create({
   
   // Hero Section
   heroWrapper: {
+    width: '100%',
     marginBottom: theme.spacing.xl,
   },
   heroImageContainer: {
     width: '100%',
-    minHeight: isWeb ? 400 : 360,
+    height: isWeb ? 360 : 340,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -437,55 +690,58 @@ const styles = StyleSheet.create({
     ...theme.shadows.glow,
   },
   heroContent: {
-    position: 'relative',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
+    justifyContent: 'flex-start',
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: isWeb ? theme.spacing.xxxl * 2 : theme.spacing.xxxl * 1.5,
+    paddingBottom: theme.spacing.xxl,
     zIndex: 2,
   },
   heroIconContainer: {
     width: 100,
     height: 100,
-    borderRadius: theme.borderRadius.xxl,
+    borderRadius: theme.borderRadius.lg,
     backgroundColor: theme.colors.white + '30',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.md,
-    padding: theme.spacing.xs,
-    ...theme.shadows.large,
+    marginBottom: theme.spacing.lg,
+    padding: theme.spacing.sm,
+    ...theme.shadows.small,
+    zIndex: 3,
   },
   heroLogo: {
     width: '100%',
     height: '100%',
   },
-  heroSubtitle: {
-    ...theme.typography.caption,
-    color: theme.colors.white,
-    opacity: 0.9,
-    letterSpacing: 3,
-    fontWeight: '800',
-    marginBottom: theme.spacing.xs / 2,
-    fontSize: 11,
-  },
   heroTitle: {
-    ...theme.typography.h1,
-    fontSize: isWeb ? 28 : 24,
+    ...theme.typography.h2,
+    fontSize: isWeb ? 28 : 26,
     fontWeight: '800',
     color: theme.colors.white,
     textAlign: 'center',
-    marginBottom: theme.spacing.xs / 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 12,
+    marginBottom: theme.spacing.md,
+    zIndex: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+    paddingHorizontal: theme.spacing.md,
   },
-  heroTagline: {
-    ...theme.typography.body,
-    fontSize: isWeb ? 16 : 15,
+  heroSubtitle: {
+    ...theme.typography.bodySmall,
     color: theme.colors.white,
     opacity: 0.95,
-    fontStyle: 'italic',
+    fontSize: 16,
     fontWeight: '500',
+    textAlign: 'center',
+    zIndex: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   
   // Section Headers - Minimal
@@ -514,37 +770,65 @@ const styles = StyleSheet.create({
   },
   registrationsList: {
     gap: theme.spacing.md,
+    ...(isWeb && {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start',
+    }),
   },
   registrationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.xl,
-    padding: theme.spacing.md,
-    gap: theme.spacing.md,
-    ...theme.shadows.small,
+    padding: theme.spacing.lg,
+    ...theme.shadows.medium,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+    ...(isWeb && {
+      width: 'calc(50% - 12px)',
+      maxWidth: 500,
+      minWidth: 300,
+    }),
   },
-  registrationIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: theme.borderRadius.lg,
-    overflow: 'hidden',
+  registrationCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.sm,
   },
-  registrationIconGradient: {
-    width: '100%',
-    height: '100%',
+  registrationAvatarContainer: {
+    position: 'relative',
+    marginRight: theme.spacing.md,
+  },
+  registrationAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.borderRadius.xl,
     alignItems: 'center',
     justifyContent: 'center',
+    ...theme.shadows.small,
   },
-  registrationContent: {
+  registrationBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.surface,
+  },
+  registrationHeaderContent: {
     flex: 1,
+    paddingTop: theme.spacing.xs,
   },
   registrationTitle: {
-    ...theme.typography.body,
-    fontSize: 16,
-    fontWeight: '700',
+    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '800',
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs / 2,
+    marginBottom: theme.spacing.xs,
   },
   registrationMeta: {
     flexDirection: 'row',
@@ -555,6 +839,262 @@ const styles = StyleSheet.create({
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
     fontSize: 13,
+  },
+  registrationFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs / 2,
+    paddingTop: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+  },
+  registrationLocation: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    fontSize: 12,
+    flex: 1,
+  },
+  
+  // Favorites Section
+  favoritesSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  favoritesList: {
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    ...(isWeb && {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start',
+    }),
+  },
+  favoriteCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    ...theme.shadows.medium,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+    ...(isWeb && {
+      width: 'calc(50% - 12px)',
+      maxWidth: 500,
+      minWidth: 300,
+    }),
+  },
+  favoriteCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.sm,
+  },
+  favoriteAvatarContainer: {
+    position: 'relative',
+    marginRight: theme.spacing.md,
+  },
+  favoriteAvatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.borderRadius.xl,
+    ...theme.shadows.small,
+  },
+  favoriteAvatarGradient: {
+    width: 64,
+    height: 64,
+    borderRadius: theme.borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.small,
+  },
+  favoriteBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.surface,
+  },
+  favoriteHeaderContent: {
+    flex: 1,
+    paddingTop: theme.spacing.xs,
+  },
+  favoriteActionButton: {
+    paddingTop: theme.spacing.xs,
+  },
+  favoriteTitle: {
+    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  favoriteSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+  },
+  favoriteFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+  },
+  favoriteContactInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs / 2,
+    flex: 1,
+  },
+  favoriteContactText: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    fontSize: 12,
+    flex: 1,
+  },
+  
+  // Contacts Network Section
+  contactsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  contactsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.xl,
+  },
+  sectionHeaderText: {
+    flex: 1,
+  },
+  sectionSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs / 2,
+    paddingLeft: theme.spacing.md,
+  },
+  seeAllLink: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  contactsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.md,
+  },
+  contactCard: {
+    width: 'calc(33.333% - 12px)',
+    alignItems: 'center',
+    padding: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.small,
+    ...(isWeb && {
+      width: 'calc(16.666% - 12px)',
+      minWidth: 80,
+      maxWidth: 100,
+    }),
+  },
+  contactAvatarContainer: {
+    position: 'relative',
+    marginBottom: theme.spacing.xs,
+  },
+  contactAvatarImage: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.small,
+  },
+  contactAvatarGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.small,
+  },
+  contactFavoriteBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: theme.colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.surface,
+  },
+  contactName: {
+    ...theme.typography.caption,
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  contactRole: {
+    ...theme.typography.caption,
+    fontSize: 10,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
+  
+  // My Journey Card
+  myJourneyCard: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  myJourneyGradient: {
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    ...theme.shadows.medium,
+  },
+  myJourneyContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+  },
+  myJourneyIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.white + '25',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  myJourneyTextContainer: {
+    flex: 1,
+  },
+  myJourneyTitle: {
+    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.white,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  myJourneySubtitle: {
+    ...theme.typography.bodySmall,
+    fontSize: 13,
+    color: theme.colors.white,
+    opacity: 0.9,
   },
   
   // Mission Section - No cards
