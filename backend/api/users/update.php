@@ -10,6 +10,12 @@ require_once __DIR__ . '/../../config.php';
 
 setCorsHeaders();
 
+// Handle CORS preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 // Allow PUT and POST
 if (!in_array($_SERVER['REQUEST_METHOD'], ['PUT', 'POST'])) {
     jsonResponse(['error' => 'Method not allowed'], 405);
