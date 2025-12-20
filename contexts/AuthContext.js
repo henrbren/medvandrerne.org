@@ -270,6 +270,47 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Upload avatar image
+  const uploadAvatar = async (imageUri) => {
+    if (!token) return { success: false, error: 'Ikke innlogget' };
+
+    try {
+      // Create form data
+      const formData = new FormData();
+      const filename = imageUri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      
+      formData.append('avatar', {
+        uri: imageUri,
+        name: filename,
+        type: type,
+      });
+
+      const response = await fetch(`${API_BASE_URL}/users/upload-avatar.php`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        setUser(data.user);
+        await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+        return { success: true, user: data.user, avatarUrl: data.avatarUrl };
+      } else {
+        throw new Error(data.error || 'Kunne ikke laste opp bilde');
+      }
+    } catch (err) {
+      console.error('Upload avatar error:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
   // Check if user has active membership
   const hasActiveMembership = () => {
     if (!user || !user.membership) return false;
@@ -300,6 +341,7 @@ export function AuthProvider({ children }) {
     confirmMembership,
     hasActiveMembership,
     hasPendingMembership,
+    uploadAvatar,
   };
 
   return (

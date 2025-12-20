@@ -11,9 +11,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
@@ -115,9 +118,16 @@ function Forerkort({ user, localStats }) {
         {/* Main Content */}
         <View style={styles.forerkortContent}>
           <View style={styles.forerkortAvatar}>
-            <Text style={styles.forerkortAvatarText}>
-              {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
-            </Text>
+            {user.avatarUrl ? (
+              <Image 
+                source={{ uri: user.avatarUrl }} 
+                style={styles.forerkortAvatarImage}
+              />
+            ) : (
+              <Text style={styles.forerkortAvatarText}>
+                {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
+              </Text>
+            )}
           </View>
           <View style={styles.forerkortInfo}>
             <Text style={styles.forerkortName}>{user.name || 'Vandrer'}</Text>
@@ -346,16 +356,46 @@ function LoginFlow({ onComplete, loading: authLoading }) {
 }
 
 // Profile View Component
-function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, syncing, completedSkillIds }) {
+function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUploadAvatar, syncing, completedSkillIds }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Get full skill data for completed skills
   const completedSkillsData = (completedSkillIds || []).map(skillId => {
     const skill = SKILLS.find(s => s.id === skillId);
     return skill || null;
   }).filter(Boolean);
+
+  const pickImage = async () => {
+    // Request permission
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Tillatelse kreves', 'Vi trenger tilgang til bildegalleriet for å laste opp profilbilde.');
+      return;
+    }
+
+    // Pick image
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setUploadingAvatar(true);
+      const uploadResult = await onUploadAvatar(result.assets[0].uri);
+      setUploadingAvatar(false);
+      
+      if (uploadResult.success) {
+        Alert.alert('Suksess', 'Profilbildet er oppdatert!');
+      } else {
+        Alert.alert('Feil', uploadResult.error || 'Kunne ikke laste opp bildet');
+      }
+    }
+  };
 
   const handleSave = async () => {
     const result = await onUpdateProfile({ name, email });
@@ -485,6 +525,25 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
             </View>
           ) : (
             <View style={styles.profileInfo}>
+              {/* Avatar Upload */}
+              <TouchableOpacity style={styles.avatarSection} onPress={pickImage} disabled={uploadingAvatar}>
+                <View style={styles.avatarContainer}>
+                  {uploadingAvatar ? (
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                  ) : user.avatarUrl ? (
+                    <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+                  ) : (
+                    <View style={styles.avatarPlaceholder}>
+                      <Icon name="person" size={40} color={theme.colors.textTertiary} />
+                    </View>
+                  )}
+                  <View style={styles.avatarEditBadge}>
+                    <Icon name="camera" size={14} color={theme.colors.white} />
+                  </View>
+                </View>
+                <Text style={styles.avatarHint}>Trykk for å endre bilde</Text>
+              </TouchableOpacity>
+
               <View style={styles.infoRow}>
                 <Icon name="call" size={18} color={theme.colors.textSecondary} />
                 <Text style={styles.infoLabel}>Telefon:</Text>
@@ -573,7 +632,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
 
 // Main Screen
 export default function ProfileScreen({ navigation }) {
-  const { user, loading, isAuthenticated, login, logout, updateProfile, syncProgress } = useAuth();
+  const { user, loading, isAuthenticated, login, logout, updateProfile, syncProgress, uploadAvatar } = useAuth();
   const { stats: activityStats, completedActivities } = useActivityStats();
   const { entries, moments, getStats: getMasteryStats } = useMasteryLog();
   const { expeditions, environmentActions, getStats: getTrackingStats } = useActivityTracking();
@@ -732,6 +791,7 @@ export default function ProfileScreen({ navigation }) {
           onLogout={handleLogout}
           onSync={handleSync}
           onUpdateProfile={updateProfile}
+          onUploadAvatar={uploadAvatar}
           syncing={syncing}
           completedSkillIds={completedSkills}
         />
@@ -759,18 +819,19 @@ const styles = StyleSheet.create({
   cardsRow: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
     gap: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
   },
   cardsRowTablet: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
   },
   cardWrapper: {
-    marginBottom: theme.spacing.md,
+    // Phone: stacked cards with gap between
   },
   cardWrapperTablet: {
     flex: 1,
-    marginBottom: 0,
   },
   loadingContainer: {
     flex: 1,
@@ -1060,6 +1121,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  forerkortAvatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   forerkortAvatarText: {
     ...theme.typography.h1,
@@ -1145,7 +1212,7 @@ const styles = StyleSheet.create({
   // Profile Styles
   section: {
     paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -1165,6 +1232,52 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  avatarContainer: {
+    position: 'relative',
+    width: 100,
+    height: 100,
+    marginBottom: theme.spacing.sm,
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.backgroundElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderStyle: 'dashed',
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: theme.colors.surface,
+  },
+  avatarHint: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
   },
   infoRow: {
     flexDirection: 'row',
