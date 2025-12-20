@@ -21,8 +21,27 @@ import { useMasteryLog } from '../hooks/useMasteryLog';
 
 const { width } = Dimensions.get('window');
 
+// Calculate level from points
+function calculateLevel(totalPoints) {
+  const levels = [
+    { level: 1, name: 'Nybegynner', minPoints: 0 },
+    { level: 2, name: 'Turist', minPoints: 500 },
+    { level: 3, name: 'Vandrer', minPoints: 1000 },
+    { level: 4, name: 'Stifinner', minPoints: 2500 },
+    { level: 5, name: 'Mester', minPoints: 5000 },
+  ];
+  
+  let userLevel = levels[0];
+  for (const lvl of levels) {
+    if (totalPoints >= lvl.minPoints) {
+      userLevel = lvl;
+    }
+  }
+  return userLevel;
+}
+
 // Førerkort Component
-function Forerkort({ user }) {
+function Forerkort({ user, localStats }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
@@ -42,6 +61,14 @@ function Forerkort({ user }) {
     ]).start();
   }, []);
 
+  // Merge local and server stats - use the higher value
+  const totalPoints = Math.max(user.totalPoints || 0, localStats?.totalPoints || 0);
+  const completedActivities = Math.max(user.completedActivities || 0, localStats?.completedActivities || 0);
+  const completedExpeditions = Math.max(user.completedExpeditions || 0, localStats?.completedExpeditions || 0);
+  
+  // Calculate level based on combined points
+  const levelInfo = calculateLevel(totalPoints);
+
   const levelColors = {
     1: ['#9E9E9E', '#757575'],
     2: ['#42A5F5', '#1E88E5'],
@@ -50,7 +77,7 @@ function Forerkort({ user }) {
     5: ['#EC407A', '#D81B60'],
   };
 
-  const colors = levelColors[user.level] || levelColors[1];
+  const colors = levelColors[levelInfo.level] || levelColors[1];
 
   return (
     <Animated.View
@@ -91,7 +118,7 @@ function Forerkort({ user }) {
             <View style={styles.forerkortLevel}>
               <Icon name="shield-checkmark" size={16} color={theme.colors.white} />
               <Text style={styles.forerkortLevelText}>
-                Nivå {user.level}: {user.levelName}
+                Nivå {levelInfo.level}: {levelInfo.name}
               </Text>
             </View>
           </View>
@@ -100,17 +127,17 @@ function Forerkort({ user }) {
         {/* Stats */}
         <View style={styles.forerkortStats}>
           <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{user.totalPoints?.toLocaleString() || 0}</Text>
+            <Text style={styles.forerkortStatValue}>{totalPoints.toLocaleString()}</Text>
             <Text style={styles.forerkortStatLabel}>Poeng</Text>
           </View>
           <View style={styles.forerkortStatDivider} />
           <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{user.completedActivities || 0}</Text>
+            <Text style={styles.forerkortStatValue}>{completedActivities}</Text>
             <Text style={styles.forerkortStatLabel}>Aktiviteter</Text>
           </View>
           <View style={styles.forerkortStatDivider} />
           <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{user.completedExpeditions || 0}</Text>
+            <Text style={styles.forerkortStatValue}>{completedExpeditions}</Text>
             <Text style={styles.forerkortStatLabel}>Ekspedisjoner</Text>
           </View>
         </View>
@@ -204,7 +231,7 @@ function LoginForm({ onLogin, loading }) {
 }
 
 // Profile View Component
-function ProfileView({ user, onLogout, onSync, onUpdateProfile, syncing }) {
+function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, syncing }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
@@ -219,11 +246,21 @@ function ProfileView({ user, onLogout, onSync, onUpdateProfile, syncing }) {
     }
   };
 
+  // Check if local data is newer than server data
+  const hasUnsyncedProgress = (localStats?.totalPoints || 0) > (user.totalPoints || 0) ||
+    (localStats?.completedActivities || 0) > (user.completedActivities || 0);
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Førerkort */}
       <View style={styles.section}>
-        <Forerkort user={user} />
+        <Forerkort user={user} localStats={localStats} />
+        {hasUnsyncedProgress && (
+          <View style={styles.unsyncedBanner}>
+            <Icon name="cloud-upload-outline" size={16} color={theme.colors.warning} />
+            <Text style={styles.unsyncedText}>Du har usynkronisert fremgang</Text>
+          </View>
+        )}
       </View>
 
       {/* Profile Info */}
@@ -372,6 +409,15 @@ export default function ProfileScreen({ navigation }) {
   const { getStats: getMasteryStats } = useMasteryLog();
   const [syncing, setSyncing] = useState(false);
 
+  // Calculate combined local stats
+  const masteryStats = getMasteryStats();
+  const localStats = {
+    totalPoints: (activityStats?.totalPoints || 0) + (masteryStats?.totalXP || 0),
+    completedActivities: activityStats?.completedCount || 0,
+    completedExpeditions: masteryStats?.completedExpeditions || 0,
+    skills: masteryStats?.skills || [],
+  };
+
   const handleLogin = async (phone) => {
     const result = await login(phone);
     if (result.success) {
@@ -441,6 +487,7 @@ export default function ProfileScreen({ navigation }) {
       {isAuthenticated ? (
         <ProfileView
           user={user}
+          localStats={localStats}
           onLogout={handleLogout}
           onSync={handleSync}
           onUpdateProfile={updateProfile}
@@ -546,6 +593,25 @@ const styles = StyleSheet.create({
     color: theme.colors.textTertiary,
     textAlign: 'center',
     marginTop: theme.spacing.lg,
+  },
+
+  // Unsynced Banner
+  unsyncedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.warning + '20',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    marginTop: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
+  },
+  unsyncedText: {
+    ...theme.typography.caption,
+    color: theme.colors.warning,
+    fontWeight: '600',
   },
 
   // Førerkort Styles
