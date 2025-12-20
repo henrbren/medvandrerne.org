@@ -345,7 +345,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
       {user.skills && user.skills.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name="ribbon-outline" size={24} color={theme.colors.warning} />
+            <Icon name="trophy-outline" size={24} color={theme.colors.warning} />
             <Text style={styles.sectionTitle}>Ferdigheter</Text>
           </View>
           <View style={styles.skillsGrid}>
@@ -363,7 +363,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
       {user.badges && user.badges.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name="medal-outline" size={24} color={theme.colors.success} />
+            <Icon name="star-outline" size={24} color={theme.colors.success} />
             <Text style={styles.sectionTitle}>Merker</Text>
           </View>
           <View style={styles.badgesGrid}>
