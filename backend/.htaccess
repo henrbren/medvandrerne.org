@@ -1,0 +1,29 @@
+# Protect admin directory with HTTP Basic Authentication
+# OBS: Kommenter ut disse linjene hvis du ikke har .htpasswd opprettet ennå
+# <IfModule mod_auth_basic.c>
+#     AuthType Basic
+#     AuthName "Medvandrerne Admin - Tilgangskontroll"
+#     AuthUserFile /home/henrikb30/.htpasswd
+#     Require valid-user
+# </IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "\.(htaccess|htpasswd|backup|log)$">
+    Require all denied
+</FilesMatch>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Protect JSON files from direct access (optional - comment out if you want API access)
+# <FilesMatch "\.json$">
+#     Require valid-user
+# </FilesMatch>

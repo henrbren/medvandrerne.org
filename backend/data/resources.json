@@ -1,0 +1,56 @@
+[
+    {
+        "id": 1,
+        "title": "Recovery og Salutogenese",
+        "description": "Lær mer om vårt fundamentale perspektiv på recovery og helse.",
+        "icon": "medical",
+        "type": "Artikkel",
+        "url": "https://medvandrerne.org/recovery",
+        "category": "Teori"
+    },
+    {
+        "id": 2,
+        "title": "Utendørsterapi Guide",
+        "description": "Komplett guide for lokallag som ønsker å starte utendørsterapi.",
+        "icon": "book",
+        "type": "Guide",
+        "url": "https://medvandrerne.org/utendorsguide",
+        "category": "Praktisk"
+    },
+    {
+        "id": 3,
+        "title": "Miljø og bærekraft",
+        "description": "Vårt arbeid med miljøvern og bærekraftig friluftsliv.",
+        "icon": "leaf",
+        "type": "Rapport",
+        "url": "https://medvandrerne.org/miljo",
+        "category": "Miljø"
+    },
+    {
+        "id": 4,
+        "title": "Femundløpet Informasjon",
+        "description": "Alt du trenger å vite om verdens største skitur.",
+        "icon": "snow",
+        "type": "Informasjon",
+        "url": "https://femundlopet.no",
+        "category": "Arrangement"
+    },
+    {
+        "id": 5,
+        "title": "Lokallagsveileder",
+        "description": "Hvordan starte og drive et lokallag i Medvandrerne.",
+        "icon": "people",
+        "type": "Veileder",
+        "url": "https://medvandrerne.org/lokallag",
+        "category": "Organisasjon"
+    },
+    {
+        "id": 6,
+        "title": "Friskus Programmet",
+        "description": "Vårt strukturert program for recovery gjennom naturen.",
+        "icon": "fitness",
+        "type": "Program",
+        "url": "https://medvandrerne.org/friskus",
+        "category": "Programmer"
+    }
+]

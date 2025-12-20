@@ -3,17 +3,19 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { scheduleActivityNotification, cancelActivityNotification, cleanupNotifications } from '../services/notifications';
-import { SAMPLE_ACTIVITIES } from '../constants/data';
+import { useAppData } from '../contexts/AppDataContext';
 
 const STORAGE_KEY = '@medvandrerne_registrations';
 
 export const useRegistrations = () => {
+  const { data } = useAppData();
+  const SAMPLE_ACTIVITIES = data.activities || [];
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadRegistrations();
-  }, []);
+  }, [SAMPLE_ACTIVITIES]);
 
   const loadRegistrations = async () => {
     try {

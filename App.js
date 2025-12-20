@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from './constants/theme';
 import Sidebar from './components/Sidebar';
 import { requestPermissions } from './services/notifications';
+import { AppDataProvider } from './contexts/AppDataContext';
 
 import HomeScreen from './screens/HomeScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
@@ -403,8 +404,10 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor={theme.colors.primary} />
-      <AppWithNavigation />
+      <AppDataProvider>
+        <StatusBar style="light" backgroundColor={theme.colors.primary} />
+        <AppWithNavigation />
+      </AppDataProvider>
     </SafeAreaProvider>
   );
 }

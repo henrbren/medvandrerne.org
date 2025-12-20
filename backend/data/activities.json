@@ -1,0 +1,56 @@
+[
+    {
+        "id": 1,
+        "title": "Admmøte",
+        "date": "2025-11-09",
+        "time": "18:00-19:00",
+        "location": "Google Meet",
+        "type": "Møte"
+    },
+    {
+        "id": 2,
+        "title": "Strafferettskonferanse",
+        "date": "2025-11-14",
+        "time": "09:00-16:00",
+        "location": "Har ikke sted",
+        "type": "Konferanse"
+    },
+    {
+        "id": 3,
+        "title": "MV Oslofjorden: Tur til Vardåsen",
+        "date": "2025-11-15",
+        "time": "11:00-12:00",
+        "location": "Asker stasjon, Torvveien 4, 1383 Asker",
+        "type": "Tur"
+    },
+    {
+        "id": 4,
+        "title": "Mush Synnfjell",
+        "date": "2026-01-09",
+        "time": "Hele dagen",
+        "endDate": "2026-01-11",
+        "location": "Har ikke sted",
+        "type": "Motivasjonstur",
+        "multiDay": true
+    },
+    {
+        "id": 5,
+        "title": "Femundløpet 2026",
+        "date": "2026-02-08",
+        "time": "Hele dagen",
+        "endDate": "2026-02-15",
+        "location": "Har ikke sted",
+        "type": "Arrangement",
+        "multiDay": true
+    },
+    {
+        "id": 6,
+        "title": "Fjellbris 2026",
+        "date": "2026-04-25",
+        "time": "Hele dagen",
+        "endDate": "2026-04-26",
+        "location": "Har ikke sted",
+        "type": "Motivasjonstur",
+        "multiDay": true
+    }
+]

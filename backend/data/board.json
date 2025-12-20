@@ -1,0 +1,30 @@
+{
+    "leader": "Sigmund Aunan",
+    "leaderImage": null,
+    "members": [
+        {
+            "name": "Are Lerstein",
+            "image": null
+        },
+        {
+            "name": "Ivar Brecke Nygaard",
+            "image": "ivar.jpg"
+        },
+        {
+            "name": "Pål Berger",
+            "image": null
+        },
+        {
+            "name": "Per Sandvik",
+            "image": null
+        },
+        {
+            "name": "Raymond Tollefsen",
+            "image": "raymond.png"
+        },
+        {
+            "name": "Aina Rype",
+            "image": null
+        }
+    ]
+}

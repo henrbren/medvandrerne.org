@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "role": "Daglig leder",
+        "name": "Roger Wangberg",
+        "phone": "936 60 011",
+        "email": "roger@medvandrerne.org",
+        "image": "roger.png"
+    },
+    {
+        "id": 2,
+        "role": "Lokallagskoordinator",
+        "name": "Elin Larsen",
+        "phone": "95932919",
+        "email": "elin.larsen@medvandrerne.org",
+        "image": "elin.png"
+    },
+    {
+        "id": 3,
+        "role": "Fagansvarlig",
+        "name": "Raymond Tollefsen",
+        "phone": "",
+        "email": "raymond@medvandrerne.org",
+        "image": "raymond.png"
+    },
+    {
+        "id": 4,
+        "role": "Utstyrsansvarlig",
+        "name": "Ivar Brecke Nygaard",
+        "phone": "",
+        "email": "ivar@medvandrerne.org",
+        "image": "ivar.jpg"
+    },
+    {
+        "id": 5,
+        "role": "Miljø og samfunnsansvar",
+        "name": "Siri Otterskred",
+        "phone": "",
+        "email": "siri@medvandrerne.org",
+        "image": "siri.png"
+    },
+    {
+        "id": 6,
+        "role": "Kaoskoordinator",
+        "name": "Henrik Brendhagen",
+        "phone": "991 22 328",
+        "email": "henrik@medvandrerne.org",
+        "image": "henrik.png"
+    }
+]

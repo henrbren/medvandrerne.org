@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
-import { ORGANIZATION_INFO, MISSION, CORE_ACTIVITIES, SAMPLE_ACTIVITIES, ADMINISTRATION, BOARD, LOCAL_GROUPS } from '../constants/data';
+import { useAppData } from '../contexts/AppDataContext';
 import { useRegistrations } from '../hooks/useRegistrations';
 import { useFavorites } from '../hooks/useFavorites';
 import { useActivityStats } from '../hooks/useActivityStats';
@@ -26,11 +26,21 @@ const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 export default function HomeScreen({ navigation }) {
+  const { data, loading: dataLoading, refreshData } = useAppData();
   const { registrations, loading, loadRegistrations } = useRegistrations();
   const { favoriteContacts, favoriteGroups, loadFavorites } = useFavorites();
   const { stats: activityStats } = useActivityStats();
   const { getStats: getMasteryStats } = useMasteryLog();
   const hasAnimatedRef = useRef(false);
+
+  // Extract data from context
+  const ORGANIZATION_INFO = data.organization;
+  const MISSION = data.mission;
+  const CORE_ACTIVITIES = data.coreActivities;
+  const SAMPLE_ACTIVITIES = data.activities;
+  const ADMINISTRATION = data.administration;
+  const BOARD = data.board;
+  const LOCAL_GROUPS = data.localGroups;
 
   // AnimatedSection component - checks shared ref to prevent re-animation
   const AnimatedSection = ({ children, delay = 0, style }) => {

@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "title": "Femundløpet 2024",
+        "description": "En fantastisk uke med fellesskap og mestring",
+        "image": "https://via.placeholder.com/400x300/D32F2F/FFFFFF?text=Femundl%C3%B8pet+2024",
+        "category": "Arrangement",
+        "date": "2024-02"
+    },
+    {
+        "id": 2,
+        "title": "Lokallag Bergen",
+        "description": "Høsttur i vakre omgivelser",
+        "image": "https://via.placeholder.com/400x300/D32F2F/FFFFFF?text=Bergen+Tur",
+        "category": "Lokallag",
+        "date": "2024-10"
+    },
+    {
+        "id": 3,
+        "title": "Miljøaksjon",
+        "description": "Rydding av Alnaelva",
+        "image": "https://via.placeholder.com/400x300/D32F2F/FFFFFF?text=Milj%C3%B8aksjon",
+        "category": "Miljø",
+        "date": "2024-09"
+    },
+    {
+        "id": 4,
+        "title": "Fjellbris 2024",
+        "description": "Motivasjonstur på fjellet",
+        "image": "https://via.placeholder.com/400x300/D32F2F/FFFFFF?text=Fjellbris",
+        "category": "Motivasjonstur",
+        "date": "2024-04"
+    },
+    {
+        "id": 5,
+        "title": "Styre og administrasjon",
+        "description": "Årsmøte og strategidager",
+        "image": "https://via.placeholder.com/400x300/D32F2F/FFFFFF?text=%C3%85rsm%C3%B8te",
+        "category": "Organisasjon",
+        "date": "2024-03"
+    },
+    {
+        "id": 6,
+        "title": "Ungdomsgruppe",
+        "description": "Nye deltagere på tur",
+        "image": "https://via.placeholder.com/400x300/D32F2F/FFFFFF?text=Ungdomsgruppe",
+        "category": "Deltagere",
+        "date": "2024-08"
+    }
+]
