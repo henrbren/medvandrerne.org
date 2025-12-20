@@ -14,15 +14,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
+import { useAppData } from '../contexts/AppDataContext';
 import {
-  ADMINISTRATION,
-  BOARD,
-  ORGANIZATION_INFO,
+  ADMINISTRATION as DEFAULT_ADMINISTRATION,
+  BOARD as DEFAULT_BOARD,
+  ORGANIZATION_INFO as DEFAULT_ORGANIZATION_INFO,
 } from '../constants/data';
 
 const isWeb = Platform.OS === 'web';
 
 export default function ContactScreen({ navigation }) {
+  // Use API data with fallback to defaults
+  const { data } = useAppData();
+  const ADMINISTRATION = data.administration || DEFAULT_ADMINISTRATION;
+  const BOARD = data.board || DEFAULT_BOARD;
+  const ORGANIZATION_INFO = data.organization || DEFAULT_ORGANIZATION_INFO;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -120,7 +126,7 @@ export default function ContactScreen({ navigation }) {
                     {person.image ? (
                       <View style={styles.contactImageHeader}>
                         <Image 
-                          source={person.image} 
+                          source={typeof person.image === 'string' ? { uri: person.image } : person.image} 
                           style={styles.contactHeaderImage}
                           resizeMode="cover"
                         />
@@ -199,16 +205,23 @@ export default function ContactScreen({ navigation }) {
             {/* Board Leader */}
             <TouchableOpacity
               style={styles.boardLeaderCard}
-              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder' }, 'board')}
+              onPress={() => handlePersonPress({ name: BOARD.leader, role: 'Styreleder', image: BOARD.leaderImage }, 'board')}
               activeOpacity={0.7}
             >
               <LinearGradient
                 colors={[theme.colors.primary, theme.colors.primaryLight]}
                 style={styles.boardLeaderGradient}
               >
-                <View style={styles.leaderIconContainer}>
-                  <Icon name="trophy" size={32} color={theme.colors.white} />
-                </View>
+                {BOARD.leaderImage ? (
+                  <Image 
+                    source={typeof BOARD.leaderImage === 'string' ? { uri: BOARD.leaderImage } : BOARD.leaderImage}
+                    style={styles.leaderImage}
+                  />
+                ) : (
+                  <View style={styles.leaderIconContainer}>
+                    <Icon name="trophy" size={32} color={theme.colors.white} />
+                  </View>
+                )}
                 <View style={styles.leaderInfo}>
                   <Text style={styles.leaderRole}>Styreleder</Text>
                   <Text style={styles.leaderName}>{BOARD.leader}</Text>
@@ -221,16 +234,23 @@ export default function ContactScreen({ navigation }) {
             <View style={styles.boardMembersContainer}>
               <Text style={styles.subsectionTitle}>Styremedlemmer</Text>
               <View style={styles.membersList}>
-                {BOARD.members.map((member, index) => (
+                {BOARD.members && BOARD.members.map((member, index) => (
                   <TouchableOpacity
                     key={index}
                     style={styles.memberCard}
-                    onPress={() => handlePersonPress({ name: member.name, role: 'Styremedlem' }, 'board')}
+                    onPress={() => handlePersonPress({ name: member.name, role: 'Styremedlem', image: member.image }, 'board')}
                     activeOpacity={0.7}
                   >
-                    <View style={styles.memberIconContainer}>
-                      <Icon name="person" size={20} color={theme.colors.primary} />
-                    </View>
+                    {member.image ? (
+                      <Image 
+                        source={typeof member.image === 'string' ? { uri: member.image } : member.image}
+                        style={styles.memberImage}
+                      />
+                    ) : (
+                      <View style={styles.memberIconContainer}>
+                        <Icon name="person" size={20} color={theme.colors.primary} />
+                      </View>
+                    )}
                     <Text style={styles.memberName}>{member.name}</Text>
                     <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
                   </TouchableOpacity>
@@ -499,6 +519,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  leaderImage: {
+    width: 60,
+    height: 60,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 2,
+    borderColor: theme.colors.white + '40',
+  },
   leaderInfo: {
     flex: 1,
   },
@@ -549,6 +576,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  memberImage: {
+    width: 36,
+    height: 36,
+    borderRadius: theme.borderRadius.sm,
   },
   memberName: {
     ...theme.typography.body,
