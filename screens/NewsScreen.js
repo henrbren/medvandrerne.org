@@ -8,54 +8,19 @@ import {
   Dimensions,
   Animated,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
+import { useAppData } from '../contexts/AppDataContext';
 
 const { width } = Dimensions.get('window');
 
-// Sample news data - in a real app this would come from an API
-const NEWS_ITEMS = [
-  {
-    id: 1,
-    title: 'Nytt samarbeid med Gjensidigestiftelsen',
-    date: '2025-11-15',
-    excerpt: 'Vi er stolte av å annonsere et nytt samarbeid med Gjensidigestiftelsen som vil styrke vår støtte til rusavhengige.',
-    image: 'https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=Nytt+Samarbeid',
-    readTime: '2 min',
-    category: 'Samarbeid',
-  },
-  {
-    id: 2,
-    title: 'Femundløpet 2026 - Påmelding åpnet',
-    date: '2025-11-10',
-    excerpt: 'Påmelding til Femundløpet 2026 er nå åpen. Vi ser frem til en fantastisk uke med mestring og fellesskap.',
-    image: 'https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=Femundl%C3%B8pet',
-    readTime: '3 min',
-    category: 'Arrangement',
-  },
-  {
-    id: 3,
-    title: 'Lokallag Bergen arrangerer høsttur',
-    date: '2025-11-08',
-    excerpt: 'Bergen lokallag inviterer til høsttur i nærområdet. Perfekt mulighet for nye deltagere å bli kjent med vår måte å arbeide på.',
-    image: 'https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=H%C3%B8sttur+Bergen',
-    readTime: '2 min',
-    category: 'Lokallag',
-  },
-  {
-    id: 4,
-    title: 'Årsrapport 2024 er ute',
-    date: '2025-11-01',
-    excerpt: 'Vår årsrapport for 2024 viser imponerende resultater og vekst i alle våre kjerneområder.',
-    image: 'https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=%C3%85rsrapport',
-    readTime: '4 min',
-    category: 'Rapport',
-  },
-];
-
-export default function NewsScreen() {
+export default function NewsScreen({ navigation }) {
+  const { data, loading, refreshData } = useAppData();
+  const news = data.news || [];
+  
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -86,10 +51,10 @@ export default function NewsScreen() {
           delay,
           useNativeDriver: true,
         }),
-        Animated.timing(cardSlide, {
+        Animated.spring(cardSlide, {
           toValue: 0,
-          duration: theme.animations.normal,
           delay,
+          ...theme.animations.spring,
           useNativeDriver: true,
         }),
       ]).start();
@@ -111,17 +76,17 @@ export default function NewsScreen() {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('no-NO', {
-      year: 'numeric',
-      month: 'long',
+    return date.toLocaleDateString('nb-NO', {
       day: 'numeric',
+      month: 'long',
+      year: 'numeric',
     });
   };
 
   const handleNewsPress = (newsItem) => {
-    // In a real app, navigate to detailed news view
-    console.log('News pressed:', newsItem.title);
+    navigation.navigate('NewsDetail', { newsItem });
   };
 
   return (
@@ -130,11 +95,19 @@ export default function NewsScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshData}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
       >
-        {/* Header Section */}
+        {/* Header */}
         <Animated.View
           style={[
-            styles.headerWrapper,
+            styles.header,
             {
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
@@ -142,77 +115,84 @@ export default function NewsScreen() {
           ]}
         >
           <LinearGradient
-            colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.headerSection}
+            colors={[theme.colors.primary, theme.colors.primaryLight]}
+            style={styles.headerGradient}
           >
-            <View style={styles.headerContent}>
-              <View style={styles.headerIconContainer}>
-                <Icon name="newspaper" size={32} color={theme.colors.white} />
-              </View>
-              <Text style={styles.headerTitle}>Nyheter</Text>
-              <Text style={styles.headerSubtitle}>Hold deg oppdatert</Text>
-            </View>
+            <Icon name="newspaper" size={32} color={theme.colors.white} />
+            <Text style={styles.headerTitle}>Nyheter</Text>
+            <Text style={styles.headerSubtitle}>
+              Siste nytt fra Medvandrerne
+            </Text>
           </LinearGradient>
         </Animated.View>
 
         {/* News List */}
-        {NEWS_ITEMS.map((news, index) => (
-          <AnimatedCard key={news.id} delay={index * 100 + 200}>
-            <TouchableOpacity
-              style={styles.newsCard}
-              onPress={() => handleNewsPress(news)}
-              activeOpacity={0.9}
-            >
-              <View style={styles.newsImageContainer}>
-                <Image
-                  source={{ uri: news.image }}
-                  style={styles.newsImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>{news.category}</Text>
-                </View>
-              </View>
-
-              <View style={styles.newsContent}>
-                <Text style={styles.newsTitle}>{news.title}</Text>
-                <Text style={styles.newsExcerpt}>{news.excerpt}</Text>
-
-                <View style={styles.newsMeta}>
-                  <View style={styles.metaItem}>
-                    <Icon name="calendar" size={16} color={theme.colors.textLight} />
-                    <Text style={styles.metaText}>{formatDate(news.date)}</Text>
-                  </View>
-                  <View style={styles.metaItem}>
-                    <Icon name="time" size={16} color={theme.colors.textLight} />
-                    <Text style={styles.metaText}>{news.readTime}</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.newsArrow}>
-                <Icon name="chevron-forward-outline" size={24} color={theme.colors.textLight} />
-              </View>
-            </TouchableOpacity>
-          </AnimatedCard>
-        ))}
-
-        {/* Load More Section */}
-        <AnimatedCard delay={NEWS_ITEMS.length * 100 + 300}>
-          <View style={styles.loadMoreContainer}>
-            <TouchableOpacity style={styles.loadMoreButton} activeOpacity={0.8}>
-              <LinearGradient
-                colors={[theme.colors.primary + '20', theme.colors.primaryLight + '20']}
-                style={styles.loadMoreGradient}
-              >
-                <Icon name="refresh" size={24} color={theme.colors.primary} />
-                <Text style={styles.loadMoreText}>Last flere nyheter</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+        {news.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Icon name="newspaper-outline" size={64} color={theme.colors.textTertiary} />
+            <Text style={styles.emptyTitle}>Ingen nyheter ennå</Text>
+            <Text style={styles.emptyText}>
+              Nye artikler vil vises her når de publiseres
+            </Text>
           </View>
-        </AnimatedCard>
+        ) : (
+          news.map((item, index) => (
+            <AnimatedCard key={item.id || index} delay={index * 100 + 200}>
+              <TouchableOpacity
+                style={styles.newsCard}
+                onPress={() => handleNewsPress(item)}
+                activeOpacity={0.7}
+              >
+                {item.image ? (
+                  <View style={styles.newsImageContainer}>
+                    <Image
+                      source={{ uri: item.image }}
+                      style={styles.newsImage}
+                      resizeMode="cover"
+                    />
+                    {item.category && (
+                      <View style={styles.categoryBadge}>
+                        <Text style={styles.categoryText}>{item.category}</Text>
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.newsImagePlaceholder}>
+                    <Icon name="newspaper" size={40} color={theme.colors.textTertiary} />
+                  </View>
+                )}
+                
+                <View style={styles.newsContent}>
+                  <Text style={styles.newsTitle} numberOfLines={2}>
+                    {item.title}
+                  </Text>
+                  {item.excerpt && (
+                    <Text style={styles.newsExcerpt} numberOfLines={3}>
+                      {item.excerpt}
+                    </Text>
+                  )}
+                  
+                  <View style={styles.newsMeta}>
+                    <View style={styles.metaItem}>
+                      <Icon name="calendar-outline" size={14} color={theme.colors.textSecondary} />
+                      <Text style={styles.metaText}>{formatDate(item.date)}</Text>
+                    </View>
+                    {item.readTime && (
+                      <View style={styles.metaItem}>
+                        <Icon name="time-outline" size={14} color={theme.colors.textSecondary} />
+                        <Text style={styles.metaText}>{item.readTime}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                
+                <View style={styles.newsArrow}>
+                  <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                </View>
+              </TouchableOpacity>
+            </AnimatedCard>
+          ))
+        )}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -227,154 +207,120 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xl,
-    flexGrow: 1,
-  },
-  headerWrapper: {
-    marginBottom: theme.spacing.lg,
-  },
-  headerSection: {
-    paddingVertical: theme.spacing.xxl,
     paddingHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.md,
-    marginHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.xxxl,
+  },
+  header: {
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
     borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
-    ...theme.shadows.xl,
+    ...theme.shadows.glow,
   },
-  headerContent: {
+  headerGradient: {
+    padding: theme.spacing.xl,
     alignItems: 'center',
-    zIndex: 1,
-  },
-  headerIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: theme.colors.white + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.md,
   },
   headerTitle: {
-    fontSize: 26,
-    fontWeight: '800',
+    ...theme.typography.h2,
     color: theme.colors.white,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-    marginBottom: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
   },
   headerSubtitle: {
     ...theme.typography.body,
     color: theme.colors.white,
-    opacity: 0.95,
-    fontStyle: 'italic',
-    fontSize: 18,
-    fontWeight: '500',
+    opacity: 0.9,
+    marginTop: theme.spacing.xs,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xxxl,
+  },
+  emptyTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.lg,
+  },
+  emptyText: {
+    ...theme.typography.body,
+    color: theme.colors.textTertiary,
+    marginTop: theme.spacing.sm,
+    textAlign: 'center',
   },
   newsCard: {
     backgroundColor: theme.colors.surface,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.md,
     borderRadius: theme.borderRadius.xl,
-    ...theme.shadows.medium,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
+    marginBottom: theme.spacing.lg,
     overflow: 'hidden',
+    ...theme.shadows.medium,
   },
   newsImageContainer: {
-    position: 'relative',
     width: '100%',
-    height: 200,
+    height: 180,
+    position: 'relative',
   },
   newsImage: {
     width: '100%',
     height: '100%',
   },
+  newsImagePlaceholder: {
+    width: '100%',
+    height: 120,
+    backgroundColor: theme.colors.backgroundElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   categoryBadge: {
     position: 'absolute',
     top: theme.spacing.md,
-    right: theme.spacing.md,
+    left: theme.spacing.md,
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 4,
-    borderRadius: theme.borderRadius.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.full,
   },
   categoryText: {
     ...theme.typography.caption,
     color: theme.colors.white,
     fontWeight: '700',
-    fontSize: 12,
   },
   newsContent: {
     padding: theme.spacing.lg,
   },
   newsTitle: {
-    ...theme.typography.h3,
+    ...theme.typography.title,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
-    fontSize: 20,
-    fontWeight: '700',
-    lineHeight: 26,
   },
   newsExcerpt: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.md,
     lineHeight: 22,
   },
   newsMeta: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+    gap: theme.spacing.lg,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: theme.spacing.xs,
   },
   metaText: {
     ...theme.typography.caption,
-    color: theme.colors.textLight,
-    marginLeft: 4,
-    fontSize: 12,
+    color: theme.colors.textSecondary,
   },
   newsArrow: {
     position: 'absolute',
     right: theme.spacing.lg,
-    top: 160,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: theme.colors.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...theme.shadows.small,
-  },
-  loadMoreContainer: {
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-  },
-  loadMoreButton: {
-    borderRadius: theme.borderRadius.lg,
-    overflow: 'hidden',
-    ...theme.shadows.medium,
-  },
-  loadMoreGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-  },
-  loadMoreText: {
-    ...theme.typography.body,
-    color: theme.colors.primary,
-    fontWeight: '700',
-    marginLeft: theme.spacing.sm,
-    fontSize: 16,
+    top: '50%',
+    marginTop: -10,
   },
   bottomSpacer: {
-    height: theme.spacing.md,
+    height: theme.spacing.xxl,
   },
 });

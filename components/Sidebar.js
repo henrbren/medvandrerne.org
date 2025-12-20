@@ -8,6 +8,7 @@ const isWeb = Platform.OS === 'web';
 
 const menuItems = [
   { name: 'Hjem', icon: 'home', route: 'Hjem', color: theme.colors.primary },
+  { name: 'Nyheter', icon: 'newspaper', route: 'News', color: theme.colors.primary },
   { name: 'Min vandring', icon: 'map', route: 'Min vandring', color: theme.colors.success },
   { name: 'Aktiviteter', icon: 'calendar', route: 'Aktiviteter', color: theme.colors.primaryLight },
   { name: 'Flokken', icon: 'people', route: 'Flokken', color: theme.colors.info },

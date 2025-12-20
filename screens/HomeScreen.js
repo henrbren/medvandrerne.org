@@ -41,6 +41,7 @@ export default function HomeScreen({ navigation }) {
   const ADMINISTRATION = data.administration;
   const BOARD = data.board;
   const LOCAL_GROUPS = data.localGroups;
+  const NEWS = data.news || [];
 
   // AnimatedSection component - checks shared ref to prevent re-animation
   const AnimatedSection = ({ children, delay = 0, style }) => {
@@ -419,6 +420,68 @@ export default function HomeScreen({ navigation }) {
             </LinearGradient>
           </TouchableOpacity>
         </AnimatedSection>
+
+        {/* News Section */}
+        {NEWS.length > 0 && (
+          <AnimatedSection delay={registeredActivities.length > 0 ? 300 : 200}>
+            <View style={styles.newsSection}>
+              <View style={styles.newsSectionHeader}>
+                <View style={[styles.sectionHeaderMinimal, { marginBottom: 0 }]}>
+                  <LinearGradient
+                    colors={[theme.colors.primary, theme.colors.primaryLight]}
+                    style={styles.headerIconGradient}
+                  >
+                    <Icon name="newspaper" size={28} color={theme.colors.white} />
+                  </LinearGradient>
+                  <View style={styles.sectionHeaderText}>
+                    <Text style={styles.sectionTitleLarge}>Nyheter</Text>
+                    <Text style={styles.sectionSubtitle}>Siste nytt</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('News')}
+                  activeOpacity={0.7}
+                  style={styles.seeAllButton}
+                >
+                  <Text style={styles.seeAllLink}>Se alle</Text>
+                  <Icon name="chevron-forward" size={16} color={theme.colors.primary} />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Latest News Preview */}
+              {NEWS.slice(0, 2).map((newsItem, index) => (
+                <TouchableOpacity
+                  key={newsItem.id || index}
+                  style={styles.newsCard}
+                  onPress={() => navigation.navigate('NewsDetail', { newsItem })}
+                  activeOpacity={0.7}
+                >
+                  {newsItem.image ? (
+                    <Image 
+                      source={{ uri: newsItem.image }}
+                      style={styles.newsCardImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.newsCardImagePlaceholder}>
+                      <Icon name="newspaper" size={24} color={theme.colors.textTertiary} />
+                    </View>
+                  )}
+                  <View style={styles.newsCardContent}>
+                    <Text style={styles.newsCardTitle} numberOfLines={2}>{newsItem.title}</Text>
+                    {newsItem.excerpt && (
+                      <Text style={styles.newsCardExcerpt} numberOfLines={2}>{newsItem.excerpt}</Text>
+                    )}
+                    <Text style={styles.newsCardDate}>
+                      {newsItem.date ? new Date(newsItem.date).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }) : ''}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </AnimatedSection>
+        )}
 
         {/* Contacts Network Section */}
         <AnimatedSection delay={registeredActivities.length > 0 ? 300 : 200}>
@@ -971,6 +1034,62 @@ const styles = StyleSheet.create({
   },
   
   // Contacts Network Section
+  // News Section
+  newsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xxxl,
+  },
+  newsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.lg,
+  },
+  newsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    marginBottom: theme.spacing.md,
+    padding: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  newsCardImage: {
+    width: 70,
+    height: 70,
+    borderRadius: theme.borderRadius.lg,
+  },
+  newsCardImagePlaceholder: {
+    width: 70,
+    height: 70,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.backgroundElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newsCardContent: {
+    flex: 1,
+    marginLeft: theme.spacing.md,
+    marginRight: theme.spacing.sm,
+  },
+  newsCardTitle: {
+    ...theme.typography.body,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  newsCardExcerpt: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+  },
+  newsCardDate: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    fontSize: 11,
+  },
+  
+  // Contacts Section
   contactsSection: {
     paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
     marginBottom: theme.spacing.xxxl,
