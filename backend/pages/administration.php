@@ -546,23 +546,58 @@ document.getElementById('adminForm').addEventListener('submit', async (e) => {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
     
-    const admin = await fetch('api/administration.php').then(r => r.json());
+    // Get the image value from the hidden field (might have been set by image picker)
+    const imageValue = document.getElementById('adminImage').value;
     
-    if (data.id) {
-        data.id = parseInt(data.id);
-        const index = admin.findIndex(a => a.id == data.id);
-        if (index !== -1) {
-            admin[index] = { ...admin[index], ...data };
+    try {
+        // Fetch current admin list
+        const response = await fetch('api/administration.php');
+        if (!response.ok) throw new Error('Kunne ikke hente data');
+        const admin = await response.json();
+        
+        console.log('Current admin data:', admin);
+        console.log('Form data:', data);
+        console.log('Image value:', imageValue);
+        
+        if (data.id) {
+            // Editing existing person
+            const id = parseInt(data.id);
+            const index = admin.findIndex(a => a.id === id);
+            
+            if (index !== -1) {
+                // Only update fields that have values
+                const updatedPerson = { ...admin[index] };
+                
+                if (data.role) updatedPerson.role = data.role;
+                if (data.name) updatedPerson.name = data.name;
+                if (data.phone !== undefined) updatedPerson.phone = data.phone;
+                if (data.email !== undefined) updatedPerson.email = data.email;
+                if (imageValue) updatedPerson.image = imageValue;
+                
+                admin[index] = updatedPerson;
+                console.log('Updated person:', updatedPerson);
+            }
+        } else {
+            // Adding new person
+            const newId = admin.length > 0 ? Math.max(...admin.map(a => a.id || 0)) + 1 : 1;
+            const newPerson = {
+                id: newId,
+                role: data.role || '',
+                name: data.name || '',
+                phone: data.phone || '',
+                email: data.email || '',
+                image: imageValue || ''
+            };
+            admin.push(newPerson);
+            console.log('New person:', newPerson);
         }
-    } else {
-        const newId = admin.length > 0 ? Math.max(...admin.map(a => a.id)) + 1 : 1;
-        data.id = newId;
-        delete data.id; // Remove string id
-        data.id = newId; // Add numeric id
-        admin.push(data);
+        
+        console.log('Saving admin data:', admin);
+        await saveData('administration', admin);
+        closeAdminModal();
+    } catch (error) {
+        console.error('Error saving:', error);
+        Toast.error('Kunne ikke lagre: ' + error.message);
     }
-    
-    await saveData('administration', admin);
-    closeAdminModal();
 });
 </script>

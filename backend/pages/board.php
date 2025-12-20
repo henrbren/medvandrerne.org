@@ -519,9 +519,13 @@ document.getElementById('imagePickerModal').addEventListener('click', (e) => {
 document.getElementById('boardForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    
+    // Get leader image from the hidden input
+    const leaderImageInput = document.getElementById('leaderImage');
+    
     const data = {
         leader: formData.get('leader'),
-        leaderImage: formData.get('leaderImage') || null,
+        leaderImage: leaderImageInput ? leaderImageInput.value : null,
         members: []
     };
     
@@ -529,14 +533,18 @@ document.getElementById('boardForm').addEventListener('submit', async (e) => {
     document.querySelectorAll('.member-card').forEach((card, i) => {
         const nameInput = card.querySelector('input[type="text"]');
         const imageInput = card.querySelector('input[type="hidden"]');
-        if (nameInput) {
+        if (nameInput && nameInput.value.trim()) {
             data.members.push({
-                name: nameInput.value,
-                image: imageInput ? imageInput.value : null
+                name: nameInput.value.trim(),
+                image: imageInput && imageInput.value ? imageInput.value : null
             });
         }
     });
     
+    // Filter out members without names
+    data.members = data.members.filter(m => m.name);
+    
+    console.log('Saving board data:', data);
     await saveData('board', data);
 });
 </script>
