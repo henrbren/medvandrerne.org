@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
@@ -445,6 +446,50 @@ export default function ProfileScreen({ navigation }) {
     completedExpeditions: trackingStats?.totalExpeditions || 0,
     level: level || 1,
   };
+
+  // Auto-sync when screen comes into focus (if logged in)
+  const autoSync = useCallback(async () => {
+    if (!isAuthenticated || syncing || gamificationLoading) return;
+    
+    // Only sync if there's data to sync
+    if (localStats.totalPoints === 0 && localStats.completedActivities === 0) return;
+    
+    // Check if local data is newer/higher than server data
+    const hasNewData = 
+      localStats.totalPoints > (user?.totalPoints || 0) ||
+      localStats.completedActivities > (user?.completedActivities || 0) ||
+      localStats.completedExpeditions > (user?.completedExpeditions || 0);
+    
+    if (!hasNewData) return;
+    
+    setSyncing(true);
+    try {
+      const progress = {
+        totalPoints: localStats.totalPoints,
+        completedActivities: localStats.completedActivities,
+        completedExpeditions: localStats.completedExpeditions,
+        skills: completedSkills || [],
+        reflections: entries || [],
+      };
+      await syncProgress(progress);
+      // Silent sync - no alert on auto-sync
+    } catch (err) {
+      console.log('Auto-sync failed:', err);
+    } finally {
+      setSyncing(false);
+    }
+  }, [isAuthenticated, syncing, gamificationLoading, localStats, user, completedSkills, entries, syncProgress]);
+
+  // Run auto-sync when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Small delay to let data load first
+      const timer = setTimeout(() => {
+        autoSync();
+      }, 500);
+      return () => clearTimeout(timer);
+    }, [autoSync])
+  );
 
   const handleLogin = async (phone) => {
     const result = await login(phone);
