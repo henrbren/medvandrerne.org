@@ -27,7 +27,12 @@
       "expo-font",
       "expo-notifications",
       "expo-web-browser",
-      "expo-barcode-scanner"
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Tillat $(PRODUCT_NAME) å bruke kameraet for å scanne QR-koder."
+        }
+      ]
     ],
     "notification": {
       "color": "#FF453A"
