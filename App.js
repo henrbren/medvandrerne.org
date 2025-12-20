@@ -76,8 +76,8 @@ function TabNavigator({ navigationRef, currentRoute }) {
                 backgroundColor: theme.colors.surface,
                 borderTopColor: theme.colors.border,
                 borderTopWidth: 1,
-                height: Platform.OS === 'ios' ? 88 : 64,
-                paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+                height: Platform.OS === 'ios' ? 88 : 64 + insets.bottom,
+                paddingBottom: Platform.OS === 'ios' ? 28 : Math.max(insets.bottom, 8),
                 paddingTop: 8,
                 ...theme.shadows.small,
                 // Don't set display on web - let CSS handle it
