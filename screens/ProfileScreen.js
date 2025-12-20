@@ -490,17 +490,35 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
           )}
         </View>
 
+   {/* QR Code / Medvandrerkode */}
+   <View style={styles.section}>
+          <TouchableOpacity style={styles.qrButton} onPress={onShowQRCode}>
+            <View style={styles.qrButtonIcon}>
+              <Icon name="qr-code" size={24} color={theme.colors.white} />
+            </View>
+            <View style={styles.qrButtonContent}>
+              <Text style={styles.qrButtonTitle}>Min Medvandrerkode</Text>
+              <Text style={styles.qrButtonSubtitle}>Del eller scan koder med andre</Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
         {/* Profile Info */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Icon name="person" size={24} color={theme.colors.primary} />
             <Text style={styles.sectionTitle}>Profilinformasjon</Text>
+
+            
             {!editing && (
               <TouchableOpacity onPress={() => setEditing(true)} style={styles.editButton}>
                 <Icon name="create" size={18} color={theme.colors.primary} />
               </TouchableOpacity>
             )}
           </View>
+
+          
 
           {editing ? (
             <View style={styles.editForm}>
@@ -618,19 +636,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
           </View>
         )}
 
-        {/* QR Code / Medvandrerkode */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.qrButton} onPress={onShowQRCode}>
-            <View style={styles.qrButtonIcon}>
-              <Icon name="qr-code" size={24} color={theme.colors.white} />
-            </View>
-            <View style={styles.qrButtonContent}>
-              <Text style={styles.qrButtonTitle}>Min Medvandrerkode</Text>
-              <Text style={styles.qrButtonSubtitle}>Del eller scan koder med andre</Text>
-            </View>
-            <Icon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
+     
 
         {/* Sync Progress */}
         <View style={styles.section}>
