@@ -424,42 +424,30 @@ async function confirmPayment(userId) {
     }
     
     try {
-        // Find user and get their token (for demo purposes, we'll use admin confirmation)
-        const response = await fetch('api/users.php');
-        const users = await response.json();
-        const user = users.find(u => u.id === userId);
+        const response = await fetch('api/membership/admin-confirm.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: userId }),
+        });
         
-        if (!user) {
-            showNotification('Bruker ikke funnet', 'error');
-            return;
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Kunne ikke bekrefte betaling');
         }
         
-        // Update user membership directly
-        user.membership.status = 'active';
-        user.membership.paidAt = new Date().toISOString();
-        user.membership.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        user.membership.paymentMethod = 'manual';
-        user.membership.transactionId = 'manual_' + Math.random().toString(36).substr(2, 9);
-        
-        if (!user.memberSince) {
-            user.memberSince = new Date().toISOString().split('T')[0];
+        if (result.success) {
+            showNotification('Betaling bekreftet!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            throw new Error(result.error || 'Ukjent feil');
         }
-        
-        // Save updated user
-        await saveData('users', users);
-        
-        // Update memberships stats
-        const membershipsResponse = await fetch('api/all.php');
-        const allData = await membershipsResponse.json();
-        
-        showNotification('Betaling bekreftet!', 'success');
-        
-        // Reload page to show updated data
-        setTimeout(() => location.reload(), 1000);
         
     } catch (error) {
         console.error('Error confirming payment:', error);
-        showNotification('Kunne ikke bekrefte betaling', 'error');
+        showNotification(error.message || 'Kunne ikke bekrefte betaling', 'error');
     }
 }
 </script>

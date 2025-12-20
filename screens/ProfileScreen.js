@@ -21,7 +21,7 @@ import { useActivityStats } from '../hooks/useActivityStats';
 import { useMasteryLog } from '../hooks/useMasteryLog';
 import { useGamification } from '../hooks/useGamification';
 import { useActivityTracking } from '../hooks/useActivityTracking';
-import { useSkills } from '../hooks/useSkills';
+import { useSkills, SKILLS } from '../hooks/useSkills';
 import MembershipSelector from '../components/MembershipSelector';
 
 const { width } = Dimensions.get('window');
@@ -346,10 +346,16 @@ function LoginFlow({ onComplete, loading: authLoading }) {
 }
 
 // Profile View Component
-function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, syncing }) {
+function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, syncing, completedSkillIds }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
+
+  // Get full skill data for completed skills
+  const completedSkillsData = (completedSkillIds || []).map(skillId => {
+    const skill = SKILLS.find(s => s.id === skillId);
+    return skill || null;
+  }).filter(Boolean);
 
   const handleSave = async () => {
     const result = await onUpdateProfile({ name, email });
@@ -365,194 +371,202 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
   const hasUnsyncedProgress = (localStats?.totalPoints || 0) > (user.totalPoints || 0) ||
     (localStats?.completedActivities || 0) > (user.completedActivities || 0);
 
+  const screenWidth = Dimensions.get('window').width;
+  const isTablet = screenWidth >= 768;
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Førerkort */}
-      <View style={styles.section}>
-        <Forerkort user={user} localStats={localStats} />
-        {hasUnsyncedProgress && (
-          <View style={styles.unsyncedBanner}>
-            <Icon name="cloud-upload-outline" size={16} color={theme.colors.warning} />
-            <Text style={styles.unsyncedText}>Du har usynkronisert fremgang</Text>
+      <View style={[styles.contentWrapper, isTablet && styles.contentWrapperTablet]}>
+        {/* Cards Row - Side by side on tablet */}
+        <View style={[styles.cardsRow, isTablet && styles.cardsRowTablet]}>
+          {/* Førerkort */}
+          <View style={[styles.cardWrapper, isTablet && styles.cardWrapperTablet]}>
+            <Forerkort user={user} localStats={localStats} />
+            {hasUnsyncedProgress && (
+              <View style={styles.unsyncedBanner}>
+                <Icon name="cloud-upload-outline" size={16} color={theme.colors.warning} />
+                <Text style={styles.unsyncedText}>Du har usynkronisert fremgang</Text>
+              </View>
+            )}
           </View>
-        )}
-      </View>
 
-      {/* Membership Status */}
-      {user.membership && (
-        <View style={styles.section}>
-          <View style={styles.membershipCard}>
-            <View style={styles.membershipHeader}>
-              <Icon name="ribbon-outline" size={24} color={theme.colors.white} />
-              <Text style={styles.membershipTitle}>{user.membership.tierName}</Text>
-            </View>
-            <View style={styles.membershipBody}>
-              <View style={styles.membershipRow}>
-                <Text style={styles.membershipLabel}>Status:</Text>
-                <View style={[
-                  styles.membershipStatusBadge,
-                  user.membership.status === 'active' && styles.membershipStatusActive,
-                  user.membership.status === 'pending' && styles.membershipStatusPending,
-                ]}>
-                  <Text style={styles.membershipStatusText}>
-                    {user.membership.status === 'active' ? 'Aktiv' : 
-                     user.membership.status === 'pending' ? 'Venter på betaling' : 
-                     'Utløpt'}
-                  </Text>
+          {/* Membership Status */}
+          {user.membership && (
+            <View style={[styles.cardWrapper, isTablet && styles.cardWrapperTablet]}>
+              <View style={styles.membershipCard}>
+                <View style={styles.membershipHeader}>
+                  <Icon name="ribbon-outline" size={24} color={theme.colors.white} />
+                  <Text style={styles.membershipTitle}>{user.membership.tierName}</Text>
+                </View>
+                <View style={styles.membershipBody}>
+                  <View style={styles.membershipRow}>
+                    <Text style={styles.membershipLabel}>Status:</Text>
+                    <View style={[
+                      styles.membershipStatusBadge,
+                      user.membership.status === 'active' && styles.membershipStatusActive,
+                      user.membership.status === 'pending' && styles.membershipStatusPending,
+                    ]}>
+                      <Text style={styles.membershipStatusText}>
+                        {user.membership.status === 'active' ? 'Aktiv' : 
+                         user.membership.status === 'pending' ? 'Venter på betaling' : 
+                         'Utløpt'}
+                      </Text>
+                    </View>
+                  </View>
+                  {user.membership.status === 'active' && user.membership.expiresAt && (
+                    <View style={styles.membershipRow}>
+                      <Text style={styles.membershipLabel}>Utløper:</Text>
+                      <Text style={styles.membershipValue}>
+                        {new Date(user.membership.expiresAt).toLocaleDateString('nb-NO')}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.membershipRow}>
+                    <Text style={styles.membershipLabel}>Pris:</Text>
+                    <Text style={styles.membershipValue}>{user.membership.price} kr/mnd</Text>
+                  </View>
                 </View>
               </View>
-              {user.membership.status === 'active' && user.membership.expiresAt && (
-                <View style={styles.membershipRow}>
-                  <Text style={styles.membershipLabel}>Utløper:</Text>
-                  <Text style={styles.membershipValue}>
-                    {new Date(user.membership.expiresAt).toLocaleDateString('nb-NO')}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.membershipRow}>
-                <Text style={styles.membershipLabel}>Pris:</Text>
-                <Text style={styles.membershipValue}>{user.membership.price} kr/mnd</Text>
-              </View>
             </View>
-          </View>
-        </View>
-      )}
-
-      {/* Profile Info */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Icon name="person" size={24} color={theme.colors.primary} />
-          <Text style={styles.sectionTitle}>Profilinformasjon</Text>
-          {!editing && (
-            <TouchableOpacity onPress={() => setEditing(true)} style={styles.editButton}>
-              <Icon name="create" size={18} color={theme.colors.primary} />
-            </TouchableOpacity>
           )}
         </View>
 
-        {editing ? (
-          <View style={styles.editForm}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Navn</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Ditt navn"
-                placeholderTextColor={theme.colors.textTertiary}
-              />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>E-post</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="din@epost.no"
-                placeholderTextColor={theme.colors.textTertiary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.editActions}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.cancelButton]}
-                onPress={() => {
-                  setName(user.name || '');
-                  setEmail(user.email || '');
-                  setEditing(false);
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Avbryt</Text>
+        {/* Profile Info */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Icon name="person" size={24} color={theme.colors.primary} />
+            <Text style={styles.sectionTitle}>Profilinformasjon</Text>
+            {!editing && (
+              <TouchableOpacity onPress={() => setEditing(true)} style={styles.editButton}>
+                <Icon name="create" size={18} color={theme.colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.actionButton, styles.saveButton]} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Lagre</Text>
-              </TouchableOpacity>
-            </View>
+            )}
           </View>
-        ) : (
-          <View style={styles.profileInfo}>
-            <View style={styles.infoRow}>
-              <Icon name="call" size={18} color={theme.colors.textSecondary} />
-              <Text style={styles.infoLabel}>Telefon:</Text>
-              <Text style={styles.infoValue}>{user.phone}</Text>
+
+          {editing ? (
+            <View style={styles.editForm}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Navn</Text>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Ditt navn"
+                  placeholderTextColor={theme.colors.textTertiary}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>E-post</Text>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="din@epost.no"
+                  placeholderTextColor={theme.colors.textTertiary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.editActions}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.cancelButton]}
+                  onPress={() => {
+                    setName(user.name || '');
+                    setEmail(user.email || '');
+                    setEditing(false);
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Avbryt</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.actionButton, styles.saveButton]} onPress={handleSave}>
+                  <Text style={styles.saveButtonText}>Lagre</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.infoRow}>
-              <Icon name="person" size={18} color={theme.colors.textSecondary} />
-              <Text style={styles.infoLabel}>Navn:</Text>
-              <Text style={styles.infoValue}>{user.name || 'Ikke oppgitt'}</Text>
+          ) : (
+            <View style={styles.profileInfo}>
+              <View style={styles.infoRow}>
+                <Icon name="call" size={18} color={theme.colors.textSecondary} />
+                <Text style={styles.infoLabel}>Telefon:</Text>
+                <Text style={styles.infoValue}>{user.phone}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Icon name="person" size={18} color={theme.colors.textSecondary} />
+                <Text style={styles.infoLabel}>Navn:</Text>
+                <Text style={styles.infoValue}>{user.name || 'Ikke oppgitt'}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Icon name="mail" size={18} color={theme.colors.textSecondary} />
+                <Text style={styles.infoLabel}>E-post:</Text>
+                <Text style={styles.infoValue}>{user.email || 'Ikke oppgitt'}</Text>
+              </View>
             </View>
-            <View style={styles.infoRow}>
-              <Icon name="mail" size={18} color={theme.colors.textSecondary} />
-              <Text style={styles.infoLabel}>E-post:</Text>
-              <Text style={styles.infoValue}>{user.email || 'Ikke oppgitt'}</Text>
+          )}
+        </View>
+
+        {/* Skills */}
+        {completedSkillsData.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name="trophy-outline" size={24} color={theme.colors.warning} />
+              <Text style={styles.sectionTitle}>Ferdigheter ({completedSkillsData.length})</Text>
+            </View>
+            <View style={styles.skillsGrid}>
+              {completedSkillsData.map((skill) => (
+                <View key={skill.id} style={styles.skillBadge}>
+                  <Icon name={skill.icon} size={16} color={theme.colors.white} style={styles.skillIcon} />
+                  <Text style={styles.skillName}>{skill.name}</Text>
+                </View>
+              ))}
             </View>
           </View>
         )}
-      </View>
 
-      {/* Skills */}
-      {user.skills && user.skills.length > 0 && (
+        {/* Badges */}
+        {user.badges && user.badges.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name="star-outline" size={24} color={theme.colors.success} />
+              <Text style={styles.sectionTitle}>Merker</Text>
+            </View>
+            <View style={styles.badgesGrid}>
+              {user.badges.map((badge, index) => (
+                <View key={index} style={styles.badge}>
+                  <Icon name="star" size={24} color={theme.colors.warning} />
+                  <Text style={styles.badgeName}>{badge.name}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Sync Progress */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="trophy-outline" size={24} color={theme.colors.warning} />
-            <Text style={styles.sectionTitle}>Ferdigheter</Text>
-          </View>
-          <View style={styles.skillsGrid}>
-            {user.skills.map((skill, index) => (
-              <View key={index} style={styles.skillBadge}>
-                <Text style={styles.skillName}>{skill.name}</Text>
-                <Text style={styles.skillLevel}>Nivå {skill.level}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Badges */}
-      {user.badges && user.badges.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Icon name="star-outline" size={24} color={theme.colors.success} />
-            <Text style={styles.sectionTitle}>Merker</Text>
-          </View>
-          <View style={styles.badgesGrid}>
-            {user.badges.map((badge, index) => (
-              <View key={index} style={styles.badge}>
-                <Icon name="star" size={24} color={theme.colors.warning} />
-                <Text style={styles.badgeName}>{badge.name}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Sync Progress */}
-      <View style={styles.section}>
-        <TouchableOpacity
-          style={[styles.syncButton, syncing && styles.syncButtonDisabled]}
-          onPress={onSync}
-          disabled={syncing}
-        >
-          <Icon name="cloud-upload" size={20} color={theme.colors.white} />
-          <Text style={styles.syncButtonText}>
-            {syncing ? 'Synkroniserer...' : 'Synkroniser fremgang'}
+          <TouchableOpacity
+            style={[styles.syncButton, syncing && styles.syncButtonDisabled]}
+            onPress={onSync}
+            disabled={syncing}
+          >
+            <Icon name="cloud-upload" size={20} color={theme.colors.white} />
+            <Text style={styles.syncButtonText}>
+              {syncing ? 'Synkroniserer...' : 'Synkroniser fremgang'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.syncNote}>
+            Last opp din lokale fremgang fra "Min vandring" til skyen
           </Text>
-        </TouchableOpacity>
-        <Text style={styles.syncNote}>
-          Last opp din lokale fremgang fra "Min vandring" til skyen
-        </Text>
-      </View>
+        </View>
 
-      {/* Logout */}
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-          <Icon name="log-out" size={20} color={theme.colors.error} />
-          <Text style={styles.logoutButtonText}>Logg ut</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Logout */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+            <Icon name="log-out" size={20} color={theme.colors.error} />
+            <Text style={styles.logoutButtonText}>Logg ut</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.bottomSpacer} />
+        <View style={styles.bottomSpacer} />
+      </View>
     </ScrollView>
   );
 }
@@ -719,6 +733,7 @@ export default function ProfileScreen({ navigation }) {
           onSync={handleSync}
           onUpdateProfile={updateProfile}
           syncing={syncing}
+          completedSkillIds={completedSkills}
         />
       ) : (
         <LoginFlow onComplete={handleLoginComplete} loading={loading} />
@@ -731,6 +746,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+  },
+  contentWrapperTablet: {
+    maxWidth: 900,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  cardsRow: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
+    gap: theme.spacing.lg,
+  },
+  cardsRowTablet: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  cardWrapper: {
+    marginBottom: theme.spacing.md,
+  },
+  cardWrapperTablet: {
+    flex: 1,
+    marginBottom: 0,
   },
   loadingContainer: {
     flex: 1,
@@ -904,7 +944,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
-    marginHorizontal: theme.spacing.lg,
   },
   membershipHeader: {
     flexDirection: 'row',
@@ -965,7 +1004,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     marginTop: theme.spacing.md,
-    marginHorizontal: theme.spacing.lg,
   },
   unsyncedText: {
     ...theme.typography.caption,
@@ -975,8 +1013,7 @@ const styles = StyleSheet.create({
 
   // Førerkort Styles
   forerkortContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
+    // Container for the førerkort card
   },
   forerkort: {
     borderRadius: theme.borderRadius.xl,
@@ -1199,14 +1236,20 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   skillBadge: {
-    backgroundColor: theme.colors.primary + '15',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.borderRadius.full,
   },
+  skillIcon: {
+    marginRight: 2,
+  },
   skillName: {
     ...theme.typography.caption,
-    color: theme.colors.primary,
+    color: theme.colors.white,
     fontWeight: '600',
   },
   skillLevel: {
