@@ -26,6 +26,8 @@ import { useGamification } from '../hooks/useGamification';
 import { useActivityTracking } from '../hooks/useActivityTracking';
 import { useSkills, SKILLS } from '../hooks/useSkills';
 import MembershipSelector from '../components/MembershipSelector';
+import QRCodeModal from '../components/modals/QRCodeModal';
+import { useContacts } from '../hooks/useContacts';
 
 const { width } = Dimensions.get('window');
 
@@ -47,7 +49,7 @@ function getLevelName(level) {
 }
 
 // Førerkort Component
-function Forerkort({ user, localStats }) {
+function Forerkort({ user, localStats, onPress }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
@@ -98,80 +100,91 @@ function Forerkort({ user, localStats }) {
         },
       ]}
     >
-      <LinearGradient
-        colors={colors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.forerkort}
-      >
-        {/* Header */}
-        <View style={styles.forerkortHeader}>
-          <View style={styles.forerkortLogo}>
-            <Icon name="walk" size={24} color={theme.colors.white} />
-          </View>
-          <View>
-            <Text style={styles.forerkortTitle}>MEDVANDRERNE</Text>
-            <Text style={styles.forerkortSubtitle}>Vandrerbevis</Text>
-          </View>
-        </View>
-
-        {/* Main Content */}
-        <View style={styles.forerkortContent}>
-          <View style={styles.forerkortAvatar}>
-            {user.avatarUrl ? (
-              <Image 
-                source={{ uri: user.avatarUrl }} 
-                style={styles.forerkortAvatarImage}
-              />
-            ) : (
-              <Text style={styles.forerkortAvatarText}>
-                {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
-              </Text>
-            )}
-          </View>
-          <View style={styles.forerkortInfo}>
-            <Text style={styles.forerkortName}>{user.name || 'Vandrer'}</Text>
-            <View style={styles.forerkortLevel}>
-              <Icon name="shield-checkmark-outline" size={16} color={theme.colors.white} />
-              <Text style={styles.forerkortLevelText}>
-                Nivå {displayLevel}: {levelName}
-              </Text>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+        <LinearGradient
+          colors={colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.forerkort}
+        >
+          {/* Header */}
+          <View style={styles.forerkortHeader}>
+            <View style={styles.forerkortLogo}>
+              <Icon name="walk" size={24} color={theme.colors.white} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.forerkortTitle}>MEDVANDRERNE</Text>
+              <Text style={styles.forerkortSubtitle}>Vandrerbevis</Text>
+            </View>
+            {/* QR Code hint */}
+            <View style={styles.forerkortQRHint}>
+              <Icon name="qr-code" size={20} color="rgba(255,255,255,0.8)" />
             </View>
           </View>
-        </View>
 
-        {/* Stats */}
-        <View style={styles.forerkortStats}>
-          <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{totalPoints.toLocaleString()}</Text>
-            <Text style={styles.forerkortStatLabel}>XP</Text>
+          {/* Main Content */}
+          <View style={styles.forerkortContent}>
+            <View style={styles.forerkortAvatar}>
+              {user.avatarUrl ? (
+                <Image 
+                  source={{ uri: user.avatarUrl }} 
+                  style={styles.forerkortAvatarImage}
+                />
+              ) : (
+                <Text style={styles.forerkortAvatarText}>
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
+                </Text>
+              )}
+            </View>
+            <View style={styles.forerkortInfo}>
+              <Text style={styles.forerkortName}>{user.name || 'Vandrer'}</Text>
+              <View style={styles.forerkortLevel}>
+                <Icon name="shield-checkmark-outline" size={16} color={theme.colors.white} />
+                <Text style={styles.forerkortLevelText}>
+                  Nivå {displayLevel}: {levelName}
+                </Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.forerkortStatDivider} />
-          <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{completedActivitiesCount}</Text>
-            <Text style={styles.forerkortStatLabel}>Aktiviteter</Text>
-          </View>
-          <View style={styles.forerkortStatDivider} />
-          <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{completedExpeditions}</Text>
-            <Text style={styles.forerkortStatLabel}>Ekspedisjoner</Text>
-          </View>
-        </View>
 
-        {/* Footer */}
-        <View style={styles.forerkortFooter}>
-          <Text style={styles.forerkortDate}>
-            Medlem siden {new Date(user.memberSince).toLocaleDateString('nb-NO', {
-              month: 'long',
-              year: 'numeric',
-            })}
-          </Text>
-          <Text style={styles.forerkortId}>{user.id?.slice(-8).toUpperCase()}</Text>
-        </View>
+          {/* Stats */}
+          <View style={styles.forerkortStats}>
+            <View style={styles.forerkortStat}>
+              <Text style={styles.forerkortStatValue}>{totalPoints.toLocaleString()}</Text>
+              <Text style={styles.forerkortStatLabel}>XP</Text>
+            </View>
+            <View style={styles.forerkortStatDivider} />
+            <View style={styles.forerkortStat}>
+              <Text style={styles.forerkortStatValue}>{completedActivitiesCount}</Text>
+              <Text style={styles.forerkortStatLabel}>Aktiviteter</Text>
+            </View>
+            <View style={styles.forerkortStatDivider} />
+            <View style={styles.forerkortStat}>
+              <Text style={styles.forerkortStatValue}>{completedExpeditions}</Text>
+              <Text style={styles.forerkortStatLabel}>Ekspedisjoner</Text>
+            </View>
+          </View>
 
-        {/* Holographic Effect */}
-        <View style={styles.holographicOverlay} />
-      </LinearGradient>
+          {/* Footer */}
+          <View style={styles.forerkortFooter}>
+            <Text style={styles.forerkortDate}>
+              Medlem siden {new Date(user.memberSince).toLocaleDateString('nb-NO', {
+                month: 'long',
+                year: 'numeric',
+              })}
+            </Text>
+            <Text style={styles.forerkortId}>{user.id?.slice(-8).toUpperCase()}</Text>
+          </View>
+
+          {/* Tap hint */}
+          <View style={styles.forerkortTapHint}>
+            <Text style={styles.forerkortTapHintText}>Trykk for QR-kode</Text>
+          </View>
+
+          {/* Holographic Effect */}
+          <View style={styles.holographicOverlay} />
+        </LinearGradient>
+      </TouchableOpacity>
     </Animated.View>
   );
 }
@@ -356,7 +369,7 @@ function LoginFlow({ onComplete, loading: authLoading }) {
 }
 
 // Profile View Component
-function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUploadAvatar, syncing, completedSkillIds }) {
+function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUploadAvatar, onShowQRCode, onMembershipPress, syncing, completedSkillIds }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
@@ -421,7 +434,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
         <View style={[styles.cardsRow, isTablet && styles.cardsRowTablet]}>
           {/* Førerkort */}
           <View style={[styles.cardWrapper, isTablet && styles.cardWrapperTablet]}>
-            <Forerkort user={user} localStats={localStats} />
+            <Forerkort user={user} localStats={localStats} onPress={onShowQRCode} />
             {hasUnsyncedProgress && (
               <View style={styles.unsyncedBanner}>
                 <Icon name="cloud-upload-outline" size={16} color={theme.colors.warning} />
@@ -433,40 +446,46 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
           {/* Membership Status */}
           {user.membership && (
             <View style={[styles.cardWrapper, isTablet && styles.cardWrapperTablet]}>
-              <View style={styles.membershipCard}>
-                <View style={styles.membershipHeader}>
-                  <Icon name="ribbon-outline" size={24} color={theme.colors.white} />
-                  <Text style={styles.membershipTitle}>{user.membership.tierName}</Text>
-                </View>
-                <View style={styles.membershipBody}>
-                  <View style={styles.membershipRow}>
-                    <Text style={styles.membershipLabel}>Status:</Text>
-                    <View style={[
-                      styles.membershipStatusBadge,
-                      user.membership.status === 'active' && styles.membershipStatusActive,
-                      user.membership.status === 'pending' && styles.membershipStatusPending,
-                    ]}>
-                      <Text style={styles.membershipStatusText}>
-                        {user.membership.status === 'active' ? 'Aktiv' : 
-                         user.membership.status === 'pending' ? 'Venter på betaling' : 
-                         'Utløpt'}
-                      </Text>
-                    </View>
+              <TouchableOpacity onPress={onMembershipPress} activeOpacity={0.8}>
+                <View style={styles.membershipCard}>
+                  <View style={styles.membershipHeader}>
+                    <Icon name="ribbon-outline" size={24} color={theme.colors.white} />
+                    <Text style={styles.membershipTitle}>{user.membership.tierName}</Text>
+                    <Icon name="chevron-forward" size={20} color="rgba(255,255,255,0.7)" />
                   </View>
-                  {user.membership.status === 'active' && user.membership.expiresAt && (
+                  <View style={styles.membershipBody}>
                     <View style={styles.membershipRow}>
-                      <Text style={styles.membershipLabel}>Utløper:</Text>
-                      <Text style={styles.membershipValue}>
-                        {new Date(user.membership.expiresAt).toLocaleDateString('nb-NO')}
-                      </Text>
+                      <Text style={styles.membershipLabel}>Status:</Text>
+                      <View style={[
+                        styles.membershipStatusBadge,
+                        user.membership.status === 'active' && styles.membershipStatusActive,
+                        user.membership.status === 'pending' && styles.membershipStatusPending,
+                      ]}>
+                        <Text style={styles.membershipStatusText}>
+                          {user.membership.status === 'active' ? 'Aktiv' : 
+                           user.membership.status === 'pending' ? 'Venter på betaling' : 
+                           'Utløpt'}
+                        </Text>
+                      </View>
                     </View>
-                  )}
-                  <View style={styles.membershipRow}>
-                    <Text style={styles.membershipLabel}>Pris:</Text>
-                    <Text style={styles.membershipValue}>{user.membership.price} kr/mnd</Text>
+                    {user.membership.status === 'active' && user.membership.expiresAt && (
+                      <View style={styles.membershipRow}>
+                        <Text style={styles.membershipLabel}>Utløper:</Text>
+                        <Text style={styles.membershipValue}>
+                          {new Date(user.membership.expiresAt).toLocaleDateString('nb-NO')}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.membershipRow}>
+                      <Text style={styles.membershipLabel}>Pris:</Text>
+                      <Text style={styles.membershipValue}>{user.membership.price} kr/mnd</Text>
+                    </View>
+                  </View>
+                  <View style={styles.membershipTapHint}>
+                    <Text style={styles.membershipTapHintText}>Trykk for å endre</Text>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -599,6 +618,20 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
           </View>
         )}
 
+        {/* QR Code / Medvandrerkode */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.qrButton} onPress={onShowQRCode}>
+            <View style={styles.qrButtonIcon}>
+              <Icon name="qr-code" size={24} color={theme.colors.white} />
+            </View>
+            <View style={styles.qrButtonContent}>
+              <Text style={styles.qrButtonTitle}>Min Medvandrerkode</Text>
+              <Text style={styles.qrButtonSubtitle}>Del eller scan koder med andre</Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
         {/* Sync Progress */}
         <View style={styles.section}>
           <TouchableOpacity
@@ -631,13 +664,35 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
 }
 
 // Main Screen
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen({ navigation, route }) {
   const { user, loading, isAuthenticated, login, logout, updateProfile, syncProgress, uploadAvatar } = useAuth();
   const { stats: activityStats, completedActivities } = useActivityStats();
   const { entries, moments, getStats: getMasteryStats } = useMasteryLog();
   const { expeditions, environmentActions, getStats: getTrackingStats } = useActivityTracking();
   const { completedSkills, getStats: getSkillsStats, getTotalXPEarned } = useSkills();
+  const { addContact } = useContacts();
   const [syncing, setSyncing] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  // Check if we should open scanner directly (from Flokken)
+  useEffect(() => {
+    if (route?.params?.openScanner && isAuthenticated) {
+      setShowQRModal(true);
+      // Clear the param so it doesn't reopen on next focus
+      navigation.setParams({ openScanner: false });
+    }
+  }, [route?.params?.openScanner, isAuthenticated]);
+
+  const handleQRScanSuccess = async (contactData) => {
+    const result = await addContact(contactData);
+    if (result.success) {
+      Alert.alert(
+        result.isUpdate ? 'Kontakt oppdatert!' : 'Kontakt lagt til!',
+        `${contactData.name || 'Medvandrer'} er nå i din Flokken-liste.`,
+        [{ text: 'Se Flokken', onPress: () => navigation.navigate('Flokken') }, { text: 'OK' }]
+      );
+    }
+  };
 
   // Get stats from hooks
   const masteryStats = getMasteryStats();
@@ -792,12 +847,22 @@ export default function ProfileScreen({ navigation }) {
           onSync={handleSync}
           onUpdateProfile={updateProfile}
           onUploadAvatar={uploadAvatar}
+          onShowQRCode={() => setShowQRModal(true)}
+          onMembershipPress={() => navigation.navigate('Membership')}
           syncing={syncing}
           completedSkillIds={completedSkills}
         />
       ) : (
         <LoginFlow onComplete={handleLoginComplete} loading={loading} />
       )}
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        visible={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        user={user}
+        onScanSuccess={handleQRScanSuccess}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -1016,6 +1081,7 @@ const styles = StyleSheet.create({
   membershipTitle: {
     ...theme.typography.h3,
     color: theme.colors.white,
+    flex: 1,
   },
   membershipBody: {
     padding: theme.spacing.lg,
@@ -1052,6 +1118,18 @@ const styles = StyleSheet.create({
     ...theme.typography.caption,
     color: theme.colors.white,
     fontWeight: '700',
+  },
+  membershipTapHint: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)',
+    marginTop: theme.spacing.sm,
+  },
+  membershipTapHintText: {
+    ...theme.typography.caption,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
   },
 
   // Unsynced Banner
@@ -1198,6 +1276,23 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 10,
+  },
+  forerkortQRHint: {
+    padding: theme.spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: theme.borderRadius.md,
+  },
+  forerkortTapHint: {
+    alignItems: 'center',
+    paddingTop: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)',
+  },
+  forerkortTapHintText: {
+    ...theme.typography.caption,
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
   },
   holographicOverlay: {
     position: 'absolute',
@@ -1390,6 +1485,38 @@ const styles = StyleSheet.create({
   },
 
   // Sync & Logout
+  // QR Code Button
+  qrButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  qrButtonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qrButtonContent: {
+    flex: 1,
+  },
+  qrButtonTitle: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    fontWeight: '600',
+  },
+  qrButtonSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+
   syncButton: {
     flexDirection: 'row',
     alignItems: 'center',

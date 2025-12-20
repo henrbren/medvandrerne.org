@@ -31,6 +31,7 @@ import ExpeditionsScreen from './screens/ExpeditionsScreen';
 import EnvironmentActionsScreen from './screens/EnvironmentActionsScreen';
 import NewsScreen from './screens/NewsScreen';
 import NewsDetailScreen from './screens/NewsDetailScreen';
+import MembershipScreen from './screens/MembershipScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -384,6 +385,23 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Nyhet',
+        }}
+      />
+      <Stack.Screen
+        name="Membership"
+        component={MembershipScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Medlemskap',
         }}
       />
     </Stack.Navigator>

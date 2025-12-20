@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -9,10 +9,13 @@ import {
   Platform,
   Animated,
   Dimensions,
+  Image,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
+import { useContacts } from '../hooks/useContacts';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -20,9 +23,13 @@ const isWeb = Platform.OS === 'web';
 export default function FlokkenScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasAnimatedRef = useRef(false);
+  const { contacts, loading: contactsLoading, removeContact, loadContacts } = useContacts();
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
+      // Reload contacts when screen comes into focus
+      loadContacts();
+      
       if (!hasAnimatedRef.current) {
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -36,6 +43,23 @@ export default function FlokkenScreen({ navigation }) {
       }
     }, [])
   );
+
+  const handleRemoveContact = (contact) => {
+    Alert.alert(
+      'Fjern kontakt',
+      `Er du sikker på at du vil fjerne ${contact.name || 'denne medvandreren'} fra listen?`,
+      [
+        { text: 'Avbryt', style: 'cancel' },
+        { 
+          text: 'Fjern', 
+          style: 'destructive',
+          onPress: async () => {
+            await removeContact(contact.id);
+          }
+        },
+      ]
+    );
+  };
 
   const AnimatedSection = ({ children, delay = 0 }) => {
     const cardFade = useRef(new Animated.Value(hasAnimatedRef.current ? 1 : 0)).current;
@@ -130,8 +154,83 @@ export default function FlokkenScreen({ navigation }) {
           </View>
         </AnimatedSection>
 
+        {/* My Contacts / Mine Medvandrere */}
+        {contacts.length > 0 && (
+          <AnimatedSection delay={100}>
+            <View style={styles.contactsSection}>
+              <View style={styles.contactsHeader}>
+                <Icon name="qr-code" size={24} color={theme.colors.primary} />
+                <Text style={styles.contactsTitle}>Mine Medvandrere</Text>
+                <Text style={styles.contactsCount}>{contacts.length}</Text>
+              </View>
+              <Text style={styles.contactsSubtitle}>
+                Folk du har scannet med Medvandrerkode
+              </Text>
+              
+              <View style={styles.contactsList}>
+                {contacts.map((contact, index) => (
+                  <TouchableOpacity
+                    key={contact.id}
+                    style={styles.contactCard}
+                    onLongPress={() => handleRemoveContact(contact)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.contactAvatar}>
+                      {contact.avatarUrl ? (
+                        <Image source={{ uri: contact.avatarUrl }} style={styles.contactAvatarImage} />
+                      ) : (
+                        <Text style={styles.contactAvatarText}>
+                          {(contact.name || 'M').charAt(0).toUpperCase()}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.contactInfo}>
+                      <Text style={styles.contactName}>{contact.name || 'Medvandrer'}</Text>
+                      <View style={styles.contactLevel}>
+                        <Icon name="shield-checkmark" size={12} color={theme.colors.textSecondary} />
+                        <Text style={styles.contactLevelText}>
+                          Nivå {contact.level || 1} • {contact.levelName || 'Nybegynner'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.contactDate}>
+                      {new Date(contact.addedAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.contactsHint}>
+                Hold inne på en kontakt for å fjerne
+              </Text>
+            </View>
+          </AnimatedSection>
+        )}
+
+        {/* Empty State for Contacts */}
+        {contacts.length === 0 && (
+          <AnimatedSection delay={100}>
+            <View style={styles.emptyContacts}>
+              <View style={styles.emptyContactsIcon}>
+                <Icon name="qr-code-outline" size={48} color={theme.colors.textTertiary} />
+              </View>
+              <Text style={styles.emptyContactsTitle}>Ingen medvandrere ennå</Text>
+              <Text style={styles.emptyContactsText}>
+                Scan en Medvandrerkode fra en annen bruker for å legge dem til i listen din.
+              </Text>
+              <TouchableOpacity 
+                style={styles.emptyContactsButton}
+                onPress={() => navigation.navigate('Profil', { openScanner: true })}
+              >
+                <Icon name="scan" size={18} color={theme.colors.white} />
+                <Text style={styles.emptyContactsButtonText}>Scan en kode</Text>
+              </TouchableOpacity>
+            </View>
+          </AnimatedSection>
+        )}
+
         {/* Menu Items */}
-        <AnimatedSection delay={100}>
+        <AnimatedSection delay={contacts.length > 0 ? 200 : 100}>
           <View style={styles.menuSection}>
             {menuItems.map((item, index) => (
               <TouchableOpacity
@@ -259,6 +358,141 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: theme.spacing.xxl,
+  },
+
+  // Contacts Section
+  contactsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  contactsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  contactsTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  contactsCount: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 2,
+    borderRadius: theme.borderRadius.full,
+    fontWeight: '700',
+    minWidth: 24,
+    textAlign: 'center',
+  },
+  contactsSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
+    marginLeft: theme.spacing.xl + theme.spacing.sm,
+  },
+  contactsList: {
+    gap: theme.spacing.sm,
+  },
+  contactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+  },
+  contactAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  contactAvatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  contactAvatarText: {
+    ...theme.typography.h3,
+    color: theme.colors.white,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactName: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    fontWeight: '600',
+  },
+  contactLevel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginTop: 2,
+  },
+  contactLevelText: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+  },
+  contactDate: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+  },
+  contactsHint: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    textAlign: 'center',
+    marginTop: theme.spacing.md,
+  },
+
+  // Empty State
+  emptyContacts: {
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.xxl,
+    marginHorizontal: isWeb ? 0 : theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+  },
+  emptyContactsIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.backgroundElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  emptyContactsTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  emptyContactsText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  emptyContactsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.lg,
+  },
+  emptyContactsButtonText: {
+    ...theme.typography.button,
+    color: theme.colors.white,
   },
 });
 

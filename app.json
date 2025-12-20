@@ -26,7 +26,8 @@
     "plugins": [
       "expo-font",
       "expo-notifications",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-barcode-scanner"
     ],
     "notification": {
       "color": "#FF453A"
