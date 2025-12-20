@@ -18,26 +18,27 @@ import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivityStats } from '../hooks/useActivityStats';
 import { useMasteryLog } from '../hooks/useMasteryLog';
+import { useGamification } from '../hooks/useGamification';
+import { useActivityTracking } from '../hooks/useActivityTracking';
+import { useSkills } from '../hooks/useSkills';
 
 const { width } = Dimensions.get('window');
 
-// Calculate level from points
-function calculateLevel(totalPoints) {
-  const levels = [
-    { level: 1, name: 'Nybegynner', minPoints: 0 },
-    { level: 2, name: 'Turist', minPoints: 500 },
-    { level: 3, name: 'Vandrer', minPoints: 1000 },
-    { level: 4, name: 'Stifinner', minPoints: 2500 },
-    { level: 5, name: 'Mester', minPoints: 5000 },
-  ];
-  
-  let userLevel = levels[0];
-  for (const lvl of levels) {
-    if (totalPoints >= lvl.minPoints) {
-      userLevel = lvl;
-    }
-  }
-  return userLevel;
+// Get level name from level number
+function getLevelName(level) {
+  const names = {
+    1: 'Nybegynner',
+    2: 'Speider',
+    3: 'Vandrer',
+    4: 'Stifinner',
+    5: 'Oppdager',
+    6: 'Utforsker',
+    7: 'Eventyrper',
+    8: 'Pioner',
+    9: 'Ekspert',
+    10: 'Mester',
+  };
+  return names[Math.min(level, 10)] || `Nivå ${level}`;
 }
 
 // Førerkort Component
@@ -63,11 +64,12 @@ function Forerkort({ user, localStats }) {
 
   // Merge local and server stats - use the higher value
   const totalPoints = Math.max(user.totalPoints || 0, localStats?.totalPoints || 0);
-  const completedActivities = Math.max(user.completedActivities || 0, localStats?.completedActivities || 0);
+  const completedActivitiesCount = Math.max(user.completedActivities || 0, localStats?.completedActivities || 0);
   const completedExpeditions = Math.max(user.completedExpeditions || 0, localStats?.completedExpeditions || 0);
   
-  // Calculate level based on combined points
-  const levelInfo = calculateLevel(totalPoints);
+  // Use local level if higher than server level
+  const displayLevel = Math.max(user.level || 1, localStats?.level || 1);
+  const levelName = getLevelName(displayLevel);
 
   const levelColors = {
     1: ['#9E9E9E', '#757575'],
@@ -77,7 +79,9 @@ function Forerkort({ user, localStats }) {
     5: ['#EC407A', '#D81B60'],
   };
 
-  const colors = levelColors[levelInfo.level] || levelColors[1];
+  // Cap colors at level 5 for gradient
+  const colorLevel = Math.min(displayLevel, 5);
+  const colors = levelColors[colorLevel] || levelColors[1];
 
   return (
     <Animated.View
@@ -118,7 +122,7 @@ function Forerkort({ user, localStats }) {
             <View style={styles.forerkortLevel}>
               <Icon name="shield-checkmark" size={16} color={theme.colors.white} />
               <Text style={styles.forerkortLevelText}>
-                Nivå {levelInfo.level}: {levelInfo.name}
+                Nivå {displayLevel}: {levelName}
               </Text>
             </View>
           </View>
@@ -128,11 +132,11 @@ function Forerkort({ user, localStats }) {
         <View style={styles.forerkortStats}>
           <View style={styles.forerkortStat}>
             <Text style={styles.forerkortStatValue}>{totalPoints.toLocaleString()}</Text>
-            <Text style={styles.forerkortStatLabel}>Poeng</Text>
+            <Text style={styles.forerkortStatLabel}>XP</Text>
           </View>
           <View style={styles.forerkortStatDivider} />
           <View style={styles.forerkortStat}>
-            <Text style={styles.forerkortStatValue}>{completedActivities}</Text>
+            <Text style={styles.forerkortStatValue}>{completedActivitiesCount}</Text>
             <Text style={styles.forerkortStatLabel}>Aktiviteter</Text>
           </View>
           <View style={styles.forerkortStatDivider} />
@@ -405,17 +409,41 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
 // Main Screen
 export default function ProfileScreen({ navigation }) {
   const { user, loading, isAuthenticated, login, logout, updateProfile, syncProgress } = useAuth();
-  const { stats: activityStats } = useActivityStats();
-  const { getStats: getMasteryStats } = useMasteryLog();
+  const { stats: activityStats, completedActivities } = useActivityStats();
+  const { entries, moments, getStats: getMasteryStats } = useMasteryLog();
+  const { expeditions, environmentActions, getStats: getTrackingStats } = useActivityTracking();
+  const { completedSkills, getStats: getSkillsStats, getTotalXPEarned } = useSkills();
   const [syncing, setSyncing] = useState(false);
 
-  // Calculate combined local stats
+  // Get stats from hooks
   const masteryStats = getMasteryStats();
+  const trackingStats = getTrackingStats();
+  const skillsStats = getSkillsStats();
+  const skillsXP = getTotalXPEarned();
+
+  // Create combined stats for gamification (same as MyJourneyScreen)
+  const combinedStats = React.useMemo(() => ({
+    totalActivities: activityStats?.totalActivities || 0,
+    totalCompletedActivities: activityStats?.totalCompletedActivities || 0,
+    totalRegistrations: activityStats?.totalRegistrations || 0,
+    totalReflections: masteryStats?.totalEntries || 0,
+    totalMoments: masteryStats?.totalMoments || 0,
+    currentStreak: activityStats?.currentStreak || 0,
+    totalExpeditions: trackingStats?.totalExpeditions || 0,
+    totalEnvironmentActions: trackingStats?.totalEnvironmentActions || 0,
+    totalSkills: skillsStats?.completedSkills || 0,
+    skillsXP: skillsXP || 0,
+  }), [activityStats, masteryStats, trackingStats, skillsStats, skillsXP]);
+
+  // Use gamification hook to get level and XP
+  const { level, totalXP, loading: gamificationLoading } = useGamification(combinedStats);
+
+  // Calculate local stats for display
   const localStats = {
-    totalPoints: (activityStats?.totalPoints || 0) + (masteryStats?.totalXP || 0),
-    completedActivities: activityStats?.completedCount || 0,
-    completedExpeditions: masteryStats?.completedExpeditions || 0,
-    skills: masteryStats?.skills || [],
+    totalPoints: totalXP || 0,
+    completedActivities: (activityStats?.totalCompletedActivities || 0) + (skillsStats?.completedSkills || 0),
+    completedExpeditions: trackingStats?.totalExpeditions || 0,
+    level: level || 1,
   };
 
   const handleLogin = async (phone) => {
@@ -446,15 +474,13 @@ export default function ProfileScreen({ navigation }) {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const masteryStats = getMasteryStats();
-      
-      // Collect local progress
+      // Collect local progress using the same data as displayed
       const progress = {
-        totalPoints: (activityStats?.totalPoints || 0) + (masteryStats?.totalXP || 0),
-        completedActivities: activityStats?.completedCount || 0,
-        completedExpeditions: masteryStats?.completedExpeditions || 0,
-        skills: masteryStats?.skills || [],
-        reflections: masteryStats?.reflections || [],
+        totalPoints: totalXP || 0,
+        completedActivities: localStats.completedActivities,
+        completedExpeditions: localStats.completedExpeditions,
+        skills: completedSkills || [],
+        reflections: entries || [],
       };
 
       const result = await syncProgress(progress);
