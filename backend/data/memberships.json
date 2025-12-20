@@ -1,0 +1,13 @@
+{
+    "transactions": [],
+    "stats": {
+        "totalMembers": 0,
+        "totalRevenue": 0,
+        "membersByTier": {
+            "supporter": 0,
+            "member": 0,
+            "family": 0,
+            "patron": 0
+        }
+    }
+}

@@ -40,6 +40,7 @@ define('JSON_NEWS', DATA_DIR . 'news.json');
 define('JSON_GALLERY', DATA_DIR . 'gallery.json'); // Deprecated - use calendar instead
 define('JSON_RESOURCES', DATA_DIR . 'resources.json');
 define('JSON_USERS', DATA_DIR . 'users.json');
+define('JSON_MEMBERSHIPS', DATA_DIR . 'memberships.json');
 
 // User levels configuration
 define('USER_LEVELS', [
@@ -48,6 +49,66 @@ define('USER_LEVELS', [
     3 => ['name' => 'Vandrer', 'minPoints' => 1000],
     4 => ['name' => 'Stifinner', 'minPoints' => 2500],
     5 => ['name' => 'Mester', 'minPoints' => 5000],
+]);
+
+// Membership tiers configuration
+define('MEMBERSHIP_TIERS', [
+    'supporter' => [
+        'id' => 'supporter',
+        'name' => 'Støttespiller',
+        'price' => 50,
+        'period' => 'monthly',
+        'description' => 'Grunnleggende støtte til Medvandrerne',
+        'features' => [
+            'Tilgang til appen',
+            'Registrering av fremgang',
+            'Digitalt vandrerbevis',
+        ],
+        'color' => '#9E9E9E',
+    ],
+    'member' => [
+        'id' => 'member',
+        'name' => 'Medlem',
+        'price' => 200,
+        'period' => 'monthly',
+        'description' => 'Fullt medlemskap med alle fordeler',
+        'features' => [
+            'Alt i Støttespiller',
+            'Rabatt på arrangementer',
+            'Medlemsbrev og nyhetsbrev',
+            'Stemmerett på årsmøte',
+        ],
+        'color' => '#42A5F5',
+        'popular' => true,
+    ],
+    'family' => [
+        'id' => 'family',
+        'name' => 'Familie',
+        'price' => 500,
+        'period' => 'monthly',
+        'description' => 'For hele familien (inntil 5 personer)',
+        'features' => [
+            'Alt i Medlem',
+            'Inntil 5 familiemedlemmer',
+            'Familie-arrangementer',
+            'Felles fremgangslogg',
+        ],
+        'color' => '#66BB6A',
+    ],
+    'patron' => [
+        'id' => 'patron',
+        'name' => 'Beskytter',
+        'price' => 1000,
+        'period' => 'monthly',
+        'description' => 'Ekstra støtte til organisasjonen',
+        'features' => [
+            'Alt i Familie',
+            'Navngitt som beskytter',
+            'Eksklusive arrangementer',
+            'Direkte kontakt med styret',
+        ],
+        'color' => '#FFA726',
+    ],
 ]);
 
 // Helper function to read JSON file

@@ -65,6 +65,9 @@ if (isset($_GET['_t'])) {
                 <a href="?page=users" class="nav-item <?= $page === 'users' ? 'active' : '' ?>">
                     <i class="fas fa-id-card"></i> Brukere
                 </a>
+                <a href="?page=memberships" class="nav-item <?= $page === 'memberships' ? 'active' : '' ?>">
+                    <i class="fas fa-crown"></i> Medlemskap
+                </a>
                 <a href="?page=news" class="nav-item <?= $page === 'news' ? 'active' : '' ?>">
                     <i class="fas fa-newspaper"></i> Nyheter
                 </a>

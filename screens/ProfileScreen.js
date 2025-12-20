@@ -22,6 +22,7 @@ import { useMasteryLog } from '../hooks/useMasteryLog';
 import { useGamification } from '../hooks/useGamification';
 import { useActivityTracking } from '../hooks/useActivityTracking';
 import { useSkills } from '../hooks/useSkills';
+import MembershipSelector from '../components/MembershipSelector';
 
 const { width } = Dimensions.get('window');
 
@@ -165,74 +166,183 @@ function Forerkort({ user, localStats }) {
   );
 }
 
-// Login Form Component
-function LoginForm({ onLogin, loading }) {
+// Login Flow Component - handles membership selection and registration
+function LoginFlow({ onComplete, loading: authLoading }) {
+  const { selectMembership, login } = useAuth();
+  const [step, setStep] = useState('membership'); // 'membership', 'phone', 'pending'
+  const [selectedTier, setSelectedTier] = useState(null);
   const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleMembershipSelect = (tierId) => {
+    setSelectedTier(tierId);
+    setStep('phone');
+  };
+
+  const handlePhoneSubmit = async () => {
     if (phone.trim().length < 8) {
       Alert.alert('Ugyldig nummer', 'Vennligst oppgi et gyldig telefonnummer');
       return;
     }
-    onLogin(phone.trim());
+
+    setLoading(true);
+    const result = await selectMembership(phone.trim(), selectedTier);
+    setLoading(false);
+
+    if (result.success) {
+      setStep('pending');
+    } else {
+      Alert.alert('Feil', result.error);
+    }
   };
 
-  return (
-    <View style={styles.loginContainer}>
-      <LinearGradient
-        colors={[theme.colors.primary, theme.colors.primaryLight]}
-        style={styles.loginHeader}
-      >
-        <Icon name="person-circle-outline" size={80} color={theme.colors.white} />
-        <Text style={styles.loginTitle}>Min Profil</Text>
-        <Text style={styles.loginSubtitle}>
-          Logg inn med telefonnummer for å lagre din fremgang
-        </Text>
-      </LinearGradient>
+  const handleExistingLogin = async () => {
+    if (phone.trim().length < 8) {
+      Alert.alert('Ugyldig nummer', 'Vennligst oppgi et gyldig telefonnummer');
+      return;
+    }
 
-      <View style={styles.loginForm}>
-        <Text style={styles.inputLabel}>Telefonnummer</Text>
-        <View style={styles.phoneInputContainer}>
-          <Text style={styles.phonePrefix}>+47</Text>
-          <TextInput
-            style={styles.phoneInput}
-            placeholder="12345678"
-            placeholderTextColor={theme.colors.textTertiary}
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-            maxLength={8}
-          />
-        </View>
+    setLoading(true);
+    const result = await login(phone.trim());
+    setLoading(false);
 
-        <TouchableOpacity
-          style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
+    if (result.success) {
+      onComplete(result);
+    } else {
+      Alert.alert('Feil', result.error);
+    }
+  };
+
+  // Step 1: Membership Selection
+  if (step === 'membership') {
+    return (
+      <MembershipSelector
+        onSelect={handleMembershipSelect}
+        onBack={() => {}}
+        phone={phone}
+      />
+    );
+  }
+
+  // Step 2: Phone Input
+  if (step === 'phone') {
+    return (
+      <View style={styles.loginContainer}>
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.primaryLight]}
+          style={styles.loginHeader}
         >
-          <LinearGradient
-            colors={[theme.colors.primary, theme.colors.primaryLight]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.loginButtonGradient}
-          >
-            {loading ? (
-              <Text style={styles.loginButtonText}>Logger inn...</Text>
-            ) : (
-              <>
-                <Icon name="log-in" size={20} color={theme.colors.white} />
-                <Text style={styles.loginButtonText}>Logg inn</Text>
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+          <Icon name="person-add-outline" size={80} color={theme.colors.white} />
+          <Text style={styles.loginTitle}>Opprett konto</Text>
+          <Text style={styles.loginSubtitle}>
+            Skriv inn telefonnummeret ditt for å fullføre registreringen
+          </Text>
+        </LinearGradient>
 
-        <Text style={styles.loginNote}>
-          Vi sender ingen SMS foreløpig - bare skriv inn nummeret ditt for å opprette eller logge inn på profilen din.
-        </Text>
+        <View style={styles.loginForm}>
+          <Text style={styles.inputLabel}>Telefonnummer</Text>
+          <View style={styles.phoneInputContainer}>
+            <Text style={styles.phonePrefix}>+47</Text>
+            <TextInput
+              style={styles.phoneInput}
+              placeholder="12345678"
+              placeholderTextColor={theme.colors.textTertiary}
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+              maxLength={8}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            onPress={handlePhoneSubmit}
+            disabled={loading}
+          >
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.primaryLight]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.loginButtonGradient}
+            >
+              {loading ? (
+                <Text style={styles.loginButtonText}>Registrerer...</Text>
+              ) : (
+                <>
+                  <Icon name="arrow-forward" size={20} color={theme.colors.white} />
+                  <Text style={styles.loginButtonText}>Fortsett</Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.backLink}
+            onPress={() => setStep('membership')}
+          >
+            <Icon name="arrow-back" size={16} color={theme.colors.primary} />
+            <Text style={styles.backLinkText}>Tilbake til medlemskap</Text>
+          </TouchableOpacity>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>eller</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.existingButton}
+            onPress={handleExistingLogin}
+            disabled={loading}
+          >
+            <Text style={styles.existingButtonText}>Har du allerede konto? Logg inn</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
+
+  // Step 3: Pending Payment
+  if (step === 'pending') {
+    return (
+      <View style={styles.loginContainer}>
+        <LinearGradient
+          colors={[theme.colors.warning, '#FFD60A']}
+          style={styles.loginHeader}
+        >
+          <Icon name="time-outline" size={80} color={theme.colors.white} />
+          <Text style={styles.loginTitle}>Venter på betaling</Text>
+          <Text style={styles.loginSubtitle}>
+            Fullfør betalingen for å aktivere medlemskapet ditt
+          </Text>
+        </LinearGradient>
+
+        <View style={styles.loginForm}>
+          <View style={styles.pendingCard}>
+            <Icon name="card-outline" size={48} color={theme.colors.primary} />
+            <Text style={styles.pendingTitle}>Betaling</Text>
+            <Text style={styles.pendingText}>
+              Vipps og kortbetaling kommer snart. Kontakt oss for manuell betaling.
+            </Text>
+          </View>
+
+          <View style={styles.contactInfo}>
+            <Text style={styles.contactLabel}>Kontakt oss:</Text>
+            <Text style={styles.contactText}>post@medvandrerne.no</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={() => onComplete({ success: true })}
+          >
+            <Text style={styles.refreshButtonText}>Gå til profil</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  return null;
 }
 
 // Profile View Component
@@ -267,6 +377,46 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
           </View>
         )}
       </View>
+
+      {/* Membership Status */}
+      {user.membership && (
+        <View style={styles.section}>
+          <View style={styles.membershipCard}>
+            <View style={styles.membershipHeader}>
+              <Icon name="ribbon-outline" size={24} color={theme.colors.white} />
+              <Text style={styles.membershipTitle}>{user.membership.tierName}</Text>
+            </View>
+            <View style={styles.membershipBody}>
+              <View style={styles.membershipRow}>
+                <Text style={styles.membershipLabel}>Status:</Text>
+                <View style={[
+                  styles.membershipStatusBadge,
+                  user.membership.status === 'active' && styles.membershipStatusActive,
+                  user.membership.status === 'pending' && styles.membershipStatusPending,
+                ]}>
+                  <Text style={styles.membershipStatusText}>
+                    {user.membership.status === 'active' ? 'Aktiv' : 
+                     user.membership.status === 'pending' ? 'Venter på betaling' : 
+                     'Utløpt'}
+                  </Text>
+                </View>
+              </View>
+              {user.membership.status === 'active' && user.membership.expiresAt && (
+                <View style={styles.membershipRow}>
+                  <Text style={styles.membershipLabel}>Utløper:</Text>
+                  <Text style={styles.membershipValue}>
+                    {new Date(user.membership.expiresAt).toLocaleDateString('nb-NO')}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.membershipRow}>
+                <Text style={styles.membershipLabel}>Pris:</Text>
+                <Text style={styles.membershipValue}>{user.membership.price} kr/mnd</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* Profile Info */}
       <View style={styles.section}>
@@ -550,6 +700,12 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
+  const handleLoginComplete = (result) => {
+    if (result.success) {
+      // Login/registration completed
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -565,7 +721,7 @@ export default function ProfileScreen({ navigation }) {
           syncing={syncing}
         />
       ) : (
-        <LoginForm onLogin={handleLogin} loading={loading} />
+        <LoginFlow onComplete={handleLoginComplete} loading={loading} />
       )}
     </KeyboardAvoidingView>
   );
@@ -664,6 +820,138 @@ const styles = StyleSheet.create({
     color: theme.colors.textTertiary,
     textAlign: 'center',
     marginTop: theme.spacing.lg,
+  },
+  backLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.lg,
+  },
+  backLinkText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: theme.spacing.xl,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  dividerText: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    marginHorizontal: theme.spacing.md,
+  },
+  existingButton: {
+    paddingVertical: theme.spacing.md,
+    alignItems: 'center',
+  },
+  existingButtonText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+  },
+  pendingCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.medium,
+  },
+  pendingTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text,
+    marginTop: theme.spacing.md,
+  },
+  pendingText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: theme.spacing.sm,
+  },
+  contactInfo: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  contactLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+  },
+  contactText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  refreshButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+  },
+  refreshButtonText: {
+    ...theme.typography.button,
+    color: theme.colors.white,
+  },
+
+  // Membership Card
+  membershipCard: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    marginHorizontal: theme.spacing.lg,
+  },
+  membershipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    padding: theme.spacing.lg,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  membershipTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.white,
+  },
+  membershipBody: {
+    padding: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  membershipRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  membershipLabel: {
+    ...theme.typography.body,
+    color: theme.colors.white,
+    opacity: 0.8,
+  },
+  membershipValue: {
+    ...theme.typography.body,
+    color: theme.colors.white,
+    fontWeight: '600',
+  },
+  membershipStatusBadge: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.full,
+    backgroundColor: theme.colors.textSecondary,
+  },
+  membershipStatusActive: {
+    backgroundColor: theme.colors.success,
+  },
+  membershipStatusPending: {
+    backgroundColor: theme.colors.warning,
+  },
+  membershipStatusText: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    fontWeight: '700',
   },
 
   // Unsynced Banner

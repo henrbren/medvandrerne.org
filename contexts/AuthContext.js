@@ -187,6 +187,103 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Fetch membership tiers
+  const getMembershipTiers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/membership/tiers.php`);
+      const data = await response.json();
+      if (data.success) {
+        return { success: true, tiers: data.tiers };
+      }
+      return { success: false, error: 'Kunne ikke hente medlemskap' };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Select membership tier and register
+  const selectMembership = async (phone, tierId, name = '', email = '') => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/membership/select.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, tier: tierId, name, email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Kunne ikke velge medlemskap');
+      }
+
+      if (data.success) {
+        setToken(data.token);
+        setUser(data.user);
+        
+        await Promise.all([
+          AsyncStorage.setItem(AUTH_TOKEN_KEY, data.token),
+          AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user)),
+        ]);
+
+        return { success: true, user: data.user, membership: data.membership, paymentInfo: data.paymentInfo };
+      } else {
+        throw new Error(data.error || 'Kunne ikke velge medlemskap');
+      }
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Confirm membership payment
+  const confirmMembership = async (paymentMethod = 'manual', transactionId = null) => {
+    if (!token) return { success: false, error: 'Ikke innlogget' };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/membership/confirm.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ paymentMethod, transactionId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        setUser(data.user);
+        await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+        return { success: true, user: data.user };
+      } else {
+        throw new Error(data.error || 'Kunne ikke bekrefte medlemskap');
+      }
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Check if user has active membership
+  const hasActiveMembership = () => {
+    if (!user || !user.membership) return false;
+    if (user.membership.status !== 'active') return false;
+    if (user.membership.expiresAt && new Date(user.membership.expiresAt) < new Date()) return false;
+    return true;
+  };
+
+  // Check if user has pending membership
+  const hasPendingMembership = () => {
+    if (!user || !user.membership) return false;
+    return user.membership.status === 'pending';
+  };
+
   const value = {
     user,
     token,
@@ -198,6 +295,11 @@ export function AuthProvider({ children }) {
     updateProfile,
     syncProgress,
     refreshUserData,
+    getMembershipTiers,
+    selectMembership,
+    confirmMembership,
+    hasActiveMembership,
+    hasPendingMembership,
   };
 
   return (
