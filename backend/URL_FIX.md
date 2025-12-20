@@ -66,3 +66,4 @@ Hvis du foretrekker å beholde alt i backend/-mappen, kan du:
 2. Eller bruk en rewrite rule
 
 Men basert på URL-en du ga, ser det ut som filene skal være i root.
+

@@ -10,8 +10,10 @@ import { theme } from './constants/theme';
 import Sidebar from './components/Sidebar';
 import { requestPermissions } from './services/notifications';
 import { AppDataProvider } from './contexts/AppDataContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 import HomeScreen from './screens/HomeScreen';
+import ProfileScreen from './screens/ProfileScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
 import FlokkenScreen from './screens/FlokkenScreen';
 import LocalGroupsScreen from './screens/LocalGroupsScreen';
@@ -62,6 +64,8 @@ function TabNavigator({ navigationRef, currentRoute }) {
                   iconName = focused ? 'calendar' : 'calendar-outline';
                 } else if (route.name === 'Flokken') {
                   iconName = focused ? 'people' : 'people-outline';
+                } else if (route.name === 'Profil') {
+                  iconName = focused ? 'person' : 'person-outline';
                 }
 
                 return <Ionicons name={iconName} size={size} color={color} />;
@@ -132,6 +136,13 @@ function TabNavigator({ navigationRef, currentRoute }) {
               component={FlokkenScreen}
               options={{
                 headerTitle: 'Flokken',
+              }}
+            />
+            <Tab.Screen 
+              name="Profil" 
+              component={ProfileScreen}
+              options={{
+                headerTitle: 'Min Profil',
               }}
             />
           </Tab.Navigator>
@@ -441,8 +452,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AppDataProvider>
-        <StatusBar style="light" backgroundColor={theme.colors.primary} />
-        <AppWithNavigation />
+        <AuthProvider>
+          <StatusBar style="light" backgroundColor={theme.colors.primary} />
+          <AppWithNavigation />
+        </AuthProvider>
       </AppDataProvider>
     </SafeAreaProvider>
   );

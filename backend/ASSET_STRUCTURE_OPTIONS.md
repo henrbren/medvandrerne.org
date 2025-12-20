@@ -41,3 +41,4 @@ Koden bruker nå relative paths som automatisk detekterer hvor `index.php` ligge
 - Hvis i root: bruker `backend/assets/css/admin.css`
 
 Dette skal fungere uavhengig av BASE_URL eller domain!
+

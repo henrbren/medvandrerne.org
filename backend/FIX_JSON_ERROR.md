@@ -69,3 +69,4 @@ Etter oppdatering, test:
 2. Åpne admin panel
 3. Prøv å lagre noe
 4. Sjekk browser console for bedre feilmeldinger
+

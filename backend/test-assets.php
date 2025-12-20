@@ -22,3 +22,4 @@ if ($docRoot) {
 echo "\nRecommended asset base: " . rtrim(BASE_URL, '/') . "/backend/assets\n";
 echo "CSS URL: " . rtrim(BASE_URL, '/') . "/backend/assets/css/admin.css\n";
 echo "JS URL: " . rtrim(BASE_URL, '/') . "/backend/assets/js/admin.js\n";
+

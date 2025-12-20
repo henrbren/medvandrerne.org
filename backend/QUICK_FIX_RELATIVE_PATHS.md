@@ -49,3 +49,4 @@ This avoids issues with:
 4. Refresh the page
 
 The CSS and JS should now load correctly!
+

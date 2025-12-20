@@ -39,6 +39,16 @@ define('JSON_SUPPORTERS', DATA_DIR . 'supporters.json');
 define('JSON_NEWS', DATA_DIR . 'news.json');
 define('JSON_GALLERY', DATA_DIR . 'gallery.json'); // Deprecated - use calendar instead
 define('JSON_RESOURCES', DATA_DIR . 'resources.json');
+define('JSON_USERS', DATA_DIR . 'users.json');
+
+// User levels configuration
+define('USER_LEVELS', [
+    1 => ['name' => 'Nybegynner', 'minPoints' => 0],
+    2 => ['name' => 'Turist', 'minPoints' => 500],
+    3 => ['name' => 'Vandrer', 'minPoints' => 1000],
+    4 => ['name' => 'Stifinner', 'minPoints' => 2500],
+    5 => ['name' => 'Mester', 'minPoints' => 5000],
+]);
 
 // Helper function to read JSON file
 // Clears stat cache to ensure fresh data is read
@@ -150,3 +160,4 @@ function setCorsHeaders() {
         exit;
     }
 }
+

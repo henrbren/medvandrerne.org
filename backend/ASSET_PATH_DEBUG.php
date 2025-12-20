@@ -38,3 +38,4 @@ if (file_exists($currentDir . '/assets/css/admin.css')) {
 echo "\nAsset Base Path: " . $assetsBase . "\n";
 echo "CSS Path: " . $assetsBase . "/css/admin.css\n";
 echo "JS Path: " . $assetsBase . "/js/admin.js\n";
+

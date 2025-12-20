@@ -165,3 +165,4 @@ document.getElementById('activityForm').addEventListener('submit', async (e) => 
     location.reload();
 });
 </script>
+

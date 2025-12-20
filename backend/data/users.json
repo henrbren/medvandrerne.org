@@ -1,0 +1,29 @@
+[
+    {
+        "id": "usr_demo_001",
+        "phone": "+4712345678",
+        "name": "Demo Bruker",
+        "email": "demo@medvandrerne.no",
+        "memberSince": "2024-01-15",
+        "level": 3,
+        "levelName": "Vandrer",
+        "totalPoints": 1250,
+        "completedActivities": 15,
+        "completedExpeditions": 3,
+        "skills": [
+            {"id": "navigation", "name": "Navigasjon", "level": 2},
+            {"id": "firstAid", "name": "Førstehjelp", "level": 1},
+            {"id": "camping", "name": "Friluftsliv", "level": 3}
+        ],
+        "badges": [
+            {"id": "explorer", "name": "Utforsker", "earnedAt": "2024-03-10"},
+            {"id": "helper", "name": "Hjelper", "earnedAt": "2024-05-20"}
+        ],
+        "reflections": [],
+        "lastActive": "2024-12-20",
+        "authToken": null,
+        "tokenExpiry": null,
+        "createdAt": "2024-01-15T10:00:00Z",
+        "updatedAt": "2024-12-20T14:30:00Z"
+    }
+]

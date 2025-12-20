@@ -143,3 +143,4 @@ document.getElementById('newsForm').addEventListener('submit', async (e) => {
     }
 });
 </script>
+

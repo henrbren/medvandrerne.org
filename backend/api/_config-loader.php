@@ -33,3 +33,4 @@ if (!$configLoaded) {
     echo json_encode($error, JSON_PRETTY_PRINT);
     exit;
 }
+

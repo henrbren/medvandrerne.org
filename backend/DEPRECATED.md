@@ -17,3 +17,4 @@ Gallery-systemet er erstattet av Google Calendar-integrasjonen. Følgende filer 
 
 **Fjernelse:**
 Disse filene kan fjernes i fremtidige versjoner, men er beholdt for bakoverkompatibilitet.
+

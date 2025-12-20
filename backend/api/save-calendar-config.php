@@ -43,3 +43,4 @@ if (writeJsonFile($configFile, $config)) {
 } else {
     jsonResponse(['error' => 'Failed to save configuration'], 500);
 }
+

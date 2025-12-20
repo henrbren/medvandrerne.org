@@ -121,3 +121,4 @@ Kalenderaktiviteter er automatisk tilgjengelige via `useAppData()` hook.
 - Privat ICS URL-er inneholder tokens - ikke del disse offentlig
 - Bruk offentlige kalendere når mulig
 - Vurder å begrense tilgang til admin-panelet
+

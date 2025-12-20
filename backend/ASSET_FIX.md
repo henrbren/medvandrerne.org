@@ -47,3 +47,4 @@ Etter fix, sjekk nettleser console:
 2. **Feil filrettigheter:** `chmod 644 backend/assets/css/admin.css`
 3. **Feil struktur:** Verifiser at mappestrukturen er riktig
 4. **Cache:** Prøv hard refresh (Ctrl+F5 eller Cmd+Shift+R)
+

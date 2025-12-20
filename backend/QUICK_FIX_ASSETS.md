@@ -62,3 +62,4 @@ Etter fix:
 - Sjekk Network-tab
 - Verifiser at admin.css og admin.js laster uten 404
 - Sjekk at styling fungerer (sidebar skal være rød)
+

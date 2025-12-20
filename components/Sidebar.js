@@ -12,6 +12,7 @@ const menuItems = [
   { name: 'Min vandring', icon: 'map', route: 'Min vandring', color: theme.colors.success },
   { name: 'Aktiviteter', icon: 'calendar', route: 'Aktiviteter', color: theme.colors.primaryLight },
   { name: 'Flokken', icon: 'people', route: 'Flokken', color: theme.colors.info },
+  { name: 'Min Profil', icon: 'person', route: 'Profil', color: theme.colors.warning },
 ];
 
 export default function Sidebar({ navigation, currentRoute }) {

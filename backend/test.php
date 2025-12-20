@@ -93,3 +93,4 @@ if (!file_exists($dataDir) || !is_writable($dataDir)) {
 if (!is_writable(__DIR__)) {
     echo "<p style='color: orange;'>⚠ Backend directory may need write permissions</p>";
 }
+

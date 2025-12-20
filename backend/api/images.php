@@ -48,3 +48,4 @@ usort($images, function($a, $b) {
 });
 
 jsonResponse($images);
+

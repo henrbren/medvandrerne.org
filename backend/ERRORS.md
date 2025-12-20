@@ -139,3 +139,4 @@ Hvis ingenting fungerer, kontakt hosting-provideren (sg-host.com) og spør om:
 - Hvor error logs finnes
 - Om mod_auth_basic er aktivert
 - Om .htaccess er aktivert
+

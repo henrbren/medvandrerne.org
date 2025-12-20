@@ -181,3 +181,4 @@ document.getElementById('coreActivityForm').addEventListener('submit', async (e)
     location.reload();
 });
 </script>
+

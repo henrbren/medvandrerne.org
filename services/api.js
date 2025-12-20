@@ -185,3 +185,4 @@ export function isOnline() {
   // Enkel sjekk - kan utvides med NetInfo hvis nødvendig
   return true; // Antar at vi alltid prøver å hente fra API først
 }
+

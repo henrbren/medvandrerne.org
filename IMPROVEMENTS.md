@@ -71,3 +71,4 @@
 
 ### 15. Backup - Ingen backup-mekanisme
 **Løsning:** Automatisk backup av JSON-filer
+

@@ -41,3 +41,4 @@ document.getElementById('supportersForm').addEventListener('submit', async (e) =
     await saveData('supporters', data);
 });
 </script>
+

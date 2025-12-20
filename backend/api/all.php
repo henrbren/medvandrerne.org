@@ -31,3 +31,4 @@ $data = [
 ];
 
 jsonResponse($data);
+

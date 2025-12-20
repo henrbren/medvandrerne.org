@@ -73,3 +73,4 @@ Etter deploy, test:
 1. Admin: `https://henrikb30.sg-host.com?page=dashboard`
 2. API: `https://henrikb30.sg-host.com/api/all.php`
 3. Health: `https://henrikb30.sg-host.com/api/health.php`
+

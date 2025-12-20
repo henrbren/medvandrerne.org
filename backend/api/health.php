@@ -59,3 +59,4 @@ if (!$health['checks']['data_directory']['exists'] || !$health['checks']['data_d
 }
 
 jsonResponse($health);
+

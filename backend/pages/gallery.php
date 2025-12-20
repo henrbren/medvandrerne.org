@@ -128,3 +128,4 @@ document.getElementById('galleryForm').addEventListener('submit', async (e) => {
     }
 });
 </script>
+

@@ -65,3 +65,4 @@ function sanitizeArray($data, $maxDepth = 10) {
         return $data;
     }
 }
+

@@ -165,3 +165,4 @@ export async function fetchAllData() {
 ## Support
 
 For spørsmål eller problemer, kontakt utvikleren.
+

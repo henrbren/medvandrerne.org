@@ -524,3 +524,4 @@ window.Table = Table;
 window.Shortcuts = Shortcuts;
 window.saveData = saveData;
 window.showNotification = showNotification;
+

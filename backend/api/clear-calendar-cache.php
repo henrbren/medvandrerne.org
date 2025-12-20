@@ -11,3 +11,4 @@ if (file_exists($cacheFile)) {
 }
 
 jsonResponse(['success' => true, 'message' => 'Cache cleared']);
+

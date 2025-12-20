@@ -99,3 +99,4 @@ Når backend er installert og fungerer:
 - Hold PHP-versjonen oppdatert
 - Vurder å legge til IP-restriksjoner hvis mulig
 - Ta backup av `data/`-mappen regelmessig
+

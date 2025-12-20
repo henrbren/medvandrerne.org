@@ -27,3 +27,4 @@ echo "2. Make sure api/ directory exists in root"
 echo "3. Make sure backend/ directory exists in root"
 echo "4. Set permissions: chmod 755 api/ backend/ backend/data/"
 echo "5. Test: https://henrikb30.sg-host.com?page=dashboard"
+

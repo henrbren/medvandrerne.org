@@ -92,3 +92,4 @@ Hvis admin panel ikke laster:
 1. Sjekk at `index.php` er i root
 2. Sjekk at `backend/`-mappen eksisterer
 3. Sjekk asset paths i nettleser console
+

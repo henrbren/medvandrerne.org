@@ -62,6 +62,9 @@ if (isset($_GET['_t'])) {
                 <a href="?page=dashboard" class="nav-item <?= $page === 'dashboard' ? 'active' : '' ?>">
                     <i class="fas fa-th-large"></i> Oversikt
                 </a>
+                <a href="?page=users" class="nav-item <?= $page === 'users' ? 'active' : '' ?>">
+                    <i class="fas fa-id-card"></i> Brukere
+                </a>
                 <a href="?page=news" class="nav-item <?= $page === 'news' ? 'active' : '' ?>">
                     <i class="fas fa-newspaper"></i> Nyheter
                 </a>

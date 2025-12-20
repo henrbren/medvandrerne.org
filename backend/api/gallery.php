@@ -35,3 +35,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
 }
 
 jsonResponse(readJsonFile(JSON_GALLERY));
+
