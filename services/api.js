@@ -4,7 +4,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'https://henrikb30.sg-host.com/api';
+export const API_BASE_URL = 'https://henrikb30.sg-host.com/api';
 const CACHE_KEY = '@medvandrerne_api_cache';
 const CACHE_TIMESTAMP_KEY = '@medvandrerne_api_cache_timestamp';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 timer i millisekunder
