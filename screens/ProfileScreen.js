@@ -103,7 +103,7 @@ function Forerkort({ user, localStats }) {
         {/* Header */}
         <View style={styles.forerkortHeader}>
           <View style={styles.forerkortLogo}>
-            <Icon name="trail-sign" size={24} color={theme.colors.white} />
+            <Icon name="walk" size={24} color={theme.colors.white} />
           </View>
           <View>
             <Text style={styles.forerkortTitle}>MEDVANDRERNE</Text>
@@ -121,7 +121,7 @@ function Forerkort({ user, localStats }) {
           <View style={styles.forerkortInfo}>
             <Text style={styles.forerkortName}>{user.name || 'Vandrer'}</Text>
             <View style={styles.forerkortLevel}>
-              <Icon name="shield-checkmark" size={16} color={theme.colors.white} />
+              <Icon name="shield-checkmark-outline" size={16} color={theme.colors.white} />
               <Text style={styles.forerkortLevelText}>
                 Nivå {displayLevel}: {levelName}
               </Text>
@@ -183,7 +183,7 @@ function LoginForm({ onLogin, loading }) {
         colors={[theme.colors.primary, theme.colors.primaryLight]}
         style={styles.loginHeader}
       >
-        <Icon name="person-circle" size={80} color={theme.colors.white} />
+        <Icon name="person-circle-outline" size={80} color={theme.colors.white} />
         <Text style={styles.loginTitle}>Min Profil</Text>
         <Text style={styles.loginSubtitle}>
           Logg inn med telefonnummer for å lagre din fremgang
@@ -345,7 +345,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
       {user.skills && user.skills.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name="ribbon" size={24} color={theme.colors.warning} />
+            <Icon name="ribbon-outline" size={24} color={theme.colors.warning} />
             <Text style={styles.sectionTitle}>Ferdigheter</Text>
           </View>
           <View style={styles.skillsGrid}>
@@ -363,7 +363,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, sync
       {user.badges && user.badges.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Icon name="medal" size={24} color={theme.colors.success} />
+            <Icon name="medal-outline" size={24} color={theme.colors.success} />
             <Text style={styles.sectionTitle}>Merker</Text>
           </View>
           <View style={styles.badgesGrid}>
@@ -544,7 +544,7 @@ export default function ProfileScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Icon name="hourglass" size={48} color={theme.colors.primary} />
+        <Icon name="hourglass-outline" size={48} color={theme.colors.primary} />
         <Text style={styles.loadingText}>Laster...</Text>
       </View>
     );
