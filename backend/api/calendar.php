@@ -17,8 +17,11 @@ $calendarConfig = readJsonFile(DATA_DIR . 'calendar_config.json', [
     'enabled' => false,
 ]);
 
-// If calendar is not enabled, return empty array
-if (!$calendarConfig['enabled'] || empty($calendarConfig['googleCalendarUrl'])) {
+// Consider configured if URL is set (backwards compatible - ignore enabled flag)
+$isConfigured = !empty($calendarConfig['googleCalendarUrl']);
+
+// If calendar is not configured, return empty array
+if (!$isConfigured) {
     jsonResponse([]);
 }
 

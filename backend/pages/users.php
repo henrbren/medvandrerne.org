@@ -12,6 +12,9 @@ $activeUsers = count(array_filter($users, function($u) {
 $newUsers = count(array_filter($users, function($u) {
     return strtotime($u['createdAt'] ?? '1970-01-01') > strtotime('-7 days');
 }));
+$sharingLocation = count(array_filter($users, function($u) {
+    return isset($u['location']) && $u['location']['sharing'] === true;
+}));
 
 // Level distribution
 $levelDistribution = [];
@@ -55,6 +58,15 @@ foreach ($users as $user) {
         <div class="stat-content">
             <span class="stat-value" data-count="<?= $newUsers ?>"><?= $newUsers ?></span>
             <span class="stat-label">Nye (7 dager)</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #FF6B6B, #FF8E72);">
+            <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div class="stat-content">
+            <span class="stat-value" data-count="<?= $sharingLocation ?>"><?= $sharingLocation ?></span>
+            <span class="stat-label">Deler posisjon</span>
         </div>
     </div>
 </div>
@@ -244,11 +256,30 @@ foreach ($users as $user) {
     font-weight: 600;
 }
 
-.level-badge.level-1 { background: var(--background-elevated); color: var(--text-secondary); }
-.level-badge.level-2 { background: #E3F2FD; color: #1565C0; }
-.level-badge.level-3 { background: #E8F5E9; color: #2E7D32; }
-.level-badge.level-4 { background: #FFF3E0; color: #EF6C00; }
-.level-badge.level-5 { background: #FCE4EC; color: #C2185B; }
+/* Level colors - matching app theme */
+/* Levels 1-2: Red (Medvandrer style) */
+.level-badge.level-1 { background: #FFEBEE; color: #E53935; }
+.level-badge.level-2 { background: #FFCDD2; color: #C62828; }
+/* Levels 3-4: Primary red */
+.level-badge.level-3 { background: #FFEBEE; color: #D32F2F; }
+.level-badge.level-4 { background: #EF9A9A; color: #B71C1C; }
+/* Levels 5-6: Orange progression */
+.level-badge.level-5 { background: #FFF3E0; color: #EF6C00; }
+.level-badge.level-6 { background: #FFE0B2; color: #E65100; }
+/* Levels 7-8: Yellow/Gold */
+.level-badge.level-7 { background: #FFF8E1; color: #FF8F00; }
+.level-badge.level-8 { background: #FFECB3; color: #FF6F00; }
+/* Levels 9-10: Green */
+.level-badge.level-9 { background: #E8F5E9; color: #2E7D32; }
+.level-badge.level-10 { background: #C8E6C9; color: #1B5E20; }
+/* Levels 11-12: Blue */
+.level-badge.level-11 { background: #E3F2FD; color: #1565C0; }
+.level-badge.level-12 { background: #BBDEFB; color: #0D47A1; }
+/* Levels 13-14: Purple */
+.level-badge.level-13 { background: #F3E5F5; color: #7B1FA2; }
+.level-badge.level-14 { background: #E1BEE7; color: #4A148C; }
+/* Level 15: Gold/Special */
+.level-badge.level-15 { background: linear-gradient(135deg, #FFD700, #FFA000); color: #5D4037; }
 
 .points-value {
     font-weight: 600;
@@ -328,6 +359,55 @@ foreach ($users as $user) {
     padding: 4px 10px;
     border-radius: var(--radius-full);
     font-size: 12px;
+}
+
+.location-info {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-top: var(--space-3);
+}
+
+.location-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+}
+
+.location-status.active {
+    color: var(--success);
+}
+
+.location-status.active i {
+    animation: pulse 2s infinite;
+}
+
+.location-status.inactive {
+    color: var(--text-secondary);
+}
+
+.location-details {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.location-details > div {
+    margin-bottom: var(--space-2);
+}
+
+.location-coords {
+    font-family: monospace;
+    background: var(--background);
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
     background: var(--primary-soft);
     color: var(--primary);
 }
@@ -486,7 +566,13 @@ function viewUser(userId) {
         ${user.skills && user.skills.length > 0 ? `
             <h3 style="margin-top: var(--space-4);">Ferdigheter</h3>
             <div class="skills-list">
-                ${user.skills.map(s => `<span class="skill-tag">${s.name} (Nivå ${s.level})</span>`).join('')}
+                ${user.skills.map(s => {
+                    // Handle both formats: full objects and simple IDs
+                    if (typeof s === 'string') {
+                        return `<span class="skill-tag">${s}</span>`;
+                    }
+                    return `<span class="skill-tag">${s.name || s.id || 'Ukjent'}${s.level ? ` (Nivå ${s.level})` : ''}</span>`;
+                }).join('')}
             </div>
         ` : ''}
         
@@ -496,6 +582,35 @@ function viewUser(userId) {
                 ${user.badges.map(b => `<span class="badge-tag">${b.name}</span>`).join('')}
             </div>
         ` : ''}
+        
+        <h3 style="margin-top: var(--space-4);">Posisjonsdeling</h3>
+        <div class="location-info">
+            ${user.location && user.location.sharing ? `
+                <div class="location-status active">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Deler posisjon</span>
+                </div>
+                <div class="location-details">
+                    <div class="location-coords">
+                        <strong>Koordinater:</strong> ${user.location.latitude?.toFixed(4)}, ${user.location.longitude?.toFixed(4)}
+                    </div>
+                    <div class="location-updated">
+                        <strong>Oppdatert:</strong> ${user.location.updatedAt ? new Date(user.location.updatedAt).toLocaleString('nb-NO') : 'Ukjent'}
+                    </div>
+                    <a href="https://www.google.com/maps?q=${user.location.latitude},${user.location.longitude}" 
+                       target="_blank" 
+                       class="btn btn-sm btn-secondary" 
+                       style="margin-top: var(--space-2);">
+                        <i class="fas fa-external-link-alt"></i> Se på kart
+                    </a>
+                </div>
+            ` : `
+                <div class="location-status inactive">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Deler ikke posisjon</span>
+                </div>
+            `}
+        </div>
     `;
     
     document.getElementById('userDetailContent').innerHTML = content;

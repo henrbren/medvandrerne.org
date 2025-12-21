@@ -71,7 +71,15 @@ $user = $users[$userIndex];
 
 // Check if user already has this tier
 if (isset($user['membership']) && $user['membership']['tier'] === $newTierId) {
-    jsonResponse(['error' => 'Du har allerede dette medlemskapsnivået'], 400);
+    // Include debug info to help diagnose issues
+    jsonResponse([
+        'error' => 'Du har allerede dette medlemskapsnivået',
+        'debug' => [
+            'currentTier' => $user['membership']['tier'] ?? 'none',
+            'currentTierName' => $user['membership']['tierName'] ?? 'none',
+            'requestedTier' => $newTierId,
+        ]
+    ], 400);
 }
 
 // Create new pending membership (upgrade/downgrade)

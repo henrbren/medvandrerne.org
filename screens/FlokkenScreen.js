@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -10,12 +10,16 @@ import {
   Animated,
   Dimensions,
   Image,
-  Alert,
+  TextInput,
+  RefreshControl,
+  KeyboardAvoidingView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
-import { useContacts } from '../hooks/useContacts';
+import { useContacts, CONTACT_TYPE } from '../hooks/useContacts';
+import { useLocationSharing } from '../hooks/useLocationSharing';
+import ContactDetailModal from '../components/modals/ContactDetailModal';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -23,11 +27,42 @@ const isWeb = Platform.OS === 'web';
 export default function FlokkenScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasAnimatedRef = useRef(false);
-  const { contacts, loading: contactsLoading, removeContact, loadContacts } = useContacts();
+  
+  // Hooks
+  const { 
+    contacts, 
+    loading: contactsLoading, 
+    removeContact, 
+    loadContacts,
+    syncContactsWithBackend,
+    getContactsWithLocation,
+  } = useContacts();
+  
+  const { isSharing } = useLocationSharing();
+
+  // State
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [showContactDetail, setShowContactDetail] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Set header button for map
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('FlokkenMap')}
+          style={styles.headerButton}
+        >
+          <Icon name="map-outline" size={22} color={theme.colors.white} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
-      // Reload contacts when screen comes into focus
+      // Always reload contacts when screen gains focus
       loadContacts();
       
       if (!hasAnimatedRef.current) {
@@ -41,226 +76,272 @@ export default function FlokkenScreen({ navigation }) {
       } else {
         fadeAnim.setValue(1);
       }
-    }, [])
+      
+      // Sync with backend after a small delay to get fresh data
+      const syncTimer = setTimeout(() => {
+        syncContactsWithBackend();
+      }, 500);
+      
+      return () => clearTimeout(syncTimer);
+    }, [loadContacts])
   );
 
-  const handleRemoveContact = (contact) => {
-    Alert.alert(
-      'Fjern kontakt',
-      `Er du sikker på at du vil fjerne ${contact.name || 'denne medvandreren'} fra listen?`,
-      [
-        { text: 'Avbryt', style: 'cancel' },
-        { 
-          text: 'Fjern', 
-          style: 'destructive',
-          onPress: async () => {
-            await removeContact(contact.id);
-          }
-        },
-      ]
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadContacts();
+    await syncContactsWithBackend();
+    setRefreshing(false);
+  };
+
+  const handleRemoveContact = async (contact) => {
+    await removeContact(contact.id);
+  };
+
+  const handleContactPress = (contact) => {
+    setSelectedContact(contact);
+    setShowContactDetail(true);
+  };
+
+  const handleCloseContactDetail = () => {
+    setShowContactDetail(false);
+    setSelectedContact(null);
+  };
+
+  // Split contacts into categories
+  const scannedContacts = contacts.filter(c => c.contactType === CONTACT_TYPE.SCANNED);
+  const favoriteContacts = contacts.filter(c => c.contactType === CONTACT_TYPE.FAVORITE || c.isFavorite);
+  const contactsWithLocation = getContactsWithLocation();
+
+  // Filter contacts based on search
+  const filterContacts = (contactList) => {
+    if (!searchQuery.trim()) return contactList;
+    const query = searchQuery.toLowerCase();
+    return contactList.filter(c => 
+      (c.name || '').toLowerCase().includes(query) ||
+      (c.groupName || '').toLowerCase().includes(query) ||
+      (c.levelName || '').toLowerCase().includes(query)
     );
   };
 
-  const AnimatedSection = ({ children, delay = 0 }) => {
-    const cardFade = useRef(new Animated.Value(hasAnimatedRef.current ? 1 : 0)).current;
-    const cardSlide = useRef(new Animated.Value(hasAnimatedRef.current ? 0 : 20)).current;
+  const filteredFavorites = filterContacts(favoriteContacts);
+  const filteredScanned = filterContacts(scannedContacts);
+  const hasResults = filteredFavorites.length > 0 || filteredScanned.length > 0;
 
-    useEffect(() => {
-      if (!hasAnimatedRef.current) {
-        Animated.parallel([
-          Animated.timing(cardFade, {
-            toValue: 1,
-            duration: theme.animations.normal,
-            delay,
-            useNativeDriver: true,
-          }),
-          Animated.spring(cardSlide, {
-            toValue: 0,
-            delay,
-            ...theme.animations.spring,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }
-    }, [delay]);
-
-    return (
-      <Animated.View
-        style={{
-          opacity: cardFade,
-          transform: [{ translateY: cardSlide }],
-        }}
-      >
-        {children}
-      </Animated.View>
-    );
-  };
-
+  // Menu items for Utforsk
   const menuItems = [
     {
       id: 'lokallag',
       title: 'Lokallag',
-      description: 'Finn ditt lokallag og bli med på aktiviteter',
+      description: 'Finn ditt lokallag',
       icon: 'people',
       route: 'Lokallag',
-      colors: [theme.colors.info, theme.colors.info + 'CC'],
-    },
-    {
-      id: 'om-oss',
-      title: 'Om oss',
-      description: 'Lær mer om Medvandrerne og vår visjon',
-      icon: 'information-circle',
-      route: 'Om oss',
-      colors: [theme.colors.primary, theme.colors.primaryLight],
     },
     {
       id: 'kontakt',
-      title: 'Kontakt',
-      description: 'Ta kontakt med oss eller finn ansatte',
+      title: 'Kontakt oss',
+      description: 'Ta kontakt med Medvandrerne',
       icon: 'call',
       route: 'Kontakt',
-      colors: [theme.colors.success, theme.colors.success + 'CC'],
     },
   ];
 
+  const renderContactItem = (contact, index, array) => {
+    // Check multiple possible image fields
+    const imageUrl = contact.avatarUrl || contact.image || contact.coordinatorImage;
+    const hasValidImage = imageUrl && typeof imageUrl === 'string' && imageUrl.length > 0 && imageUrl.startsWith('http');
+    
+    return (
+    <TouchableOpacity
+      key={contact.id}
+      style={[styles.contactItem, index === array.length - 1 && styles.lastItem]}
+      onPress={() => handleContactPress(contact)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.contactAvatar}>
+        {hasValidImage ? (
+          <Image source={{ uri: imageUrl }} style={styles.contactAvatarImage} />
+        ) : (
+          <Text style={styles.contactAvatarText}>
+            {(contact.name || 'M').charAt(0).toUpperCase()}
+          </Text>
+        )}
+        {contact.location?.sharing && (
+          <View style={styles.locationIndicator}>
+            <Icon name="location" size={8} color={theme.colors.white} />
+          </View>
+        )}
+      </View>
+      <View style={styles.contactInfo}>
+        <Text style={styles.contactName}>{contact.name || 'Medvandrer'}</Text>
+        <Text style={styles.contactSubtitle}>
+          {contact.levelName || `Nivå ${contact.level || 1}`}
+          {contact.groupName ? ` · ${contact.groupName}` : ''}
+        </Text>
+      </View>
+      <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+    </TouchableOpacity>
+  );
+  };
+
+  const renderMenuItem = (item, index, array) => (
+    <TouchableOpacity
+      key={item.id}
+      style={[styles.menuItem, index === array.length - 1 && styles.lastItem]}
+      onPress={() => navigation.navigate(item.route)}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.menuIcon, { backgroundColor: item.id === 'lokallag' ? theme.colors.info + '20' : theme.colors.success + '20' }]}>
+        <Icon 
+          name={item.icon} 
+          size={20} 
+          color={item.id === 'lokallag' ? theme.colors.info : theme.colors.success} 
+        />
+      </View>
+      <View style={styles.menuInfo}>
+        <Text style={styles.menuTitle}>{item.title}</Text>
+        <Text style={styles.menuDescription}>{item.description}</Text>
+      </View>
+      <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          isWeb && styles.scrollContentWeb,
-        ]}
+      <KeyboardAvoidingView 
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        {/* Top Spacer */}
-        <View style={styles.topSpacer} />
-
-        {/* Header Section */}
-        <AnimatedSection>
-          <View style={styles.headerSection}>
-            <View style={styles.sectionHeader}>
-              <LinearGradient
-                colors={[theme.colors.primary, theme.colors.primaryLight]}
-                style={styles.headerIconGradient}
-              >
-                <Icon name="people" size={32} color={theme.colors.white} />
-              </LinearGradient>
-              <Text style={styles.sectionTitle}>Flokken</Text>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.colors.primary}
+            />
+          }
+        >
+          {/* Favorites Section */}
+          {filteredFavorites.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Icon name="star" size={18} color={theme.colors.warning} />
+                <Text style={styles.sectionTitle}>Favoritter</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{filteredFavorites.length}</Text>
+                </View>
+              </View>
+              <View style={styles.listCard}>
+                {filteredFavorites.map(renderContactItem)}
+              </View>
             </View>
-            <Text style={styles.headerDescription}>
-              Utforsk lokallag, lær mer om oss, eller ta kontakt
-            </Text>
-          </View>
-        </AnimatedSection>
+          )}
 
-        {/* My Contacts / Mine Medvandrere */}
-        {contacts.length > 0 && (
-          <AnimatedSection delay={100}>
-            <View style={styles.contactsSection}>
-              <View style={styles.contactsHeader}>
-                <Icon name="qr-code" size={24} color={theme.colors.primary} />
-                <Text style={styles.contactsTitle}>Mine Medvandrere</Text>
-                <Text style={styles.contactsCount}>{contacts.length}</Text>
+          {/* Scanned Contacts Section */}
+          {filteredScanned.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Icon name="qr-code" size={18} color={theme.colors.info} />
+                <Text style={styles.sectionTitle}>Kontakter</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{filteredScanned.length}</Text>
+                </View>
               </View>
-              <Text style={styles.contactsSubtitle}>
-                Folk du har scannet med Medvandrerkode
-              </Text>
-              
-              <View style={styles.contactsList}>
-                {contacts.map((contact, index) => (
-                  <TouchableOpacity
-                    key={contact.id}
-                    style={styles.contactCard}
-                    onLongPress={() => handleRemoveContact(contact)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.contactAvatar}>
-                      {contact.avatarUrl ? (
-                        <Image source={{ uri: contact.avatarUrl }} style={styles.contactAvatarImage} />
-                      ) : (
-                        <Text style={styles.contactAvatarText}>
-                          {(contact.name || 'M').charAt(0).toUpperCase()}
-                        </Text>
-                      )}
-                    </View>
-                    <View style={styles.contactInfo}>
-                      <Text style={styles.contactName}>{contact.name || 'Medvandrer'}</Text>
-                      <View style={styles.contactLevel}>
-                        <Icon name="shield-checkmark" size={12} color={theme.colors.textSecondary} />
-                        <Text style={styles.contactLevelText}>
-                          Nivå {contact.level || 1} • {contact.levelName || 'Nybegynner'}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.contactDate}>
-                      {new Date(contact.addedAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.listCard}>
+                {filteredScanned.map(renderContactItem)}
               </View>
-              
-              <Text style={styles.contactsHint}>
-                Hold inne på en kontakt for å fjerne
-              </Text>
             </View>
-          </AnimatedSection>
-        )}
+          )}
 
-        {/* Empty State for Contacts */}
-        {contacts.length === 0 && (
-          <AnimatedSection delay={100}>
-            <View style={styles.emptyContacts}>
-              <View style={styles.emptyContactsIcon}>
-                <Icon name="qr-code-outline" size={48} color={theme.colors.textTertiary} />
+          {/* Empty State */}
+          {contacts.length === 0 && !searchQuery && (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Icon name="people-outline" size={48} color={theme.colors.textTertiary} />
               </View>
-              <Text style={styles.emptyContactsTitle}>Ingen medvandrere ennå</Text>
-              <Text style={styles.emptyContactsText}>
-                Scan en Medvandrerkode fra en annen bruker for å legge dem til i listen din.
+              <Text style={styles.emptyTitle}>Ingen kontakter ennå</Text>
+              <Text style={styles.emptyText}>
+                Scan en Medvandrerkode eller legg til koordinatorer som favoritter
               </Text>
               <TouchableOpacity 
-                style={styles.emptyContactsButton}
+                style={styles.scanButton}
                 onPress={() => navigation.navigate('Profil', { openScanner: true })}
               >
-                <Icon name="scan" size={18} color={theme.colors.white} />
-                <Text style={styles.emptyContactsButtonText}>Scan en kode</Text>
+                <Icon name="qr-code-outline" size={18} color={theme.colors.white} />
+                <Text style={styles.scanButtonText}>Scan en kode</Text>
               </TouchableOpacity>
             </View>
-          </AnimatedSection>
-        )}
+          )}
 
-        {/* Menu Items */}
-        <AnimatedSection delay={contacts.length > 0 ? 200 : 100}>
-          <View style={styles.menuSection}>
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.menuCard}
-                onPress={() => navigation.navigate(item.route)}
-                activeOpacity={0.7}
-              >
-                <LinearGradient
-                  colors={item.colors}
-                  style={styles.menuCardGradient}
-                >
-                  <View style={styles.menuCardContent}>
-                    <View style={styles.menuIconContainer}>
-                      <Icon name={item.icon} size={32} color={theme.colors.white} />
-                    </View>
-                    <View style={styles.menuTextContainer}>
-                      <Text style={styles.menuTitle}>{item.title}</Text>
-                      <Text style={styles.menuDescription}>{item.description}</Text>
-                    </View>
-                    <Icon name="chevron-forward" size={24} color={theme.colors.white} />
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
+          {/* No Search Results */}
+          {searchQuery && !hasResults && (
+            <View style={styles.emptyState}>
+              <Icon name="search-outline" size={48} color={theme.colors.textTertiary} />
+              <Text style={styles.emptyTitle}>Ingen treff</Text>
+              <Text style={styles.emptyText}>
+                Fant ingen kontakter som matcher "{searchQuery}"
+              </Text>
+            </View>
+          )}
+
+          {/* Utforsk Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Icon name="compass" size={18} color={theme.colors.primary} />
+              <Text style={styles.sectionTitle}>Utforsk</Text>
+            </View>
+            <View style={styles.listCard}>
+              {menuItems.map(renderMenuItem)}
+            </View>
           </View>
-        </AnimatedSection>
 
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
+          {/* Add Contact Button */}
+          {contacts.length > 0 && (
+            <TouchableOpacity 
+              style={styles.addContactButton}
+              onPress={() => navigation.navigate('Profil', { openScanner: true })}
+            >
+              <Icon name="add" size={20} color={theme.colors.primary} />
+              <Text style={styles.addContactText}>Legg til kontakt</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Bottom spacer for search bar */}
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+
+        {/* Search Bar at Bottom */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Icon name="search" size={18} color={theme.colors.textTertiary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Søk i kontakter..."
+              placeholderTextColor={theme.colors.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Icon name="close-circle" size={18} color={theme.colors.textTertiary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* Contact Detail Modal */}
+      <ContactDetailModal
+        visible={showContactDetail}
+        onClose={handleCloseContactDetail}
+        contact={selectedContact}
+        onRemove={handleRemoveContact}
+      />
     </View>
   );
 }
@@ -270,157 +351,100 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  headerButton: {
+    marginHorizontal: 8,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: theme.spacing.xxxl,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
   },
-  scrollContentWeb: {
-    maxWidth: theme.web.maxContentWidth,
-    width: '100%',
-    alignSelf: 'center',
-    paddingHorizontal: theme.web.sidePadding,
-  },
-  topSpacer: {
-    height: theme.spacing.md,
-  },
-  headerSection: {
-    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+  section: {
+    marginBottom: theme.spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
-    gap: theme.spacing.md,
-  },
-  headerIconGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: theme.borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...theme.shadows.glowSubtle,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
   },
   sectionTitle: {
-    ...theme.typography.h2,
-    color: theme.colors.text,
-    flex: 1,
-  },
-  headerDescription: {
-    ...theme.typography.body,
-    fontSize: 16,
+    ...theme.typography.bodySmall,
     color: theme.colors.textSecondary,
-    lineHeight: 24,
-    paddingLeft: theme.spacing.xl + theme.spacing.md,
+    fontWeight: '600',
+    flex: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  menuSection: {
-    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
-    gap: theme.spacing.md,
+  badge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 24,
+    alignItems: 'center',
   },
-  menuCard: {
+  badgeText: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    fontWeight: '600',
+    fontSize: 11,
+  },
+  listCard: {
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
-    ...theme.shadows.medium,
   },
-  menuCardGradient: {
-    padding: theme.spacing.lg,
-  },
-  menuCardContent: {
+  contactItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-  },
-  menuIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuTextContainer: {
-    flex: 1,
-  },
-  menuTitle: {
-    ...theme.typography.h3,
-    fontSize: 20,
-    fontWeight: '700',
-    color: theme.colors.white,
-    marginBottom: theme.spacing.xs / 2,
-  },
-  menuDescription: {
-    ...theme.typography.body,
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 20,
-  },
-  bottomSpacer: {
-    height: theme.spacing.xxl,
-  },
-
-  // Contacts Section
-  contactsSection: {
-    paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  contactsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-  },
-  contactsTitle: {
-    ...theme.typography.h3,
-    color: theme.colors.text,
-    flex: 1,
-  },
-  contactsCount: {
-    ...theme.typography.caption,
-    color: theme.colors.white,
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 2,
-    borderRadius: theme.borderRadius.full,
-    fontWeight: '700',
-    minWidth: 24,
-    textAlign: 'center',
-  },
-  contactsSubtitle: {
-    ...theme.typography.caption,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs,
-    marginBottom: theme.spacing.md,
-    marginLeft: theme.spacing.xl + theme.spacing.sm,
-  },
-  contactsList: {
-    gap: theme.spacing.sm,
-  },
-  contactCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    gap: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  lastItem: {
+    borderBottomWidth: 0,
   },
   contactAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    marginRight: theme.spacing.md,
   },
   contactAvatarImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   contactAvatarText: {
-    ...theme.typography.h3,
     color: theme.colors.white,
+    fontWeight: '700',
+    fontSize: 18,
+  },
+  locationIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: theme.colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.surface,
   },
   contactInfo: {
     flex: 1,
@@ -430,69 +454,119 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontWeight: '600',
   },
-  contactLevel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginTop: 2,
-  },
-  contactLevelText: {
+  contactSubtitle: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
+    marginTop: 2,
   },
-  contactDate: {
-    ...theme.typography.caption,
-    color: theme.colors.textTertiary,
-  },
-  contactsHint: {
-    ...theme.typography.caption,
-    color: theme.colors.textTertiary,
-    textAlign: 'center',
-    marginTop: theme.spacing.md,
-  },
-
-  // Empty State
-  emptyContacts: {
+  menuItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.xxl,
-    marginHorizontal: isWeb ? 0 : theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
-  emptyContactsIcon: {
+  menuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: theme.spacing.md,
+  },
+  menuInfo: {
+    flex: 1,
+  },
+  menuTitle: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    fontWeight: '600',
+  },
+  menuDescription: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xxxl,
+  },
+  emptyIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.backgroundElevated,
+    backgroundColor: theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.lg,
   },
-  emptyContactsTitle: {
+  emptyTitle: {
     ...theme.typography.h3,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
-  emptyContactsText: {
+  emptyText: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
     textAlign: 'center',
+    maxWidth: 280,
     marginBottom: theme.spacing.lg,
   },
-  emptyContactsButton: {
+  scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
     backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.full,
   },
-  emptyContactsButtonText: {
-    ...theme.typography.button,
+  scanButtonText: {
+    ...theme.typography.body,
     color: theme.colors.white,
+    fontWeight: '600',
+  },
+  addContactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+  },
+  addContactText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  bottomSpacer: {
+    height: 80,
+  },
+  searchContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: Platform.OS === 'ios' ? 34 : theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    paddingHorizontal: theme.spacing.md,
+    height: 44,
+    gap: theme.spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    ...theme.typography.body,
+    color: theme.colors.text,
+    padding: 0,
   },
 });
-

@@ -2,13 +2,38 @@
 /**
  * Calendar Page - Shows synced Google Calendar events
  */
-$calendarConfig = readJsonFile(DATA_DIR . 'calendar_config.json', ['enabled' => false, 'googleCalendarUrl' => '']);
-$calendarCache = readJsonFile(DATA_DIR . 'calendar_cache.json', []);
-$lastSync = file_exists(DATA_DIR . 'calendar_cache.json') ? filemtime(DATA_DIR . 'calendar_cache.json') : null;
+
+// Clear all caches to ensure fresh data
+clearstatcache(true);
+if (function_exists('opcache_reset')) {
+    @opcache_reset();
+}
+
+$configFile = DATA_DIR . 'calendar_config.json';
+$cacheFile = DATA_DIR . 'calendar_cache.json';
+
+// Debug: Check if file exists and log content
+$calendarConfig = ['enabled' => false, 'googleCalendarUrl' => ''];
+if (file_exists($configFile)) {
+    $rawContent = file_get_contents($configFile);
+    $calendarConfig = json_decode($rawContent, true) ?: $calendarConfig;
+} else {
+    error_log('Calendar config file not found: ' . $configFile);
+}
+
+$calendarCache = readJsonFile($cacheFile, []);
+$lastSync = file_exists($cacheFile) ? filemtime($cacheFile) : null;
+
+// Consider calendar configured if URL is set (regardless of 'enabled' flag for backwards compatibility)
+$isConfigured = !empty($calendarConfig['googleCalendarUrl']);
+
+// Debug output (remove in production)
+error_log('Calendar config: ' . json_encode($calendarConfig));
+error_log('Is configured: ' . ($isConfigured ? 'yes' : 'no'));
 ?>
 
 <div class="admin-page">
-    <?php if (!$calendarConfig['enabled'] || empty($calendarConfig['googleCalendarUrl'])): ?>
+    <?php if (!$isConfigured): ?>
     <!-- Not configured -->
     <div class="empty-state">
         <div class="empty-state-icon">
@@ -19,6 +44,15 @@ $lastSync = file_exists(DATA_DIR . 'calendar_cache.json') ? filemtime(DATA_DIR .
         <a href="?page=calendar-config" class="btn btn-primary">
             <i class="fas fa-cog"></i> Konfigurer Google Calendar
         </a>
+        
+        <!-- Debug info -->
+        <div class="info-box" style="margin-top: var(--space-6); text-align: left; font-size: 0.75rem;">
+            <p><strong>Debug:</strong></p>
+            <p>Config file: <?= $configFile ?></p>
+            <p>File exists: <?= file_exists($configFile) ? 'Ja' : 'Nei' ?></p>
+            <p>Enabled: <?= $calendarConfig['enabled'] ? 'Ja' : 'Nei' ?></p>
+            <p>URL: <?= !empty($calendarConfig['googleCalendarUrl']) ? 'Satt (' . strlen($calendarConfig['googleCalendarUrl']) . ' tegn)' : 'Ikke satt' ?></p>
+        </div>
     </div>
     
     <?php else: ?>

@@ -9,6 +9,7 @@ import {
   Platform,
   Animated,
   Image,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +17,7 @@ import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useFavorites } from '../hooks/useFavorites';
+import { useContacts } from '../hooks/useContacts';
 
 const isWeb = Platform.OS === 'web';
 
@@ -24,10 +26,12 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const { isGroupFavorite, addFavoriteGroup, removeFavoriteGroup, loadFavorites } = useFavorites();
+  const { addFavoriteCoordinator, removeContact, hasCoordinatorContact, loadContacts } = useContacts();
 
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
+      loadContacts(); // Also refresh contacts to get updated favorite status
     }, [])
   );
 
@@ -60,10 +64,39 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
   const handleToggleFavorite = async () => {
     if (isFavorite) {
       await removeFavoriteGroup(group.id);
+      // Note: We don't remove the coordinator from contacts automatically
+      // They can do that manually from the Flokken screen
     } else {
       await addFavoriteGroup(group.id);
+      
+      // Also add coordinator to contacts if they have contact info
+      if (group.coordinator && (group.phone || group.email)) {
+        const coordinator = {
+          id: `coord_${group.id}`,
+          name: group.coordinator,
+          phone: group.phone,
+          email: group.email,
+          image: group.coordinatorImage,
+          role: 'Koordinator',
+        };
+        
+        const result = await addFavoriteCoordinator(coordinator, {
+          id: group.id,
+          name: group.name,
+        });
+        
+        if (result.success && !result.isUpdate) {
+          // Optionally show a toast/notification
+          console.log(`Added ${group.coordinator} to contacts`);
+        }
+      }
     }
   };
+
+  // Check if coordinator is in contacts
+  const coordinatorInContacts = group.phone || group.email 
+    ? hasCoordinatorContact(group.phone, group.email) 
+    : false;
 
   const headerStyle = {
     opacity: fadeAnim,
@@ -139,11 +172,24 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
             </View>
             <View style={styles.coordinatorCard}>
               <View style={styles.coordinatorAvatar}>
-                <Icon
-                  name="person-circle-outline"
-                  size={50}
-                  color={theme.colors.primary}
-                />
+                {group.coordinatorImage ? (
+                  <Image 
+                    source={typeof group.coordinatorImage === 'string' ? { uri: group.coordinatorImage } : group.coordinatorImage}
+                    style={styles.coordinatorAvatarImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Icon
+                    name="person-circle-outline"
+                    size={50}
+                    color={theme.colors.primary}
+                  />
+                )}
+                {coordinatorInContacts && (
+                  <View style={styles.contactBadge}>
+                    <Icon name="checkmark" size={10} color={theme.colors.white} />
+                  </View>
+                )}
               </View>
               <View style={styles.coordinatorInfo}>
                 <Text style={styles.coordinatorName}>{group.coordinator}</Text>
@@ -168,6 +214,32 @@ export default function LocalGroupDetailScreen({ route, navigation }) {
                   </TouchableOpacity>
                 )}
               </View>
+              {/* Add to contacts button */}
+              {(group.phone || group.email) && !coordinatorInContacts && (
+                <TouchableOpacity
+                  style={styles.addContactButton}
+                  onPress={async () => {
+                    const coordinator = {
+                      id: `coord_${group.id}`,
+                      name: group.coordinator,
+                      phone: group.phone,
+                      email: group.email,
+                      image: group.coordinatorImage,
+                      role: 'Koordinator',
+                    };
+                    const result = await addFavoriteCoordinator(coordinator, {
+                      id: group.id,
+                      name: group.name,
+                    });
+                    if (result.success) {
+                      Alert.alert('Lagt til', `${group.coordinator} er nå i kontaktlisten din`);
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Icon name="person-add" size={18} color={theme.colors.primary} />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         )}
@@ -512,6 +584,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: theme.spacing.md,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  coordinatorAvatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: theme.borderRadius.lg,
+  },
+  contactBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: theme.colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.surfaceElevated,
+  },
+  addContactButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: theme.spacing.sm,
   },
   coordinatorInfo: {
     flex: 1,

@@ -22,9 +22,12 @@ $config = readJsonFile(DATA_DIR . 'calendar_config.json', [
     <form id="calendarConfigForm" class="admin-form">
         <div class="form-group">
             <label>
-                <input type="checkbox" name="enabled" id="calendarEnabled" <?= $config['enabled'] ? 'checked' : '' ?>>
+                <input type="checkbox" name="enabled" id="calendarEnabled" <?= ($config['enabled'] || !empty($config['googleCalendarUrl'])) ? 'checked' : '' ?>>
                 Aktiver Google Calendar synkronisering
             </label>
+            <small style="display: block; margin-top: 0.25rem; color: var(--gray);">
+                Aktiveres automatisk når en gyldig URL er lagret
+            </small>
         </div>
 
         <div class="form-group">

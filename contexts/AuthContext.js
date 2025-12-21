@@ -40,9 +40,13 @@ export function AuthProvider({ children }) {
   };
 
   const refreshUserData = async (authToken = token) => {
-    if (!authToken) return null;
+    if (!authToken) {
+      console.log('refreshUserData: No token');
+      return null;
+    }
     
     try {
+      console.log('refreshUserData: Fetching from API...');
       const response = await fetch(`${API_BASE_URL}/auth/me.php`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -50,6 +54,7 @@ export function AuthProvider({ children }) {
       });
 
       if (!response.ok) {
+        console.log('refreshUserData: Response not OK:', response.status);
         if (response.status === 401) {
           // Token expired or invalid
           await logout();
@@ -59,6 +64,8 @@ export function AuthProvider({ children }) {
       }
 
       const data = await response.json();
+      console.log('refreshUserData: Got data, membership:', data.user?.membership?.tierName);
+      
       if (data.success && data.user) {
         setUser(data.user);
         await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
@@ -325,6 +332,14 @@ export function AuthProvider({ children }) {
     return user.membership.status === 'pending';
   };
 
+  // Direct user update (for when API returns updated user data)
+  const updateUserData = async (newUserData) => {
+    if (newUserData) {
+      setUser(newUserData);
+      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(newUserData));
+    }
+  };
+
   const value = {
     user,
     token,
@@ -336,6 +351,7 @@ export function AuthProvider({ children }) {
     updateProfile,
     syncProgress,
     refreshUserData,
+    updateUserData,
     getMembershipTiers,
     selectMembership,
     confirmMembership,

@@ -31,15 +31,30 @@ if (!empty($url)) {
     }
 }
 
+// Auto-enable when a valid URL is provided
+$enabled = (bool)($input['enabled'] ?? false);
+if (!empty($url)) {
+    $enabled = true; // Always enable if URL is set
+}
+
 $config = [
-    'enabled' => (bool)($input['enabled'] ?? false),
+    'enabled' => $enabled,
     'googleCalendarUrl' => $url,
+    'updatedAt' => date('c'),
 ];
 
 $configFile = DATA_DIR . 'calendar_config.json';
 
 if (writeJsonFile($configFile, $config)) {
-    jsonResponse(['success' => true]);
+    // Also trigger a cache refresh when saving valid config
+    if ($enabled && !empty($url)) {
+        // Clear old cache
+        $cacheFile = DATA_DIR . 'calendar_cache.json';
+        if (file_exists($cacheFile)) {
+            unlink($cacheFile);
+        }
+    }
+    jsonResponse(['success' => true, 'enabled' => $enabled]);
 } else {
     jsonResponse(['error' => 'Failed to save configuration'], 500);
 }

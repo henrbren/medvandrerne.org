@@ -42,13 +42,24 @@ define('JSON_RESOURCES', DATA_DIR . 'resources.json');
 define('JSON_USERS', DATA_DIR . 'users.json');
 define('JSON_MEMBERSHIPS', DATA_DIR . 'memberships.json');
 
-// User levels configuration
+// User levels configuration - must match frontend useGamification.js thresholds
+// Level names from utils/journeyUtils.js getLevelName()
 define('USER_LEVELS', [
-    1 => ['name' => 'Nybegynner', 'minPoints' => 0],
-    2 => ['name' => 'Turist', 'minPoints' => 500],
-    3 => ['name' => 'Vandrer', 'minPoints' => 1000],
-    4 => ['name' => 'Stifinner', 'minPoints' => 2500],
-    5 => ['name' => 'Mester', 'minPoints' => 5000],
+    1 => ['name' => 'Sokk', 'minPoints' => 0],
+    2 => ['name' => 'Sko', 'minPoints' => 100],
+    3 => ['name' => 'Sovepose', 'minPoints' => 250],
+    4 => ['name' => 'Ryggsekk', 'minPoints' => 500],
+    5 => ['name' => 'Skalljakke', 'minPoints' => 800],
+    6 => ['name' => 'Lue', 'minPoints' => 1200],
+    7 => ['name' => 'Ski', 'minPoints' => 1700],
+    8 => ['name' => 'Bålet', 'minPoints' => 2300],
+    9 => ['name' => 'Kompass', 'minPoints' => 3000],
+    10 => ['name' => 'Vandrestav', 'minPoints' => 4000],
+    11 => ['name' => 'Fjellvandrer', 'minPoints' => 5200],
+    12 => ['name' => 'Nordlys', 'minPoints' => 6600],
+    13 => ['name' => 'Midnattssol', 'minPoints' => 8200],
+    14 => ['name' => 'Aurora', 'minPoints' => 10000],
+    15 => ['name' => 'Stjernevandrer', 'minPoints' => 12000],
 ]);
 
 // Membership tiers configuration

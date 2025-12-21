@@ -32,6 +32,8 @@ import EnvironmentActionsScreen from './screens/EnvironmentActionsScreen';
 import NewsScreen from './screens/NewsScreen';
 import NewsDetailScreen from './screens/NewsDetailScreen';
 import MembershipScreen from './screens/MembershipScreen';
+import FlokkenSettingsScreen from './screens/FlokkenSettingsScreen';
+import FlokkenMapScreen from './screens/FlokkenMapScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -402,6 +404,40 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Medlemskap',
+        }}
+      />
+      <Stack.Screen
+        name="FlokkenSettings"
+        component={FlokkenSettingsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Innstillinger',
+        }}
+      />
+      <Stack.Screen
+        name="FlokkenMap"
+        component={FlokkenMapScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Kart',
         }}
       />
     </Stack.Navigator>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,41 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function MembershipScreen({ navigation }) {
-  const { user, getMembershipTiers, token } = useAuth();
+  const { user, getMembershipTiers, token, refreshUserData, updateUserData } = useAuth();
   const [tiers, setTiers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [changing, setChanging] = useState(false);
   const [selectedTier, setSelectedTier] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const currentMembership = user?.membership;
 
   useEffect(() => {
     loadTiers();
   }, []);
+
+  // Refresh user data when screen comes into focus (only once per focus)
+  useFocusEffect(
+    useCallback(() => {
+      refreshUserData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshUserData();
+    setRefreshing(false);
+  }, [refreshUserData]);
 
   const loadTiers = async () => {
     const result = await getMembershipTiers();
@@ -55,6 +72,9 @@ export default function MembershipScreen({ navigation }) {
             setSelectedTier(tierId);
             
             try {
+              console.log('Changing membership to:', tierId);
+              console.log('Token:', token ? 'Present' : 'Missing');
+              
               const response = await fetch('https://henrikb30.sg-host.com/api/membership/change.php', {
                 method: 'POST',
                 headers: {
@@ -64,19 +84,35 @@ export default function MembershipScreen({ navigation }) {
                 body: JSON.stringify({ newTier: tierId }),
               });
 
+              console.log('Response status:', response.status);
               const data = await response.json();
+              console.log('Response data:', JSON.stringify(data));
 
               if (data.success) {
+                // Update user state directly from API response
+                if (data.user) {
+                  console.log('Updating user with new membership:', data.user.membership?.tierName);
+                  await updateUserData(data.user);
+                } else {
+                  console.log('No user in response, forcing refresh');
+                  await refreshUserData();
+                }
+                
                 Alert.alert(
                   'Medlemskap endret!',
                   `Du har valgt ${tier.name}. Fullfør betalingen for å aktivere.`,
-                  [{ text: 'OK', onPress: () => navigation.goBack() }]
+                  [{ 
+                    text: 'OK', 
+                    onPress: () => navigation.goBack()
+                  }]
                 );
               } else {
+                console.log('API error:', data.error);
                 Alert.alert('Feil', data.error || 'Kunne ikke endre medlemskap');
               }
             } catch (error) {
-              Alert.alert('Feil', 'Nettverksfeil - prøv igjen');
+              console.log('Network error:', error);
+              Alert.alert('Feil', 'Nettverksfeil - prøv igjen: ' + error.message);
             } finally {
               setChanging(false);
               setSelectedTier(null);
@@ -97,7 +133,18 @@ export default function MembershipScreen({ navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      style={styles.container} 
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[theme.colors.primary]}
+          tintColor={theme.colors.primary}
+        />
+      }
+    >
       {/* Current Membership */}
       {currentMembership && (
         <View style={styles.currentSection}>

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,14 @@ import {
   Platform,
   Animated,
   Image,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useFavorites } from '../hooks/useFavorites';
+import { useContacts } from '../hooks/useContacts';
 
 const isWeb = Platform.OS === 'web';
 
@@ -23,11 +24,13 @@ export default function PersonDetailScreen({ route, navigation }) {
   const { person, type } = route.params || {};
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const { isContactFavorite, addFavoriteContact, removeFavoriteContact, loadFavorites } = useFavorites();
+  const { addFavoriteCoordinator, removeContact, loadContacts } = useContacts();
 
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
-    }, [])
+      loadContacts();
+    }, [loadContacts])
   );
 
   useEffect(() => {
@@ -51,8 +54,27 @@ export default function PersonDetailScreen({ route, navigation }) {
   const handleToggleFavorite = async () => {
     if (isFavorite) {
       await removeFavoriteContact(person.id);
+      // Note: We don't auto-remove from contacts, user can do that manually
     } else {
       await addFavoriteContact(person.id);
+      
+      // Also add to contacts list so it shows in Flokken
+      if (person.phone || person.email) {
+        const coordinator = {
+          id: person.id,
+          name: person.name,
+          phone: person.phone,
+          email: person.email,
+          image: person.image,
+          role: person.role || type || 'Kontakt',
+        };
+        
+        const result = await addFavoriteCoordinator(coordinator, null);
+        
+        if (result.success && !result.isUpdate) {
+          console.log(`Added ${person.name} to contacts`);
+        }
+      }
     }
   };
 

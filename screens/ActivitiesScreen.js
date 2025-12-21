@@ -8,19 +8,37 @@ import {
   Linking,
   Platform,
   Animated,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
-import { SAMPLE_ACTIVITIES } from '../constants/data';
+import { useAppData } from '../contexts/AppDataContext';
 
 const isWeb = Platform.OS === 'web';
 
 export default function ActivitiesScreen({ navigation }) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { data, loading, refreshData, clearDataCache } = useAppData();
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Kombiner Google Calendar og lokale aktiviteter
+  const calendarEvents = data.calendar || [];
+  const localActivities = data.activities || [];
+  
+  // Merge og sorter alle aktiviteter
+  const activities = [...calendarEvents, ...localActivities].sort((a, b) => {
+    return (a.date || '').localeCompare(b.date || '');
+  });
+  
+  // Debug: Log what we have
+  console.log('ActivitiesScreen - calendar events:', calendarEvents.length);
+  console.log('ActivitiesScreen - local activities:', localActivities.length);
+  console.log('ActivitiesScreen - total activities:', activities.length);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -29,20 +47,43 @@ export default function ActivitiesScreen({ navigation }) {
       useNativeDriver: true,
     }).start();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refreshData();
+    setRefreshing(false);
+  };
   
   const markedDates = {};
-  SAMPLE_ACTIVITIES.forEach((activity) => {
-    markedDates[activity.date] = {
-      marked: true,
-      dotColor: theme.colors.primary,
-      selected: selectedDate === activity.date,
-      selectedColor: theme.colors.primary,
-    };
+  activities.forEach((activity) => {
+    if (activity.date) {
+      markedDates[activity.date] = {
+        marked: true,
+        dotColor: theme.colors.primary,
+        selected: selectedDate === activity.date,
+        selectedColor: theme.colors.primary,
+      };
+      // For flerdagsaktiviteter, marker alle datoer
+      if (activity.multiDay && activity.endDate) {
+        let currentDate = new Date(activity.date);
+        const endDate = new Date(activity.endDate);
+        while (currentDate <= endDate) {
+          const dateStr = currentDate.toISOString().split('T')[0];
+          markedDates[dateStr] = {
+            marked: true,
+            dotColor: theme.colors.primary,
+            selected: selectedDate === dateStr,
+            selectedColor: theme.colors.primary,
+          };
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    }
   });
 
   const getActivitiesForDate = (date) => {
-    return SAMPLE_ACTIVITIES.filter((activity) => {
-      if (activity.multiDay) {
+    return activities.filter((activity) => {
+      if (activity.multiDay && activity.endDate) {
         return date >= activity.date && date <= activity.endDate;
       }
       return activity.date === date;
@@ -80,6 +121,16 @@ export default function ActivitiesScreen({ navigation }) {
     }
   };
 
+  // Vis loading ved første innlasting
+  if (loading && activities.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>Laster aktiviteter...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -89,6 +140,14 @@ export default function ActivitiesScreen({ navigation }) {
           styles.scrollContent,
           isWeb && styles.scrollContentWeb,
         ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
       >
         {/* Calendar - Compact */}
         <View style={styles.calendarSection}>
@@ -149,7 +208,7 @@ export default function ActivitiesScreen({ navigation }) {
             <View style={styles.activitiesList}>
               {selectedActivities.map((activity, index) => (
                 <TouchableOpacity
-                  key={activity.id}
+                  key={activity.id || index}
                   style={styles.activityCard}
                   activeOpacity={0.7}
                   onPress={() => navigation.navigate('ActivityDetail', { activity })}
@@ -165,9 +224,11 @@ export default function ActivitiesScreen({ navigation }) {
                   <View style={styles.activityContent}>
                     <View style={styles.activityHeader}>
                       <Text style={styles.activityTitle} numberOfLines={1}>{activity.title}</Text>
-                      <View style={[styles.activityTypeBadge, { backgroundColor: theme.colors.primary + '20' }]}>
-                        <Text style={styles.activityType}>{activity.type}</Text>
-                      </View>
+                      {activity.type && (
+                        <View style={[styles.activityTypeBadge, { backgroundColor: theme.colors.primary + '20' }]}>
+                          <Text style={styles.activityType}>{activity.type}</Text>
+                        </View>
+                      )}
                     </View>
                     <View style={styles.activityDetails}>
                       {activity.time && !activity.multiDay && (
@@ -192,20 +253,35 @@ export default function ActivitiesScreen({ navigation }) {
             <View style={styles.emptyState}>
               <Icon name="calendar-outline" size={48} color={theme.colors.textTertiary} />
               <Text style={styles.emptyStateText}>
-                Ingen aktiviteter denne dagen
+                {activities.length === 0 
+                  ? 'Ingen aktiviteter i kalenderen ennå.\nDra ned for å oppdatere.'
+                  : 'Ingen aktiviteter denne dagen'}
               </Text>
+              {activities.length === 0 && (
+                <TouchableOpacity 
+                  style={styles.forceRefreshButton}
+                  onPress={async () => {
+                    setRefreshing(true);
+                    await clearDataCache();
+                    setRefreshing(false);
+                  }}
+                >
+                  <Icon name="refresh-outline" size={16} color={theme.colors.primary} />
+                  <Text style={styles.forceRefreshText}>Tøm cache og oppdater</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
 
         {/* Upcoming Major Events - Compact */}
-        {SAMPLE_ACTIVITIES.filter((a) => a.multiDay || a.type === 'Arrangement').length > 0 && (
+        {activities.filter((a) => a.multiDay || a.type === 'Arrangement').length > 0 && (
           <View style={styles.eventsSection}>
             <View style={styles.eventsHeader}>
               <Text style={styles.eventsHeaderText}>Kommende arrangementer</Text>
             </View>
             <View style={styles.eventsList}>
-              {SAMPLE_ACTIVITIES.filter((a) => a.multiDay || a.type === 'Arrangement').map(
+              {activities.filter((a) => a.multiDay || a.type === 'Arrangement').map(
                 (activity) => (
                   <TouchableOpacity
                     key={activity.id}
@@ -251,8 +327,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.md,
+  },
   scrollView: {
     flex: 1,
+    paddingTop: theme.spacing.xl,
   },
   scrollContent: {
     paddingBottom: theme.spacing.xl,
@@ -398,6 +484,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: theme.spacing.md,
     fontSize: 14,
+  },
+  forceRefreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  forceRefreshText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
   
   // Events Section - Compact

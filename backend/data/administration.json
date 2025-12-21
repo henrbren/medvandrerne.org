@@ -5,7 +5,7 @@
         "name": "Roger Wangberg",
         "phone": "936 60 011",
         "email": "roger@medvandrerne.org",
-        "image": "roger.png"
+        "image": "https://henrikb30.sg-host.com/uploads/administration/roger.png"
     },
     {
         "id": 2,
@@ -13,7 +13,7 @@
         "name": "Elin Larsen",
         "phone": "95932919",
         "email": "elin.larsen@medvandrerne.org",
-        "image": "elin.png"
+        "image": "https://henrikb30.sg-host.com/uploads/administration/elin.png"
     },
     {
         "id": 3,
@@ -21,7 +21,7 @@
         "name": "Raymond Tollefsen",
         "phone": "",
         "email": "raymond@medvandrerne.org",
-        "image": "raymond.png"
+        "image": "https://henrikb30.sg-host.com/uploads/administration/raymond.png"
     },
     {
         "id": 4,
@@ -29,7 +29,7 @@
         "name": "Ivar Brecke Nygaard",
         "phone": "",
         "email": "ivar@medvandrerne.org",
-        "image": "ivar.jpg"
+        "image": "https://henrikb30.sg-host.com/uploads/administration/ivar.jpg"
     },
     {
         "id": 5,
@@ -37,7 +37,7 @@
         "name": "Siri Otterskred",
         "phone": "",
         "email": "siri@medvandrerne.org",
-        "image": "siri.png"
+        "image": "https://henrikb30.sg-host.com/uploads/administration/siri.png"
     },
     {
         "id": 6,
@@ -45,7 +45,7 @@
         "name": "Henrik Brendhagen",
         "phone": "991 22 328",
         "email": "henrik@medvandrerne.org",
-        "image": "henrik.png"
+        "image": "https://henrikb30.sg-host.com/uploads/administration/henrik.png"
     }
 ]
 

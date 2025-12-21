@@ -1,5 +1,16 @@
 <?php
 $admin = readJsonFile(JSON_ADMINISTRATION);
+
+// Helper function to get full image URL
+function getImageUrl($image) {
+    if (empty($image)) return '';
+    // If already a full URL, return as-is
+    if (strpos($image, 'http://') === 0 || strpos($image, 'https://') === 0) {
+        return $image;
+    }
+    // Otherwise, prepend base URL with uploads path
+    return BASE_URL . 'uploads/administration/' . $image;
+}
 ?>
 
 <div class="admin-page">
@@ -19,7 +30,7 @@ $admin = readJsonFile(JSON_ADMINISTRATION);
             </button>
             <div class="person-image">
                 <?php if (!empty($person['image'])): ?>
-                    <img src="<?= htmlspecialchars($person['image']) ?>" alt="<?= htmlspecialchars($person['name']) ?>">
+                    <img src="<?= htmlspecialchars(getImageUrl($person['image'])) ?>" alt="<?= htmlspecialchars($person['name']) ?>">
                 <?php else: ?>
                     <i class="fas fa-user"></i>
                 <?php endif; ?>

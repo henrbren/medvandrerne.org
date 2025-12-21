@@ -13,6 +13,7 @@ import {
   Platform,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -168,10 +169,18 @@ function Forerkort({ user, localStats, onPress }) {
           {/* Footer */}
           <View style={styles.forerkortFooter}>
             <Text style={styles.forerkortDate}>
-              Medlem siden {new Date(user.memberSince).toLocaleDateString('nb-NO', {
-                month: 'long',
-                year: 'numeric',
-              })}
+              {user.memberSince && new Date(user.memberSince).getFullYear() > 2000
+                ? `Medlem siden ${new Date(user.memberSince).toLocaleDateString('nb-NO', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}`
+                : user.createdAt && new Date(user.createdAt).getFullYear() > 2000
+                  ? `Registrert ${new Date(user.createdAt).toLocaleDateString('nb-NO', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}`
+                  : 'Ny medvandrer'
+              }
             </Text>
             <Text style={styles.forerkortId}>{user.id?.slice(-8).toUpperCase()}</Text>
           </View>
@@ -250,62 +259,73 @@ function LoginFlow({ onComplete, loading: authLoading }) {
   // Step 2: Phone Input
   if (step === 'phone') {
     return (
-      <View style={styles.loginContainer}>
-        <LinearGradient
-          colors={[theme.colors.primary, theme.colors.primaryLight]}
-          style={styles.loginHeader}
+      <KeyboardAvoidingView 
+        style={styles.loginContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
-          <Icon name="person-add-outline" size={80} color={theme.colors.white} />
-          <Text style={styles.loginTitle}>Opprett konto</Text>
-          <Text style={styles.loginSubtitle}>
-            Skriv inn telefonnummeret ditt for å fullføre registreringen
-          </Text>
-        </LinearGradient>
-
-        <View style={styles.loginForm}>
-          <Text style={styles.inputLabel}>Telefonnummer</Text>
-          <View style={styles.phoneInputContainer}>
-            <Text style={styles.phonePrefix}>+47</Text>
-            <TextInput
-              style={styles.phoneInput}
-              placeholder="12345678"
-              placeholderTextColor={theme.colors.textTertiary}
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              maxLength={8}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-            onPress={handlePhoneSubmit}
-            disabled={loading}
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.primaryLight]}
+            style={styles.loginHeader}
           >
-            <LinearGradient
-              colors={[theme.colors.primary, theme.colors.primaryLight]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.loginButtonGradient}
+            <Icon name="person-add-outline" size={80} color={theme.colors.white} />
+            <Text style={styles.loginTitle}>Opprett konto</Text>
+            <Text style={styles.loginSubtitle}>
+              Skriv inn telefonnummeret ditt for å fullføre registreringen
+            </Text>
+          </LinearGradient>
+
+          <View style={styles.loginForm}>
+            <Text style={styles.inputLabel}>Telefonnummer</Text>
+            <View style={styles.phoneInputContainer}>
+              <Text style={styles.phonePrefix}>+47</Text>
+              <TextInput
+                style={styles.phoneInput}
+                placeholder="12345678"
+                placeholderTextColor={theme.colors.textTertiary}
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={setPhone}
+                maxLength={8}
+                returnKeyType="done"
+                onSubmitEditing={handlePhoneSubmit}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+              onPress={handlePhoneSubmit}
+              disabled={loading}
             >
-              {loading ? (
-                <Text style={styles.loginButtonText}>Registrerer...</Text>
-              ) : (
-                <>
-                  <Icon name="arrow-forward" size={20} color={theme.colors.white} />
-                  <Text style={styles.loginButtonText}>Fortsett</Text>
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryLight]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.loginButtonGradient}
+              >
+                {loading ? (
+                  <Text style={styles.loginButtonText}>Registrerer...</Text>
+                ) : (
+                  <>
+                    <Icon name="arrow-forward" size={20} color={theme.colors.white} />
+                    <Text style={styles.loginButtonText}>Fortsett</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.backLink}
-            onPress={() => setStep('membership')}
-          >
-            <Icon name="arrow-back" size={16} color={theme.colors.primary} />
-            <Text style={styles.backLinkText}>Tilbake til medlemskap</Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.backLink}
+              onPress={() => setStep('membership')}
+            >
+              <Icon name="arrow-back" size={16} color={theme.colors.primary} />
+              <Text style={styles.backLinkText}>Tilbake til medlemskap</Text>
+            </TouchableOpacity>
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
@@ -321,7 +341,8 @@ function LoginFlow({ onComplete, loading: authLoading }) {
             <Text style={styles.existingButtonText}>Har du allerede konto? Logg inn</Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -369,7 +390,7 @@ function LoginFlow({ onComplete, loading: authLoading }) {
 }
 
 // Profile View Component
-function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUploadAvatar, onShowQRCode, onMembershipPress, syncing, completedSkillIds }) {
+function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUploadAvatar, onShowQRCode, onMembershipPress, syncing, completedSkillIds, onRefresh, refreshing }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
@@ -428,7 +449,18 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
   const isTablet = screenWidth >= 768;
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      style={styles.container} 
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[theme.colors.primary]}
+          tintColor={theme.colors.primary}
+        />
+      }
+    >
       <View style={[styles.contentWrapper, isTablet && styles.contentWrapperTablet]}>
         {/* Cards Row - Side by side on tablet */}
         <View style={[styles.cardsRow, isTablet && styles.cardsRowTablet]}>
@@ -436,10 +468,27 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
           <View style={[styles.cardWrapper, isTablet && styles.cardWrapperTablet]}>
             <Forerkort user={user} localStats={localStats} onPress={onShowQRCode} />
             {hasUnsyncedProgress && (
-              <View style={styles.unsyncedBanner}>
-                <Icon name="cloud-upload-outline" size={16} color={theme.colors.warning} />
-                <Text style={styles.unsyncedText}>Du har usynkronisert fremgang</Text>
-              </View>
+              <TouchableOpacity 
+                style={[styles.unsyncedBanner, syncing && styles.unsyncedBannerSyncing]}
+                onPress={onSync}
+                disabled={syncing}
+                activeOpacity={0.8}
+              >
+                <View style={styles.unsyncedContent}>
+                  <Icon name="cloud-upload-outline" size={16} color={theme.colors.warning} />
+                  <Text style={styles.unsyncedText}>Du har usynkronisert fremgang</Text>
+                </View>
+                <View style={styles.unsyncedAction}>
+                  {syncing ? (
+                    <Text style={styles.unsyncedActionText}>Synker...</Text>
+                  ) : (
+                    <>
+                      <Text style={styles.unsyncedActionText}>Synk nå</Text>
+                      <Icon name="arrow-forward" size={14} color={theme.colors.warning} />
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
             )}
           </View>
 
@@ -638,22 +687,25 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
 
      
 
-        {/* Sync Progress */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.syncButton, syncing && styles.syncButtonDisabled]}
-            onPress={onSync}
-            disabled={syncing}
-          >
-            <Icon name="cloud-upload" size={20} color={theme.colors.white} />
-            <Text style={styles.syncButtonText}>
-              {syncing ? 'Synkroniserer...' : 'Synkroniser fremgang'}
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.syncNote}>
-            Last opp din lokale fremgang fra "Min vandring" til skyen
-          </Text>
-        </View>
+        {/* Sync Progress - Only show full button when already synced */}
+        {!hasUnsyncedProgress && (
+          <View style={styles.section}>
+            <View style={styles.syncedStatus}>
+              <Icon name="checkmark-circle" size={20} color={theme.colors.success} />
+              <Text style={styles.syncedText}>Fremgangen din er synkronisert</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.syncButtonSecondary, syncing && styles.syncButtonDisabled]}
+              onPress={onSync}
+              disabled={syncing}
+            >
+              <Icon name="refresh-outline" size={18} color={theme.colors.primary} />
+              <Text style={styles.syncButtonSecondaryText}>
+                {syncing ? 'Synkroniserer...' : 'Synk på nytt'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Logout */}
         <View style={styles.section}>
@@ -671,7 +723,7 @@ function ProfileView({ user, localStats, onLogout, onSync, onUpdateProfile, onUp
 
 // Main Screen
 export default function ProfileScreen({ navigation, route }) {
-  const { user, loading, isAuthenticated, login, logout, updateProfile, syncProgress, uploadAvatar } = useAuth();
+  const { user, loading, isAuthenticated, login, logout, updateProfile, syncProgress, uploadAvatar, refreshUserData } = useAuth();
   const { stats: activityStats, completedActivities } = useActivityStats();
   const { entries, moments, getStats: getMasteryStats } = useMasteryLog();
   const { expeditions, environmentActions, getStats: getTrackingStats } = useActivityTracking();
@@ -679,6 +731,14 @@ export default function ProfileScreen({ navigation, route }) {
   const { addContact } = useContacts();
   const [syncing, setSyncing] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshUserData();
+    setRefreshing(false);
+  }, [refreshUserData]);
 
   // Check if we should open scanner directly (from Flokken)
   useEffect(() => {
@@ -748,11 +808,17 @@ export default function ProfileScreen({ navigation, route }) {
     
     setSyncing(true);
     try {
+      // Map skill IDs to full skill objects for backend
+      const skillsWithDetails = (completedSkills || []).map(skillId => {
+        const skill = SKILLS.find(s => s.id === skillId);
+        return skill ? { id: skill.id, name: skill.name, level: 1 } : null;
+      }).filter(Boolean);
+      
       const progress = {
         totalPoints: localStats.totalPoints,
         completedActivities: localStats.completedActivities,
         completedExpeditions: localStats.completedExpeditions,
-        skills: completedSkills || [],
+        skills: skillsWithDetails,
         reflections: entries || [],
       };
       await syncProgress(progress);
@@ -764,15 +830,24 @@ export default function ProfileScreen({ navigation, route }) {
     }
   }, [isAuthenticated, syncing, gamificationLoading, localStats, user, completedSkills, entries, syncProgress]);
 
-  // Run auto-sync when screen comes into focus
+  // Run auto-sync and refresh user data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // Small delay to let data load first
+      console.log('ProfileScreen focused - refreshing user data');
+      
+      // Refresh user data from server (including membership status)
+      if (isAuthenticated) {
+        refreshUserData().then((updatedUser) => {
+          console.log('After refresh - membership:', updatedUser?.membership?.tierName);
+        });
+      }
+      
+      // Small delay to let data load first, then sync progress
       const timer = setTimeout(() => {
         autoSync();
       }, 500);
       return () => clearTimeout(timer);
-    }, [autoSync])
+    }, [isAuthenticated])
   );
 
   const handleLogin = async (phone) => {
@@ -803,12 +878,18 @@ export default function ProfileScreen({ navigation, route }) {
   const handleSync = async () => {
     setSyncing(true);
     try {
+      // Map skill IDs to full skill objects for backend
+      const skillsWithDetails = (completedSkills || []).map(skillId => {
+        const skill = SKILLS.find(s => s.id === skillId);
+        return skill ? { id: skill.id, name: skill.name, level: 1 } : null;
+      }).filter(Boolean);
+      
       // Collect local progress using the same data as displayed
       const progress = {
         totalPoints: totalXP || 0,
         completedActivities: localStats.completedActivities,
         completedExpeditions: localStats.completedExpeditions,
-        skills: completedSkills || [],
+        skills: skillsWithDetails,
         reflections: entries || [],
       };
 
@@ -857,6 +938,8 @@ export default function ProfileScreen({ navigation, route }) {
           onMembershipPress={() => navigation.navigate('Membership')}
           syncing={syncing}
           completedSkillIds={completedSkills}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
         />
       ) : (
         <LoginFlow onComplete={handleLoginComplete} loading={loading} />
@@ -867,6 +950,7 @@ export default function ProfileScreen({ navigation, route }) {
         visible={showQRModal}
         onClose={() => setShowQRModal(false)}
         user={user}
+        localStats={localStats}
         onScanSuccess={handleQRScanSuccess}
       />
     </KeyboardAvoidingView>
@@ -919,6 +1003,9 @@ const styles = StyleSheet.create({
   // Login Styles
   loginContainer: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   loginHeader: {
     padding: theme.spacing.xxxl,
@@ -1142,18 +1229,38 @@ const styles = StyleSheet.create({
   unsyncedBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
+    justifyContent: 'space-between',
     backgroundColor: theme.colors.warning + '20',
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     marginTop: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.warning + '40',
+  },
+  unsyncedBannerSyncing: {
+    opacity: 0.7,
+  },
+  unsyncedContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    flex: 1,
   },
   unsyncedText: {
     ...theme.typography.caption,
     color: theme.colors.warning,
     fontWeight: '600',
+  },
+  unsyncedAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  unsyncedActionText: {
+    ...theme.typography.caption,
+    color: theme.colors.warning,
+    fontWeight: '700',
   },
 
   // Førerkort Styles
@@ -1538,6 +1645,35 @@ const styles = StyleSheet.create({
   syncButtonText: {
     ...theme.typography.button,
     color: theme.colors.white,
+  },
+  syncButtonSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    backgroundColor: 'transparent',
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginTop: theme.spacing.sm,
+  },
+  syncButtonSecondaryText: {
+    ...theme.typography.body,
+    color: theme.colors.primary,
+    fontWeight: '500',
+  },
+  syncedStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
+  },
+  syncedText: {
+    ...theme.typography.body,
+    color: theme.colors.success,
+    fontWeight: '500',
   },
   syncNote: {
     ...theme.typography.caption,

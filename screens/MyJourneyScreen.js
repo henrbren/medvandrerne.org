@@ -627,20 +627,7 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
         {/* Top Spacer */}
         <View style={styles.topSpacer} />
 
-        {/* Header Section */}
-        <AnimatedSection>
-          <View style={styles.headerSection}>
-            <View style={styles.sectionHeader}>
-              <LinearGradient
-                colors={[theme.colors.primary, theme.colors.primaryLight]}
-                style={styles.headerIconGradient}
-              >
-                <Icon name="map" size={32} color={theme.colors.white} />
-              </LinearGradient>
-              <Text style={styles.sectionTitle}>Min vandring</Text>
-            </View>
-          </View>
-        </AnimatedSection>
+      
 
         {/* Level & XP Section */}
         {!gamificationLoading && totalXP !== null && (

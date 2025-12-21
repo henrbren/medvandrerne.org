@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,24 +9,254 @@ import {
   Dimensions,
   Share,
   Animated,
+  Image,
+  ActivityIndicator,
+  ScrollView,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, Camera } from 'expo-camera';
-import QRCode from 'react-native-qrcode-svg';
+import * as Haptics from 'expo-haptics';
 import Icon from '../Icon';
 import { theme } from '../../constants/theme';
+import { getLevelName, getLevelColors, getLevelAnimationConfig } from '../../utils/journeyUtils';
 
-const { width } = Dimensions.get('window');
-const QR_SIZE = Math.min(width * 0.6, 250);
-
-export default function QRCodeModal({ visible, onClose, user, onScanSuccess, initialMode = 'show' }) {
-  const [mode, setMode] = useState(initialMode); // 'show' or 'scan'
+// Haptic feedback based on level
+const playLevelHaptics = async (level) => {
+  if (Platform.OS === 'web') return;
   
-  // Reset mode when modal opens
+  const safeLevel = Math.min(Math.max(level || 1, 1), 15);
+  
+  // Base impact
+  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  
+  // Additional haptics based on level (more dunks for higher levels)
+  const extraDunks = Math.floor(safeLevel / 3); // 0 dunks for 1-2, 1 for 3-5, 2 for 6-8, etc.
+  
+  for (let i = 0; i < extraDunks; i++) {
+    await new Promise(resolve => setTimeout(resolve, 80 - (safeLevel * 3))); // Faster spacing for higher levels
+    await Haptics.impactAsync(
+      safeLevel >= 10 ? Haptics.ImpactFeedbackStyle.Heavy :
+      safeLevel >= 5 ? Haptics.ImpactFeedbackStyle.Medium :
+      Haptics.ImpactFeedbackStyle.Light
+    );
+  }
+  
+  // Final flourish for high levels
+  if (safeLevel >= 8) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+};
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const QR_SIZE = Math.min(SCREEN_WIDTH * 0.55, 220);
+
+// Animated background lines component
+const AnimatedBackground = ({ level }) => {
+  const colors = getLevelColors(level || 1);
+  const animConfig = getLevelAnimationConfig(level || 1);
+  
+  const lineAnims = useRef(
+    Array.from({ length: 8 }, () => ({
+      translateX: new Animated.Value(-SCREEN_WIDTH),
+      opacity: new Animated.Value(0),
+    }))
+  ).current;
+  
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    const lineAnimations = lineAnims.map((anim, index) => {
+      const delay = index * 150;
+      const duration = 2000 + (index * 300);
+      
+      return Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.parallel([
+            Animated.timing(anim.translateX, {
+              toValue: SCREEN_WIDTH * 2,
+              duration: duration,
+              useNativeDriver: true,
+            }),
+            Animated.sequence([
+              Animated.timing(anim.opacity, {
+                toValue: 1,
+                duration: duration * 0.3,
+                useNativeDriver: true,
+              }),
+              Animated.timing(anim.opacity, {
+                toValue: 0,
+                duration: duration * 0.7,
+                useNativeDriver: true,
+              }),
+            ]),
+          ]),
+          Animated.timing(anim.translateX, {
+            toValue: -SCREEN_WIDTH,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+    });
+    
+    const glowAnimation = animConfig.glow ? Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ) : null;
+    
+    lineAnimations.forEach(anim => anim.start());
+    if (glowAnimation) glowAnimation.start();
+    
+    return () => {
+      lineAnimations.forEach(anim => anim.stop());
+      if (glowAnimation) glowAnimation.stop();
+    };
+  }, [level]);
+  
+  const lineConfigs = [
+    { top: '8%', width: SCREEN_WIDTH * 1.5, height: 2, angle: -8 },
+    { top: '15%', width: SCREEN_WIDTH * 1.3, height: 3, angle: 5 },
+    { top: '25%', width: SCREEN_WIDTH * 1.4, height: 2, angle: -3 },
+    { top: '45%', width: SCREEN_WIDTH * 1.6, height: 4, angle: 7 },
+    { top: '55%', width: SCREEN_WIDTH * 1.2, height: 2, angle: -6 },
+    { top: '70%', width: SCREEN_WIDTH * 1.5, height: 3, angle: 4 },
+    { top: '82%', width: SCREEN_WIDTH * 1.3, height: 2, angle: -5 },
+    { top: '92%', width: SCREEN_WIDTH * 1.4, height: 3, angle: 8 },
+  ];
+  
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.15],
+  });
+  
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {animConfig.glow && (
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: colors.glow, opacity: glowOpacity },
+          ]}
+        />
+      )}
+      {lineAnims.map((anim, index) => {
+        const config = lineConfigs[index];
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              styles.animatedLine,
+              {
+                top: config.top,
+                width: config.width,
+                height: config.height * 2,
+                transform: [
+                  { translateX: anim.translateX },
+                  { rotate: `${config.angle}deg` },
+                ],
+                opacity: anim.opacity,
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={[
+                'transparent',
+                colors.primary + '60',
+                colors.secondary + 'CC',
+                colors.primary + '60',
+                'transparent',
+              ]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+        );
+      })}
+    </View>
+  );
+};
+
+// QR Code component using Google Charts API as fallback
+const QRCodeImage = ({ value, size }) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  
+  if (!value || value.length === 0) {
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.white }}>
+        <Icon name="warning" size={32} color={theme.colors.error} />
+        <Text style={{ color: theme.colors.textSecondary, marginTop: 8, textAlign: 'center' }}>
+          Ingen data
+        </Text>
+      </View>
+    );
+  }
+
+  const encodedData = encodeURIComponent(value);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodedData}&bgcolor=FFFFFF&color=1A1A2E`;
+  
+  return (
+    <View style={{ width: size, height: size, backgroundColor: theme.colors.white }}>
+      {loading && !error && (
+        <View style={{ position: 'absolute', width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      )}
+      {error ? (
+        <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="qr-code" size={64} color={theme.colors.textTertiary} />
+          <Text style={{ color: theme.colors.textSecondary, marginTop: 8, textAlign: 'center', fontSize: 12 }}>
+            Kunne ikke laste QR-kode
+          </Text>
+        </View>
+      ) : (
+        <Image
+          source={{ uri: qrUrl }}
+          style={{ width: size, height: size }}
+          onLoad={() => setLoading(false)}
+          onError={() => {
+            setLoading(false);
+            setError(true);
+          }}
+          resizeMode="contain"
+        />
+      )}
+    </View>
+  );
+};
+
+export default function QRCodeModal({ visible, onClose, user, localStats, onScanSuccess, initialMode = 'show' }) {
+  const [mode, setMode] = useState(initialMode);
+  
+  // Use highest level between server and local
+  const displayLevel = Math.max(user?.level || 1, localStats?.level || 1);
+  const displayLevelName = getLevelName(displayLevel);
+  const displayPoints = Math.max(user?.totalPoints || 0, localStats?.totalPoints || 0);
+  const displayActivities = Math.max(user?.completedActivities || 0, localStats?.completedActivities || 0);
+  const levelColors = getLevelColors(displayLevel);
+  
   useEffect(() => {
     if (visible) {
       setMode(initialMode);
+      // Play haptics based on user's level
+      playLevelHaptics(displayLevel);
     }
-  }, [visible, initialMode]);
+  }, [visible, initialMode, displayLevel]);
+  
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -66,21 +296,18 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
     try {
       const contactData = JSON.parse(data);
       
-      // Validate that it's a Medvandrerne QR code
       if (!contactData.type || contactData.type !== 'medvandrer') {
         Alert.alert('Ugyldig kode', 'Dette er ikke en gyldig Medvandrerkode.');
         setScanned(false);
         return;
       }
 
-      // Check if trying to add yourself
       if (contactData.id === user?.id) {
         Alert.alert('Oops!', 'Du kan ikke legge til deg selv som kontakt.');
         setScanned(false);
         return;
       }
 
-      // Pass data to parent
       onScanSuccess(contactData);
       setScanned(false);
       setMode('show');
@@ -94,7 +321,6 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
   const handleShare = async () => {
     if (!user) return;
     
-    const qrData = generateQRData();
     try {
       await Share.share({
         message: `Scan min Medvandrerkode for å legge meg til som kontakt!\n\nNavn: ${user.name || 'Medvandrer'}\n\n(Åpne Medvandrerne-appen og gå til Profil > Scan kode)`,
@@ -106,16 +332,22 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
   };
 
   const generateQRData = () => {
-    if (!user) return '';
+    if (!user) {
+      return 'no-user';
+    }
     
     const data = {
       type: 'medvandrer',
       id: user.id,
       name: user.name || '',
       phone: user.phone,
+      email: user.email || null,
       avatarUrl: user.avatarUrl || null,
-      level: user.level || 1,
-      levelName: user.levelName || 'Nybegynner',
+      level: displayLevel,
+      levelName: displayLevelName,
+      totalPoints: displayPoints,
+      completedActivities: displayActivities,
+      memberSince: user.memberSince || user.createdAt || null,
     };
     
     return JSON.stringify(data);
@@ -137,6 +369,9 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
       onRequestClose={handleClose}
     >
       <View style={styles.container}>
+        {/* Animated Background */}
+        <AnimatedBackground level={displayLevel} />
+        
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -153,7 +388,7 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
             onPress={() => setMode('show')}
           >
             <Icon 
-              name="qr-code" 
+              name="qr-code-outline" 
               size={20} 
               color={mode === 'show' ? theme.colors.white : theme.colors.text} 
             />
@@ -166,7 +401,7 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
             onPress={() => setMode('scan')}
           >
             <Icon 
-              name="scan" 
+              name="scan-outline" 
               size={20} 
               color={mode === 'scan' ? theme.colors.white : theme.colors.text} 
             />
@@ -179,42 +414,84 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
         {/* Content */}
         <View style={styles.content}>
           {mode === 'show' ? (
-            <Animated.View style={[styles.showContainer, { opacity: fadeAnim }]}>
-              {/* QR Code */}
-              <View style={styles.qrContainer}>
-                <View style={styles.qrCard}>
-                  <QRCode
-                    value={generateQRData()}
-                    size={QR_SIZE}
-                    backgroundColor={theme.colors.white}
-                    color={theme.colors.text}
-                  />
-                </View>
-                <View style={styles.qrInfo}>
-                  <Text style={styles.qrName}>{user?.name || 'Medvandrer'}</Text>
-                  <View style={styles.qrLevel}>
-                    <Icon name="shield-checkmark" size={16} color={theme.colors.primary} />
-                    <Text style={styles.qrLevelText}>
-                      Nivå {user?.level || 1} • {user?.levelName || 'Nybegynner'}
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Animated.View style={[styles.showContainer, { opacity: fadeAnim }]}>
+                {/* Avatar & Name Section */}
+                <View style={styles.profileSection}>
+                  <View style={[styles.avatarRing, { borderColor: levelColors.primary }]}>
+                    {user?.avatarUrl ? (
+                      <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
+                    ) : (
+                      <View style={[styles.avatarPlaceholder, { backgroundColor: levelColors.primary }]}>
+                        <Text style={styles.avatarText}>
+                          {(user?.name || 'M').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.userName}>{user?.name || 'Medvandrer'}</Text>
+                  <View style={[styles.levelBadge, { backgroundColor: levelColors.primary + '20', borderColor: levelColors.primary + '40' }]}>
+                    <Icon name="shield-checkmark" size={14} color={levelColors.primary} />
+                    <Text style={[styles.levelText, { color: levelColors.primary }]}>
+                      Nivå {displayLevel} • {displayLevelName}
                     </Text>
                   </View>
                 </View>
-              </View>
 
-              {/* Instructions */}
-              <View style={styles.instructions}>
-                <Icon name="information-circle" size={20} color={theme.colors.textSecondary} />
-                <Text style={styles.instructionsText}>
-                  La andre scanne denne koden for å legge deg til som kontakt i deres Flokken-liste.
-                </Text>
-              </View>
+                {/* QR Code */}
+                <View style={styles.qrContainer}>
+                  <View style={[styles.qrCard, { borderColor: levelColors.primary + '30' }]}>
+                    {user ? (
+                      <QRCodeImage
+                        value={generateQRData()}
+                        size={QR_SIZE}
+                      />
+                    ) : (
+                      <View style={{ width: QR_SIZE, height: QR_SIZE, alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name="qr-code" size={64} color={theme.colors.textTertiary} />
+                        <Text style={{ color: theme.colors.textSecondary, marginTop: 8 }}>Logg inn for å se koden</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
 
-              {/* Share Button */}
-              <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-                <Icon name="share-outline" size={20} color={theme.colors.primary} />
-                <Text style={styles.shareButtonText}>Del kode</Text>
-              </TouchableOpacity>
-            </Animated.View>
+                {/* Stats Row */}
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{displayPoints}</Text>
+                    <Text style={styles.statLabel}>Poeng</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{displayActivities}</Text>
+                    <Text style={styles.statLabel}>Aktiviteter</Text>
+                  </View>
+                </View>
+
+                {/* Actions */}
+                <View style={styles.actionsRow}>
+                  <TouchableOpacity 
+                    style={[styles.actionButton, { backgroundColor: levelColors.primary }]} 
+                    onPress={handleShare}
+                  >
+                    <Icon name="share-outline" size={20} color={theme.colors.white} />
+                    <Text style={styles.actionButtonText}>Del kode</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Instructions */}
+                <View style={styles.instructions}>
+                  <Icon name="information-circle" size={18} color={theme.colors.textTertiary} />
+                  <Text style={styles.instructionsText}>
+                    La andre scanne denne koden for å legge deg til i deres Flokken-liste
+                  </Text>
+                </View>
+              </Animated.View>
+            </ScrollView>
           ) : (
             <View style={styles.scanContainer}>
               {hasPermission === false ? (
@@ -232,6 +509,7 @@ export default function QRCodeModal({ visible, onClose, user, onScanSuccess, ini
                 </View>
               ) : hasPermission === null ? (
                 <View style={styles.loading}>
+                  <ActivityIndicator size="large" color={theme.colors.primary} />
                   <Text style={styles.loadingText}>Starter kamera...</Text>
                 </View>
               ) : (
@@ -318,65 +596,131 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  showContainer: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  showContainer: {
     alignItems: 'center',
     paddingHorizontal: theme.spacing.lg,
   },
-  qrContainer: {
-    alignItems: 'center',
-    marginTop: theme.spacing.xl,
-  },
-  qrCard: {
-    backgroundColor: theme.colors.white,
-    padding: theme.spacing.xl,
-    borderRadius: theme.borderRadius.xl,
-    ...theme.shadows.large,
-  },
-  qrInfo: {
+  profileSection: {
     alignItems: 'center',
     marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
   },
-  qrName: {
+  avatarRing: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 3,
+    padding: 3,
+    marginBottom: theme.spacing.md,
+  },
+  avatar: {
+    width: 98,
+    height: 98,
+    borderRadius: 49,
+  },
+  avatarPlaceholder: {
+    width: 98,
+    height: 98,
+    borderRadius: 49,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    ...theme.typography.h1,
+    color: theme.colors.white,
+    fontSize: 40,
+  },
+  userName: {
     ...theme.typography.h2,
     color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
   },
-  qrLevel: {
+  levelBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    marginTop: theme.spacing.xs,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
   },
-  qrLevelText: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
+  levelText: {
+    ...theme.typography.bodySmall,
+    fontWeight: '600',
   },
-  instructions: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: theme.spacing.sm,
-    backgroundColor: theme.colors.surface,
+  qrContainer: {
+    alignItems: 'center',
+  },
+  qrCard: {
+    backgroundColor: theme.colors.white,
     padding: theme.spacing.lg,
-    borderRadius: theme.borderRadius.lg,
-    marginTop: theme.spacing.xxl,
-    marginHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.xl,
+    borderWidth: 2,
+    ...theme.shadows.large,
   },
-  instructionsText: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    marginTop: theme.spacing.xl,
+    gap: theme.spacing.xl,
+  },
+  statItem: {
     flex: 1,
+    alignItems: 'center',
   },
-  shareButton: {
+  statValue: {
+    ...theme.typography.h2,
+    color: theme.colors.text,
+  },
+  statLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 36,
+    backgroundColor: theme.colors.border,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    marginTop: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
-    marginTop: theme.spacing.xl,
+    borderRadius: theme.borderRadius.full,
   },
-  shareButtonText: {
+  actionButtonText: {
     ...theme.typography.button,
-    color: theme.colors.primary,
+    color: theme.colors.white,
+  },
+  instructions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+  },
+  instructionsText: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    flex: 1,
+    textAlign: 'center',
   },
   scanContainer: {
     flex: 1,
@@ -469,9 +813,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: theme.spacing.md,
   },
   loadingText: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
+  },
+  animatedLine: {
+    position: 'absolute',
+    left: -100,
+    overflow: 'hidden',
   },
 });

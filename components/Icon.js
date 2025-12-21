@@ -94,6 +94,22 @@ const Icon = ({ name, size = 24, color = '#000', library = 'ionicons' }) => {
     'moon-outline': { lib: 'ionicons', name: 'moon-outline' },
     'paw': { lib: 'materialcommunity', name: 'paw' },
     'bed': { lib: 'material', name: 'hotel' },
+    
+    // Contact detail icons
+    'ribbon': { lib: 'ionicons', name: 'ribbon' },
+    'ribbon-outline': { lib: 'ionicons', name: 'ribbon-outline' },
+    'chatbubble': { lib: 'ionicons', name: 'chatbubble' },
+    'chatbubble-outline': { lib: 'ionicons', name: 'chatbubble-outline' },
+    'resize': { lib: 'ionicons', name: 'resize' },
+    'resize-outline': { lib: 'ionicons', name: 'resize-outline' },
+    'compass': { lib: 'ionicons', name: 'compass' },
+    'compass-outline': { lib: 'ionicons', name: 'compass-outline' },
+    'shield-checkmark': { lib: 'ionicons', name: 'shield-checkmark' },
+    'shield-checkmark-outline': { lib: 'ionicons', name: 'shield-checkmark-outline' },
+    'qr-code': { lib: 'ionicons', name: 'qr-code' },
+    'qr-code-outline': { lib: 'ionicons', name: 'qr-code-outline' },
+    'warning': { lib: 'ionicons', name: 'warning' },
+    'warning-outline': { lib: 'ionicons', name: 'warning-outline' },
   };
 
   const iconConfig = iconMap[name] || { lib: 'ionicons', name: 'help-circle-outline' };

@@ -38,10 +38,11 @@ export const getLevelName = (levelNum) => {
 
 export const getLevelColors = (levelNum) => {
   if (levelNum <= 2) {
+    // Medvandrer red theme for beginners
     return {
-      primary: '#6B7280',
-      secondary: '#9CA3AF',
-      glow: '#6B7280',
+      primary: '#E53935',
+      secondary: '#EF5350',
+      glow: '#FF5252',
       background: null,
     };
   } else if (levelNum <= 4) {

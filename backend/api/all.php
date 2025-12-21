@@ -12,8 +12,48 @@ $calendarEvents = [];
 $calendarConfig = readJsonFile(DATA_DIR . 'calendar_config.json', ['enabled' => false, 'googleCalendarUrl' => '']);
 $cacheFile = DATA_DIR . 'calendar_cache.json';
 
-if ($calendarConfig['enabled'] && !empty($calendarConfig['googleCalendarUrl']) && file_exists($cacheFile)) {
+// Consider configured if URL is set (backwards compatible - ignore enabled flag)
+$isCalendarConfigured = !empty($calendarConfig['googleCalendarUrl']);
+
+if ($isCalendarConfigured && file_exists($cacheFile)) {
     $calendarEvents = readJsonFile($cacheFile, []);
+} else if ($isCalendarConfigured && !file_exists($cacheFile)) {
+    // Cache doesn't exist, try to fetch directly
+    try {
+        $icsUrl = $calendarConfig['googleCalendarUrl'];
+        $icsUrl .= (strpos($icsUrl, '?') !== false ? '&' : '?') . 'nocache=' . time();
+        
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 10,
+                'user_agent' => 'Medvandrerne Calendar Sync',
+                'follow_location' => true,
+            ],
+        ]);
+        
+        $icsContent = @file_get_contents($icsUrl, false, $context);
+        
+        if ($icsContent !== false) {
+            $parser = new ICSParser($icsContent);
+            $events = $parser->getEvents();
+            
+            $now = date('Y-m-d');
+            $calendarEvents = array_filter($events, function($event) use ($now) {
+                return ($event['date'] ?? '') >= $now;
+            });
+            
+            usort($calendarEvents, function($a, $b) {
+                return strcmp($a['date'] ?? '', $b['date'] ?? '');
+            });
+            
+            $calendarEvents = array_slice(array_values($calendarEvents), 0, 100);
+            
+            // Save to cache for next time
+            writeJsonFile($cacheFile, $calendarEvents);
+        }
+    } catch (Exception $e) {
+        error_log('Calendar fetch in all.php: ' . $e->getMessage());
+    }
 }
 
 $data = [

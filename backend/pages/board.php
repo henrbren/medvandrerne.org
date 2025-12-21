@@ -4,6 +4,17 @@ $board = readJsonFile(JSON_BOARD, [
     'leaderImage' => null,
     'members' => []
 ]);
+
+// Helper function to get full image URL
+function getBoardImageUrl($image) {
+    if (empty($image)) return '';
+    // If already a full URL, return as-is
+    if (strpos($image, 'http://') === 0 || strpos($image, 'https://') === 0) {
+        return $image;
+    }
+    // Otherwise, prepend base URL with uploads path
+    return BASE_URL . 'uploads/board/' . $image;
+}
 ?>
 
 <div class="admin-page">
@@ -15,7 +26,7 @@ $board = readJsonFile(JSON_BOARD, [
                 <div class="image-upload-wrapper" data-target="leaderImage">
                     <div class="image-preview" id="leaderImagePreview">
                         <?php if (!empty($board['leaderImage'])): ?>
-                            <img src="<?= htmlspecialchars($board['leaderImage']) ?>" alt="Styreleder">
+                            <img src="<?= htmlspecialchars(getBoardImageUrl($board['leaderImage'])) ?>" alt="Styreleder">
                         <?php else: ?>
                             <i class="fas fa-user"></i>
                         <?php endif; ?>
@@ -51,7 +62,7 @@ $board = readJsonFile(JSON_BOARD, [
                 <div class="image-upload-wrapper" data-target="memberImage_<?= $index ?>">
                     <div class="image-preview" id="memberImage_<?= $index ?>Preview">
                         <?php if (!empty($member['image'])): ?>
-                            <img src="<?= htmlspecialchars($member['image']) ?>" alt="<?= htmlspecialchars($member['name'] ?? '') ?>">
+                            <img src="<?= htmlspecialchars(getBoardImageUrl($member['image'])) ?>" alt="<?= htmlspecialchars($member['name'] ?? '') ?>">
                         <?php else: ?>
                             <i class="fas fa-user"></i>
                         <?php endif; ?>
