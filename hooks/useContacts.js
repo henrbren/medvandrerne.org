@@ -77,9 +77,22 @@ export const useContacts = () => {
   }, [contacts]);
 
   // Add coordinator as favorite contact
+  // Read fresh from storage to prevent race conditions with rapid calls
   const addFavoriteCoordinator = useCallback(async (coordinator, groupInfo) => {
-    // Check if already exists
-    const existingContact = contacts.find(c => 
+    // Read fresh contacts from storage to avoid stale state
+    let currentContacts = [];
+    try {
+      const stored = await AsyncStorage.getItem(CONTACTS_STORAGE_KEY);
+      if (stored) {
+        currentContacts = JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('Error reading contacts for addFavoriteCoordinator:', error);
+      currentContacts = contacts; // Fallback to state
+    }
+
+    // Check if already exists using fresh data
+    const existingContact = currentContacts.find(c => 
       c.phone === coordinator.phone || 
       c.email === coordinator.email ||
       (c.coordinatorId && c.coordinatorId === coordinator.id)
@@ -87,7 +100,7 @@ export const useContacts = () => {
 
     if (existingContact) {
       // Update existing contact with coordinator info
-      const updated = contacts.map(c => 
+      const updated = currentContacts.map(c => 
         c.id === existingContact.id ? {
           ...c,
           ...coordinator,
@@ -126,10 +139,10 @@ export const useContacts = () => {
       updatedAt: new Date().toISOString(),
     };
 
-    const updated = [newContact, ...contacts];
+    const updated = [newContact, ...currentContacts];
     await saveContacts(updated);
     return { success: true, isUpdate: false, contact: newContact };
-  }, [contacts]);
+  }, []); // No dependencies - reads fresh from storage each time
 
   // Remove contact
   const removeContact = useCallback(async (contactId) => {

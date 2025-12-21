@@ -60,6 +60,21 @@ define('USER_LEVELS', [
     13 => ['name' => 'Midnattssol', 'minPoints' => 8200],
     14 => ['name' => 'Aurora', 'minPoints' => 10000],
     15 => ['name' => 'Stjernevandrer', 'minPoints' => 12000],
+    16 => ['name' => 'Måneskinn', 'minPoints' => 14500],
+    17 => ['name' => 'Soloppgang', 'minPoints' => 17500],
+    18 => ['name' => 'Fjelltopp', 'minPoints' => 21000],
+    19 => ['name' => 'Stormvind', 'minPoints' => 25000],
+    20 => ['name' => 'Torden', 'minPoints' => 29500],
+    21 => ['name' => 'Blitz', 'minPoints' => 34500],
+    22 => ['name' => 'Regnbue', 'minPoints' => 40000],
+    23 => ['name' => 'Tornado', 'minPoints' => 46000],
+    24 => ['name' => 'Orkan', 'minPoints' => 52500],
+    25 => ['name' => 'Tsunami', 'minPoints' => 59500],
+    26 => ['name' => 'Vulkan', 'minPoints' => 67000],
+    27 => ['name' => 'Jordskjelv', 'minPoints' => 75000],
+    28 => ['name' => 'Nova', 'minPoints' => 83500],
+    29 => ['name' => 'Supernova', 'minPoints' => 92500],
+    30 => ['name' => 'Univers', 'minPoints' => 102000],
 ]);
 
 // Membership tiers configuration

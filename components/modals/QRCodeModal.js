@@ -253,9 +253,11 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
     if (visible) {
       setMode(initialMode);
       // Play haptics based on user's level
+      // Use displayLevel which is derived from user?.level and localStats?.level
       playLevelHaptics(displayLevel);
     }
-  }, [visible, initialMode, displayLevel]);
+    // Depend on source values instead of computed displayLevel for predictable triggering
+  }, [visible, initialMode, user?.level, localStats?.level]);
   
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);

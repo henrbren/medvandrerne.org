@@ -280,6 +280,27 @@ foreach ($users as $user) {
 .level-badge.level-14 { background: #E1BEE7; color: #4A148C; }
 /* Level 15: Gold/Special */
 .level-badge.level-15 { background: linear-gradient(135deg, #FFD700, #FFA000); color: #5D4037; }
+/* Levels 16-18: Deep Blue */
+.level-badge.level-16 { background: #1A237E; color: #E8EAF6; }
+.level-badge.level-17 { background: #0D47A1; color: #E3F2FD; }
+.level-badge.level-18 { background: #01579B; color: #E1F5FE; }
+/* Levels 19-21: Teal/Cyan */
+.level-badge.level-19 { background: #004D40; color: #E0F2F1; }
+.level-badge.level-20 { background: #006064; color: #E0F7FA; }
+.level-badge.level-21 { background: linear-gradient(135deg, #00838F, #006064); color: #FFFFFF; }
+/* Levels 22-24: Deep Purple/Magenta */
+.level-badge.level-22 { background: #4A148C; color: #F3E5F5; }
+.level-badge.level-23 { background: #6A1B9A; color: #F3E5F5; }
+.level-badge.level-24 { background: linear-gradient(135deg, #7B1FA2, #4A148C); color: #FFFFFF; }
+/* Levels 25-27: Red/Crimson */
+.level-badge.level-25 { background: #B71C1C; color: #FFEBEE; }
+.level-badge.level-26 { background: #C62828; color: #FFCDD2; }
+.level-badge.level-27 { background: linear-gradient(135deg, #D32F2F, #B71C1C); color: #FFFFFF; }
+/* Levels 28-29: Cosmic */
+.level-badge.level-28 { background: linear-gradient(135deg, #1A237E, #311B92); color: #FFFFFF; }
+.level-badge.level-29 { background: linear-gradient(135deg, #311B92, #4A148C); color: #FFFFFF; }
+/* Level 30: Universe - Rainbow/Special */
+.level-badge.level-30 { background: linear-gradient(135deg, #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #9B59B6); color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
 .points-value {
     font-weight: 600;

@@ -15,9 +15,19 @@ $cacheFile = DATA_DIR . 'calendar_cache.json';
 // Consider configured if URL is set (backwards compatible - ignore enabled flag)
 $isCalendarConfigured = !empty($calendarConfig['googleCalendarUrl']);
 
+// Cache duration - same as calendar.php for consistency
+$cacheDuration = 60 * 60; // 1 hour
+
+// Check if cache is still valid (not stale)
+$cacheIsValid = false;
 if ($isCalendarConfigured && file_exists($cacheFile)) {
+    $cacheAge = time() - filemtime($cacheFile);
+    $cacheIsValid = $cacheAge < $cacheDuration;
+}
+
+if ($isCalendarConfigured && $cacheIsValid) {
     $calendarEvents = readJsonFile($cacheFile, []);
-} else if ($isCalendarConfigured && !file_exists($cacheFile)) {
+} else if ($isCalendarConfigured && !$cacheIsValid) {
     // Cache doesn't exist, try to fetch directly
     try {
         $icsUrl = $calendarConfig['googleCalendarUrl'];
