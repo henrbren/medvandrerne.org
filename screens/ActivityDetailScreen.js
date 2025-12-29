@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,10 @@ import {
   Animated,
   Alert,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Calendar from 'expo-calendar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,14 +26,88 @@ import { useActivityStats } from '../hooks/useActivityStats';
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
+// Generate smart description based on activity type
+const generateDescription = (activity) => {
+  if (activity.description && activity.description.length > 50) {
+    return activity.description;
+  }
+  
+  const type = activity.type || 'Aktivitet';
+  const title = activity.title || '';
+  const location = activity.location || '';
+  
+  const descriptions = {
+    'Tur': [
+      "Bli med på en flott tur i naturskjønne omgivelser! Dette er en ypperlig mulighet til å oppleve norsk natur sammen med andre medvandrere. Ta med passende bekledning og godt humør.",
+      "En herlig turopplevelse venter! Vi utforsker naturen sammen og skaper gode minner underveis. Turen passer for alle som liker å gå i naturen.",
+    ],
+    'Motivasjonstur': [
+      "En inspirerende helgetur som gir nye impulser og motivasjon! Vi kombinerer naturopplevelser med personlig utvikling og fellesskap i trygge rammer.",
+      "Ladepause for kropp og sinn! Denne turen gir deg mulighet til å koble av fra hverdagen, oppleve naturen og bygge relasjoner med andre medvandrere.",
+    ],
+    'Møte': [
+      "Viktig møte for medlemmer og interesserte. Her diskuterer vi aktuelle saker og planlegger kommende aktiviteter. Din stemme er viktig!",
+    ],
+    'Arrangement': [
+      "Et spennende arrangement som bringer oss sammen! Opplev fellesskap, aktiviteter og nye bekjentskaper i trivelige omgivelser.",
+    ],
+    'Kurs': [
+      "Lær noe nytt og utvikl deg! Dette kurset gir deg verdifull kunnskap og praktiske ferdigheter du kan bruke videre.",
+    ],
+    'Konferanse': [
+      "En faglig samling med interessante foredrag og mulighet for nettverksbygging. Møt likesinnede og bli inspirert!",
+    ],
+    'Sosial': [
+      "En hyggelig sosial samling der vi kobler av og bygger vennskap! Ta med godt humør og nyt fellesskapet.",
+    ],
+  };
+  
+  const typeDescriptions = descriptions[type] || [
+    "En flott aktivitet arrangert av Medvandrerne! Vi inviterer deg til å være med på en opplevelse som gir muligheter for vekst, mestring og fellesskap."
+  ];
+  
+  const index = Math.abs(title.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % typeDescriptions.length;
+  let description = typeDescriptions[index];
+  
+  if (location && location !== 'Har ikke sted' && location !== 'Ikke oppgitt') {
+    description += `\n\nVi møtes ved ${location}.`;
+  }
+  
+  return description;
+};
+
+// Get activity type color
+const getActivityTypeColor = (type) => {
+  switch (type) {
+    case 'Tur':
+      return theme.colors.success;
+    case 'Motivasjonstur':
+      return theme.colors.primary;
+    case 'Møte':
+      return theme.colors.info;
+    case 'Arrangement':
+      return theme.colors.warning;
+    case 'Kurs':
+      return '#9B59B6';
+    case 'Konferanse':
+      return '#3498DB';
+    case 'Sosial':
+      return '#E91E63';
+    default:
+      return theme.colors.textSecondary;
+  }
+};
+
 export default function ActivityDetailScreen() {
   const route = useRoute();
   const navigation = useNavigation();
   const { activity } = route.params || {};
-  const { isRegistered, registerForActivity, unregisterFromActivity } = useRegistrations();
+  const { isRegistered, registerForActivity, unregisterFromActivity, getRegistrationCount, fetchRegistrationData } = useRegistrations();
   const { completeActivity, uncompleteActivity, isActivityCompleted } = useActivityStats();
   const [isRegisteredState, setIsRegisteredState] = useState(false);
   const [isCompletedState, setIsCompletedState] = useState(false);
+  const [registrationCount, setRegistrationCount] = useState(activity?.registrationCount || 0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -42,8 +116,16 @@ export default function ActivityDetailScreen() {
     if (activity) {
       setIsRegisteredState(isRegistered(activity.id));
       setIsCompletedState(isActivityCompleted(activity.id));
+      
+      // Fetch latest registration count
+      if (getRegistrationCount) {
+        const count = getRegistrationCount(activity.id);
+        if (count > 0) {
+          setRegistrationCount(count);
+        }
+      }
     }
-  }, [activity, isRegistered, isActivityCompleted]);
+  }, [activity, isRegistered, isActivityCompleted, getRegistrationCount]);
 
   // Update header with registration indicator
   useFocusEffect(
@@ -333,15 +415,44 @@ export default function ActivityDetailScreen() {
             <View style={styles.columnSection}>
           <View style={styles.descriptionSection}>
             <View style={styles.sectionHeader}>
-              <Icon name="information-circle" size={28} color={theme.colors.primary} />
-              <Text style={styles.sectionTitle}>Om aktiviteten</Text>
+              <View style={[styles.sectionIconContainer, { backgroundColor: getActivityTypeColor(activity.type) + '20' }]}>
+                <Icon name="information-circle" size={24} color={getActivityTypeColor(activity.type)} />
+              </View>
+              <View style={styles.sectionHeaderText}>
+                <Text style={styles.sectionTitle}>Om aktiviteten</Text>
+                {activity.type && (
+                  <View style={[styles.typeBadge, { backgroundColor: getActivityTypeColor(activity.type) + '20' }]}>
+                    <Text style={[styles.typeBadgeText, { color: getActivityTypeColor(activity.type) }]}>
+                      {activity.type}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
             <Text style={styles.descriptionText}>
-              {activity.description || 
-                'Dette er en spennende aktivitet arrangert av Medvandrerne. ' +
-                'Vi inviterer deg til å være med på en opplevelse som gir muligheter ' +
-                'for vekst, mestring og fellesskap i naturen.'}
+              {generateDescription(activity)}
             </Text>
+            
+            {/* Practical info section */}
+            <View style={styles.practicalInfoSection}>
+              <Text style={styles.practicalInfoTitle}>Praktisk informasjon</Text>
+              <View style={styles.practicalInfoList}>
+                <View style={styles.practicalInfoItem}>
+                  <Icon name="shirt-outline" size={16} color={theme.colors.textSecondary} />
+                  <Text style={styles.practicalInfoText}>Ta med passende bekledning etter vær og årstid</Text>
+                </View>
+                <View style={styles.practicalInfoItem}>
+                  <Icon name="restaurant-outline" size={16} color={theme.colors.textSecondary} />
+                  <Text style={styles.practicalInfoText}>Husk å ta med niste og drikke</Text>
+                </View>
+                {activity.multiDay && (
+                  <View style={styles.practicalInfoItem}>
+                    <Icon name="bed-outline" size={16} color={theme.colors.textSecondary} />
+                    <Text style={styles.practicalInfoText}>Overnatting inkludert i flerdagers arrangement</Text>
+                  </View>
+                )}
+              </View>
+            </View>
               </View>
             </View>
 
@@ -351,16 +462,16 @@ export default function ActivityDetailScreen() {
                 {/* Registration Stats */}
                 <View style={styles.registrationStats}>
                   <View style={styles.statItem}>
-                    <Icon name="people" size={20} color={theme.colors.primary} />
-                    <Text style={styles.statText}>
-                      {isRegisteredState ? 'Du er påmeldt' : 'Bli med'}
+                    <Icon name={isRegisteredState ? "checkmark-circle" : "people"} size={20} color={isRegisteredState ? theme.colors.success : theme.colors.primary} />
+                    <Text style={[styles.statText, isRegisteredState && { color: theme.colors.success }]}>
+                      {isRegisteredState ? 'Du er påmeldt!' : 'Bli med på aktiviteten'}
                     </Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statItem}>
-                    <Icon name="person-add" size={20} color={theme.colors.textSecondary} />
-                    <Text style={styles.statNumber}>12</Text>
-                    <Text style={styles.statLabel}>påmeldte</Text>
+                    <Icon name="people" size={20} color={theme.colors.textSecondary} />
+                    <Text style={styles.statNumber}>{registrationCount}</Text>
+                    <Text style={styles.statLabel}>påmeldt{registrationCount !== 1 ? 'e' : ''}</Text>
                   </View>
           </View>
 
@@ -369,36 +480,50 @@ export default function ActivityDetailScreen() {
                   style={styles.socialRegistrationButton}
             activeOpacity={0.85}
                 onPress={async () => {
-                  if (isRegisteredState) {
-                    await unregisterFromActivity(activity.id);
-                    setIsRegisteredState(false);
-                    // Update header
-                    navigation.setOptions({
-                      headerRight: () => null,
-                    });
-                    Alert.alert(
-                      'Avmeldt',
-                      'Du er nå avmeldt fra aktiviteten',
-                      [{ text: 'OK' }]
-                    );
-                  } else {
-                    await registerForActivity(activity);
-                    setIsRegisteredState(true);
-                    // Update header
-                    navigation.setOptions({
-                      headerRight: () => (
-                        <View style={styles.headerIndicator}>
-                          <View style={styles.headerIndicatorBadge}>
-                            <Icon name="checkmark-circle" size={18} color={theme.colors.success} />
+                  setIsLoading(true);
+                  try {
+                    if (isRegisteredState) {
+                      const result = await unregisterFromActivity(activity.id);
+                      setIsRegisteredState(false);
+                      setRegistrationCount(prev => Math.max(0, prev - 1));
+                      // Update header
+                      navigation.setOptions({
+                        headerRight: () => null,
+                      });
+                      Alert.alert(
+                        'Avmeldt',
+                        'Du er nå avmeldt fra aktiviteten',
+                        [{ text: 'OK' }]
+                      );
+                    } else {
+                      const result = await registerForActivity(activity);
+                      setIsRegisteredState(true);
+                      setRegistrationCount(prev => prev + 1);
+                      // Update header
+                      navigation.setOptions({
+                        headerRight: () => (
+                          <View style={styles.headerIndicator}>
+                            <View style={styles.headerIndicatorBadge}>
+                              <Icon name="checkmark-circle" size={18} color={theme.colors.success} />
+                            </View>
                           </View>
-                        </View>
-                      ),
-                    });
+                        ),
+                      });
+                      Alert.alert(
+                        'Påmeldt! 🎉',
+                        'Du er nå påmeldt på aktiviteten! Du får en påminnelse før aktiviteten starter.',
+                        [{ text: 'Flott!' }]
+                      );
+                    }
+                  } catch (error) {
+                    console.error('Registration error:', error);
                     Alert.alert(
-                      'Påmeldt',
-                      'Du er nå påmeldt på aktiviteten!',
+                      'Feil',
+                      'Kunne ikke oppdatere påmeldingen. Prøv igjen.',
                       [{ text: 'OK' }]
                     );
+                  } finally {
+                    setIsLoading(false);
                   }
                 }}
           >
@@ -485,6 +610,24 @@ export default function ActivityDetailScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
+
+                {/* Messages Section - Only visible when registered */}
+                {isRegisteredState && (
+                  <TouchableOpacity
+                    style={styles.messagesButton}
+                    activeOpacity={0.85}
+                    onPress={() => navigation.navigate('ActivityMessages', { activity })}
+                  >
+                    <View style={styles.messagesButtonIcon}>
+                      <Icon name="chatbubbles" size={24} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.messagesButtonContent}>
+                      <Text style={styles.messagesButtonTitle}>Meldinger fra arrangør</Text>
+                      <Text style={styles.messagesButtonSubtitle}>Se oppdateringer og viktig info</Text>
+                    </View>
+                    <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -663,17 +806,76 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
     gap: theme.spacing.md,
   },
+  sectionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionHeaderText: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    flexWrap: 'wrap',
+  },
   sectionTitle: {
-    ...theme.typography.h2,
+    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '700',
     color: theme.colors.text,
+  },
+  typeBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs / 2,
+    borderRadius: theme.borderRadius.md,
+  },
+  typeBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   descriptionText: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
-    lineHeight: 28,
+    lineHeight: 26,
+    marginBottom: theme.spacing.xl,
+  },
+  practicalInfoSection: {
+    backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+  },
+  practicalInfoTitle: {
+    ...theme.typography.h4,
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  practicalInfoList: {
+    gap: theme.spacing.md,
+  },
+  practicalInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.spacing.sm,
+  },
+  practicalInfoText: {
+    ...theme.typography.bodySmall,
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    flex: 1,
+    lineHeight: 20,
   },
   
   // Social Registration Section
@@ -788,6 +990,42 @@ const styles = StyleSheet.create({
     ...theme.typography.caption,
     fontSize: 13,
     fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  
+  // Messages Button
+  messagesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary + '10',
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.primary + '30',
+  },
+  messagesButtonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  messagesButtonContent: {
+    flex: 1,
+  },
+  messagesButtonTitle: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  messagesButtonSubtitle: {
+    ...theme.typography.caption,
+    fontSize: 12,
     color: theme.colors.textSecondary,
   },
   

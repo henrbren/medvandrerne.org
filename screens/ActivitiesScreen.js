@@ -17,13 +17,36 @@ import * as WebBrowser from 'expo-web-browser';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useAppData } from '../contexts/AppDataContext';
+import { useRegistrations } from '../hooks/useRegistrations';
 
 const isWeb = Platform.OS === 'web';
+
+const getActivityTypeColor = (type) => {
+  switch (type) {
+    case 'Tur':
+      return theme.colors.success;
+    case 'Motivasjonstur':
+      return theme.colors.primary;
+    case 'Møte':
+      return theme.colors.info;
+    case 'Arrangement':
+      return theme.colors.warning;
+    case 'Kurs':
+      return '#9B59B6';
+    case 'Konferanse':
+      return '#3498DB';
+    case 'Sosial':
+      return '#E91E63';
+    default:
+      return theme.colors.textSecondary;
+  }
+};
 
 export default function ActivitiesScreen({ navigation }) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const { data, loading, refreshData, clearDataCache } = useAppData();
+  const { registrations } = useRegistrations();
   const [refreshing, setRefreshing] = useState(false);
   
   // Kombiner Google Calendar og lokale aktiviteter
@@ -149,6 +172,34 @@ export default function ActivitiesScreen({ navigation }) {
           />
         }
       >
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('MyRegistrations')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: theme.colors.success + '20' }]}>
+              <Icon name="checkmark-circle" size={24} color={theme.colors.success} />
+            </View>
+            <View style={styles.quickActionContent}>
+              <Text style={styles.quickActionTitle}>Mine påmeldinger</Text>
+              <Text style={styles.quickActionSubtitle}>
+                {registrations.length === 0 
+                  ? 'Ingen påmeldinger'
+                  : `${registrations.length} aktivitet${registrations.length !== 1 ? 'er' : ''}`
+                }
+              </Text>
+            </View>
+            {registrations.length > 0 && (
+              <View style={styles.quickActionBadge}>
+                <Text style={styles.quickActionBadgeText}>{registrations.length}</Text>
+              </View>
+            )}
+            <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+          </TouchableOpacity>
+        </View>
+
         {/* Calendar - Compact */}
         <View style={styles.calendarSection}>
           <Calendar
@@ -225,8 +276,8 @@ export default function ActivitiesScreen({ navigation }) {
                     <View style={styles.activityHeader}>
                       <Text style={styles.activityTitle} numberOfLines={1}>{activity.title}</Text>
                       {activity.type && (
-                        <View style={[styles.activityTypeBadge, { backgroundColor: theme.colors.primary + '20' }]}>
-                          <Text style={styles.activityType}>{activity.type}</Text>
+                        <View style={[styles.activityTypeBadge, { backgroundColor: getActivityTypeColor(activity.type) + '20' }]}>
+                          <Text style={[styles.activityType, { color: getActivityTypeColor(activity.type) }]}>{activity.type}</Text>
                         </View>
                       )}
                     </View>
@@ -237,10 +288,18 @@ export default function ActivitiesScreen({ navigation }) {
                           <Text style={styles.activityDetailText}>{activity.time}</Text>
                         </View>
                       )}
-                      {activity.location && activity.location !== 'Har ikke sted' && (
+                      {activity.location && activity.location !== 'Har ikke sted' && activity.location !== 'Ikke oppgitt' && (
                         <View style={styles.activityDetailRow}>
                           <Icon name="location-outline" size={12} color={theme.colors.textTertiary} />
                           <Text style={styles.activityDetailText} numberOfLines={1}>{activity.location}</Text>
+                        </View>
+                      )}
+                      {activity.registrationCount > 0 && (
+                        <View style={styles.activityDetailRow}>
+                          <Icon name="people-outline" size={12} color={theme.colors.primary} />
+                          <Text style={[styles.activityDetailText, { color: theme.colors.primary }]}>
+                            {activity.registrationCount} påmeldt{activity.registrationCount !== 1 ? 'e' : ''}
+                          </Text>
                         </View>
                       )}
                     </View>
@@ -251,24 +310,40 @@ export default function ActivitiesScreen({ navigation }) {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Icon name="calendar-outline" size={48} color={theme.colors.textTertiary} />
-              <Text style={styles.emptyStateText}>
+              <View style={styles.emptyStateIconContainer}>
+                <Icon name="calendar-outline" size={48} color={theme.colors.primary} />
+              </View>
+              <Text style={styles.emptyStateTitle}>
                 {activities.length === 0 
-                  ? 'Ingen aktiviteter i kalenderen ennå.\nDra ned for å oppdatere.'
+                  ? 'Ingen aktiviteter ennå'
                   : 'Ingen aktiviteter denne dagen'}
               </Text>
+              <Text style={styles.emptyStateText}>
+                {activities.length === 0 
+                  ? 'Kalenderen har ikke blitt satt opp ennå, eller det er ingen kommende aktiviteter. Dra ned for å oppdatere.'
+                  : 'Velg en annen dato i kalenderen for å se aktiviteter, eller sjekk kommende arrangementer nedenfor.'}
+              </Text>
               {activities.length === 0 && (
-                <TouchableOpacity 
-                  style={styles.forceRefreshButton}
-                  onPress={async () => {
-                    setRefreshing(true);
-                    await clearDataCache();
-                    setRefreshing(false);
-                  }}
-                >
-                  <Icon name="refresh-outline" size={16} color={theme.colors.primary} />
-                  <Text style={styles.forceRefreshText}>Tøm cache og oppdater</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity 
+                    style={styles.forceRefreshButton}
+                    onPress={async () => {
+                      setRefreshing(true);
+                      await clearDataCache();
+                      setRefreshing(false);
+                    }}
+                  >
+                    <Icon name="refresh-outline" size={16} color={theme.colors.primary} />
+                    <Text style={styles.forceRefreshText}>Oppdater kalenderen</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.openCalendarButton}
+                    onPress={handleCalendarPress}
+                  >
+                    <Icon name="open-outline" size={16} color={theme.colors.white} />
+                    <Text style={styles.openCalendarText}>Åpne Google Kalender</Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           )}
@@ -348,6 +423,59 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     paddingHorizontal: theme.web.sidePadding,
+  },
+
+  // Quick Actions Section
+  quickActionsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
+  },
+  quickActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionContent: {
+    flex: 1,
+  },
+  quickActionTitle: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  quickActionSubtitle: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+  },
+  quickActionBadge: {
+    backgroundColor: theme.colors.success,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xs,
+  },
+  quickActionBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.white,
   },
   
   // Calendar Section - Compact
@@ -476,30 +604,70 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: theme.spacing.xl,
+    paddingVertical: theme.spacing.xxl,
+    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    marginTop: theme.spacing.md,
+  },
+  emptyStateIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  emptyStateTitle: {
+    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
   },
   emptyStateText: {
-    ...theme.typography.bodySmall,
-    color: theme.colors.textTertiary,
-    textAlign: 'center',
-    marginTop: theme.spacing.md,
+    ...theme.typography.body,
     fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 300,
   },
   forceRefreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    marginTop: theme.spacing.lg,
+    marginTop: theme.spacing.xl,
     paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 2,
     borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary + '10',
   },
   forceRefreshText: {
-    ...theme.typography.bodySmall,
+    ...theme.typography.body,
+    fontSize: 14,
     color: theme.colors.primary,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  openCalendarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.primary,
+  },
+  openCalendarText: {
+    ...theme.typography.body,
+    fontSize: 14,
+    color: theme.colors.white,
+    fontWeight: '700',
   },
   
   // Events Section - Compact

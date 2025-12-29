@@ -10,7 +10,7 @@ import { theme } from './constants/theme';
 import Sidebar from './components/Sidebar';
 import ProfileHeaderButton from './components/ProfileHeaderButton';
 import ProfileModal from './components/modals/ProfileModal';
-import { requestPermissions } from './services/notifications';
+import { requestPermissions, registerPushToken, setupNotificationListeners, getLastNotificationResponse } from './services/notifications';
 import { AppDataProvider } from './contexts/AppDataContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProfileModalProvider, useProfileModal } from './contexts/ProfileModalContext';
@@ -40,6 +40,8 @@ import ProfileInfoScreen from './screens/ProfileInfoScreen';
 import ProfileSettingsScreen from './screens/ProfileSettingsScreen';
 import TripPlannerScreen from './screens/TripPlannerScreen';
 import MyTripsScreen from './screens/MyTripsScreen';
+import ActivityMessagesScreen from './screens/ActivityMessagesScreen';
+import MyRegistrationsScreen from './screens/MyRegistrationsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -541,6 +543,42 @@ function TabNavigator({ navigationRef, currentRoute, onOpenProfile }) {
           headerRight: headerRight,
         }}
       />
+      <Stack.Screen
+        name="ActivityMessages"
+        component={ActivityMessagesScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Meldinger',
+          headerRight: headerRight,
+        }}
+      />
+      <Stack.Screen
+        name="MyRegistrations"
+        component={MyRegistrationsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Mine påmeldinger',
+          headerRight: headerRight,
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -615,10 +653,33 @@ export default function App() {
   useEffect(() => {
     // Request notification permissions on app start (skip on web)
     if (Platform.OS !== 'web') {
-      requestPermissions().catch((error) => {
-        console.error('Error requesting notification permissions:', error);
-      });
+      requestPermissions()
+        .then(() => {
+          // Register push token after permissions granted
+          return registerPushToken();
+        })
+        .catch((error) => {
+          console.error('Error setting up notifications:', error);
+        });
     }
+  }, []);
+
+  useEffect(() => {
+    // Set up notification listeners
+    const cleanup = setupNotificationListeners(
+      // On notification received while app is in foreground
+      (notification) => {
+        console.log('Notification received:', notification.request.content);
+      },
+      // On user tap on notification
+      (response) => {
+        const data = response.notification.request.content.data;
+        console.log('User tapped notification with data:', data);
+        // Navigation handling could be added here
+      }
+    );
+
+    return cleanup;
   }, []);
 
   return (

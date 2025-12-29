@@ -1,5 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from './api';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -253,6 +255,121 @@ export const cleanupNotifications = async () => {
   } catch (error) {
     console.error('Error cleaning up notifications:', error);
     return 0;
+  }
+};
+
+/**
+ * Get Expo push token and register with backend
+ */
+export const registerPushToken = async () => {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
+  try {
+    // Request permissions first
+    const { status } = await requestPermissions();
+    if (status !== 'granted') {
+      console.warn('Push notification permissions not granted');
+      return null;
+    }
+
+    // Get Expo push token
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: 'd0b7a060-9efc-481c-b7c5-5a44ae3e5785', // EAS project ID
+    });
+    
+    const pushToken = tokenData.data;
+    console.log('Got Expo push token:', pushToken);
+
+    // Get user ID
+    const userId = await AsyncStorage.getItem('@medvandrerne_user_id');
+    if (!userId) {
+      console.warn('No user ID found, cannot register push token');
+      return pushToken;
+    }
+
+    // Register token with backend
+    try {
+      const response = await fetch(`${API_BASE_URL}/push/register-token.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          pushToken: pushToken,
+          deviceType: Platform.OS,
+          deviceInfo: {
+            platform: Platform.OS,
+            version: Platform.Version,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Push token registered with backend:', result);
+      } else {
+        console.warn('Failed to register push token with backend:', response.status);
+      }
+    } catch (error) {
+      console.error('Error registering push token with backend:', error);
+    }
+
+    return pushToken;
+  } catch (error) {
+    console.error('Error getting push token:', error);
+    return null;
+  }
+};
+
+/**
+ * Set up notification listeners
+ */
+export const setupNotificationListeners = (onNotificationReceived, onNotificationResponse) => {
+  if (Platform.OS === 'web') {
+    return () => {};
+  }
+
+  // Listener for notifications received while app is foregrounded
+  const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+    console.log('Notification received in foreground:', notification);
+    if (onNotificationReceived) {
+      onNotificationReceived(notification);
+    }
+  });
+
+  // Listener for when user taps on a notification
+  const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+    console.log('User tapped notification:', response);
+    if (onNotificationResponse) {
+      onNotificationResponse(response);
+    }
+  });
+
+  // Return cleanup function
+  return () => {
+    receivedSubscription.remove();
+    responseSubscription.remove();
+  };
+};
+
+/**
+ * Get last notification response (for when app is opened from notification)
+ */
+export const getLastNotificationResponse = async () => {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
+  try {
+    const response = await Notifications.getLastNotificationResponseAsync();
+    return response;
+  } catch (error) {
+    console.error('Error getting last notification response:', error);
+    return null;
   }
 };
 

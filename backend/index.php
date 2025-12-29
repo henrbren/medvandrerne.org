@@ -77,6 +77,12 @@ if (isset($_GET['_t'])) {
                 <a href="?page=activities" class="nav-item <?= $page === 'activities' ? 'active' : '' ?>">
                     <i class="fas fa-plus-circle"></i> Egne aktiviteter
                 </a>
+                <a href="?page=registrations" class="nav-item <?= $page === 'registrations' ? 'active' : '' ?>">
+                    <i class="fas fa-clipboard-list"></i> Påmeldinger
+                </a>
+                <a href="?page=activity-messages" class="nav-item <?= $page === 'activity-messages' ? 'active' : '' ?>">
+                    <i class="fas fa-envelope"></i> Aktivitetsmeldinger
+                </a>
                 <a href="?page=local-groups" class="nav-item <?= $page === 'local-groups' ? 'active' : '' ?>">
                     <i class="fas fa-map-marker-alt"></i> Lokallag
                 </a>
@@ -118,6 +124,8 @@ if (isset($_GET['_t'])) {
                             'news' => 'Nyheter',
                             'calendar' => 'Google Kalender',
                             'activities' => 'Egne aktiviteter',
+                            'registrations' => 'Påmeldinger',
+                            'activity-messages' => 'Aktivitetsmeldinger',
                             'local-groups' => 'Lokallag',
                             'board' => 'Styret',
                             'administration' => 'Ansatte',
@@ -125,7 +133,9 @@ if (isset($_GET['_t'])) {
                             'organization' => 'Om oss',
                             'mission' => 'Misjon',
                             'resources' => 'Ressurser',
-                            'calendar-config' => 'Google-synk'
+                            'calendar-config' => 'Google-synk',
+                            'users' => 'Brukere',
+                            'memberships' => 'Medlemskap'
                         ];
                         echo $pageNames[$page] ?? ucfirst(str_replace('-', ' ', $page));
                         ?>

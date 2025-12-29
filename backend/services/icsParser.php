@@ -170,14 +170,30 @@ class ICSParser {
      * Format event for app consumption
      */
     private function formatEvent($event) {
+        $title = $event['title'] ?? 'Uten tittel';
+        $description = $event['description'] ?? '';
+        $location = $event['location'] ?? '';
+        
+        // Detect activity type from title or description
+        $type = $this->detectActivityType($title, $description);
+        
+        // Generate smart description if missing
+        if (empty($description)) {
+            $description = $this->generateDescription($title, $type, $location);
+        }
+        
+        // Clean up location
+        $location = $this->cleanLocation($location);
+        
         $formatted = [
             'id' => md5($event['uid'] ?? uniqid()),
-            'title' => $event['title'] ?? 'Uten tittel',
-            'description' => $event['description'] ?? '',
-            'location' => $event['location'] ?? '',
+            'title' => $title,
+            'description' => $description,
+            'location' => $location,
             'start' => $event['start'] ?? '',
             'end' => $event['end'] ?? $event['start'] ?? '',
             'uid' => $event['uid'] ?? '',
+            'type' => $type,
         ];
         
         // Extract date and time
@@ -185,6 +201,18 @@ class ICSParser {
             $parts = explode(' ', $formatted['start']);
             $formatted['date'] = $parts[0];
             $formatted['time'] = isset($parts[1]) ? substr($parts[1], 0, 5) : '';
+            
+            // If we have end time, create time range
+            if (!empty($formatted['end'])) {
+                $endParts = explode(' ', $formatted['end']);
+                if (isset($endParts[1]) && $parts[0] === $endParts[0]) {
+                    // Same day, add end time
+                    $endTime = substr($endParts[1], 0, 5);
+                    if (!empty($formatted['time']) && $formatted['time'] !== $endTime) {
+                        $formatted['time'] = $formatted['time'] . '-' . $endTime;
+                    }
+                }
+            }
         }
         
         // Determine if multi-day
@@ -194,10 +222,118 @@ class ICSParser {
             $formatted['multiDay'] = $startDate !== $endDate;
             if ($formatted['multiDay']) {
                 $formatted['endDate'] = $endDate;
+                $formatted['time'] = 'Hele dagen';
             }
         }
         
         return $formatted;
+    }
+    
+    /**
+     * Detect activity type from title and description
+     */
+    private function detectActivityType($title, $description) {
+        $titleLower = mb_strtolower($title);
+        $descLower = mb_strtolower($description);
+        $combined = $titleLower . ' ' . $descLower;
+        
+        // Check for specific keywords
+        $patterns = [
+            'Tur' => ['tur til', 'vandring', 'gåtur', 'fjelltur', 'skogtur', 'natursti', 'turmål'],
+            'Motivasjonstur' => ['motivasjonstur', 'mush', 'fjellbris', 'helgetur', 'overnattingstur'],
+            'Møte' => ['møte', 'styremøte', 'årsmøte', 'admmøte', 'dugnad', 'planlegging'],
+            'Arrangement' => ['arrangement', 'festival', 'femundløpet', 'løp', 'konkurranse', 'stevne'],
+            'Kurs' => ['kurs', 'opplæring', 'workshop', 'seminar'],
+            'Konferanse' => ['konferanse', 'symposium', 'fagdag'],
+            'Sosial' => ['sosial', 'fest', 'samling', 'middag', 'lunsj', 'kafé'],
+        ];
+        
+        foreach ($patterns as $type => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (strpos($combined, $keyword) !== false) {
+                    return $type;
+                }
+            }
+        }
+        
+        // Check for local group prefixes
+        if (preg_match('/^mv\s|medvandrerne\s/i', $title)) {
+            return 'Tur';
+        }
+        
+        return 'Aktivitet';
+    }
+    
+    /**
+     * Generate smart description based on activity type
+     */
+    private function generateDescription($title, $type, $location) {
+        $descriptions = [
+            'Tur' => [
+                "Bli med på en flott tur i naturskjønne omgivelser! Dette er en ypperlig mulighet til å oppleve norsk natur sammen med andre medvandrere. Ta med passende bekledning og godt humør.",
+                "En herlig turopplevelse venter! Vi utforsker naturen sammen og skaper gode minner underveis. Turen passer for alle som liker å gå i naturen.",
+                "Opplev gleden av å vandre i naturen! Turen byr på frisk luft, flott utsikt og godt fellesskap. Husk å ta med niste og varme klær.",
+            ],
+            'Motivasjonstur' => [
+                "En inspirerende helgetur som gir nye impulser og motivasjon! Vi kombinerer naturopplevelser med personlig utvikling og fellesskap i trygge rammer.",
+                "Ladepause for kropp og sinn! Denne turen gir deg mulighet til å koble av fra hverdagen, oppleve naturen og bygge relasjoner med andre medvandrere.",
+                "En unik opplevelse som kombinerer friluftsliv, fellesskap og personlig vekst. Sammen skaper vi minner for livet!",
+            ],
+            'Møte' => [
+                "Viktig møte for medlemmer og interesserte. Her diskuterer vi aktuelle saker og planlegger kommende aktiviteter. Din stemme er viktig!",
+                "Bli med på møtet og bidra til fellesskapet! Vi tar opp viktige saker og planlegger fremtidige aktiviteter sammen.",
+            ],
+            'Arrangement' => [
+                "Et spennende arrangement som bringer oss sammen! Opplev fellesskap, aktiviteter og nye bekjentskaper i trivelige omgivelser.",
+                "Ikke gå glipp av dette arrangementet! Her får du mulighet til å delta, bidra og oppleve noe spesielt sammen med andre.",
+            ],
+            'Kurs' => [
+                "Lær noe nytt og utvikl deg! Dette kurset gir deg verdifull kunnskap og praktiske ferdigheter du kan bruke videre.",
+                "En flott mulighet til å utvide horisonten! Kurset kombinerer teori og praksis i et inspirerende læringsmiljø.",
+            ],
+            'Konferanse' => [
+                "En faglig samling med interessante foredrag og mulighet for nettverksbygging. Møt likesinnede og bli inspirert!",
+            ],
+            'Sosial' => [
+                "En hyggelig sosial samling der vi kobler av og bygger vennskap! Ta med godt humør og nyt fellesskapet.",
+            ],
+            'Aktivitet' => [
+                "En flott aktivitet arrangert av Medvandrerne! Vi inviterer deg til å være med på en opplevelse som gir muligheter for vekst, mestring og fellesskap.",
+            ],
+        ];
+        
+        // Get descriptions for the type
+        $typeDescriptions = $descriptions[$type] ?? $descriptions['Aktivitet'];
+        
+        // Pick a random description (or cycle based on title hash for consistency)
+        $index = abs(crc32($title)) % count($typeDescriptions);
+        $description = $typeDescriptions[$index];
+        
+        // Add location-specific text if available
+        if (!empty($location) && $location !== 'Har ikke sted') {
+            $description .= "\n\nVi møtes ved " . $location . ".";
+        }
+        
+        return $description;
+    }
+    
+    /**
+     * Clean up location string
+     */
+    private function cleanLocation($location) {
+        if (empty($location)) {
+            return 'Ikke oppgitt';
+        }
+        
+        // Remove URL schemes if present
+        $location = preg_replace('/https?:\/\/[^\s]+/', '', $location);
+        $location = trim($location);
+        
+        if (empty($location)) {
+            return 'Se beskrivelse';
+        }
+        
+        return $location;
     }
     
     /**
