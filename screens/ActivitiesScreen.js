@@ -5,14 +5,12 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Linking,
   Platform,
   Animated,
   ActivityIndicator,
   RefreshControl,
   Easing,
   Alert,
-  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
@@ -57,9 +55,7 @@ export default function ActivitiesScreen({ navigation }) {
   const { 
     getPendingInvitations, 
     respondToInvitation, 
-    fetchInvitations, 
-    pendingCount,
-    markAsSeen,
+    fetchInvitations,
   } = useInvitations();
   const [refreshing, setRefreshing] = useState(false);
   const [respondingTo, setRespondingTo] = useState(null); // Track which invitation is being responded to
@@ -98,7 +94,7 @@ export default function ActivitiesScreen({ navigation }) {
       } else {
         fadeAnim.setValue(1);
       }
-    }, [loadRegistrations, fetchInvitations, isDataStale, softRefresh])
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const onRefresh = async () => {
