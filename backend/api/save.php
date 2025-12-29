@@ -38,6 +38,7 @@ $fileMap = [
     'supporters' => JSON_SUPPORTERS,
     'news' => JSON_NEWS,
     'resources' => JSON_RESOURCES,
+    'users' => JSON_USERS,
     // Note: gallery is deprecated, use calendar instead
 ];
 

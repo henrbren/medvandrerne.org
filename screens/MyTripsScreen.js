@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Animated,
+  Easing,
   Alert,
   Dimensions,
   RefreshControl,
@@ -204,12 +205,14 @@ export default function MyTripsScreen({ navigation }) {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: theme.animations.normal,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
         toValue: 0,
-        ...theme.animations.spring,
+        friction: 8,
+        tension: 100,
         useNativeDriver: true,
       }),
     ]).start();

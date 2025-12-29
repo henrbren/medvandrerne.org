@@ -17,6 +17,7 @@ import { useActivityStats } from '../hooks/useActivityStats';
 import { useMasteryLog } from '../hooks/useMasteryLog';
 import { useActivityTracking } from '../hooks/useActivityTracking';
 import { useSkills } from '../hooks/useSkills';
+import { useTripPlanner } from '../hooks/useTripPlanner';
 import { getAchievementMotivation } from '../utils/journeyUtils';
 
 const isWeb = Platform.OS === 'web';
@@ -26,11 +27,13 @@ export default function MilestonesScreen({ navigation }) {
   const { getStats: getMasteryStats } = useMasteryLog();
   const { getStats: getTrackingStats } = useActivityTracking();
   const { getStats: getSkillsStats, getTotalXPEarned } = useSkills();
+  const { getStats: getTripStats } = useTripPlanner();
   
   const masteryStats = getMasteryStats();
   const trackingStats = getTrackingStats();
   const skillsStats = getSkillsStats();
   const skillsXP = getTotalXPEarned();
+  const tripStats = getTripStats();
   
   const combinedStats = useMemo(() => ({
     totalActivities: activityStats.totalActivities || 0,
@@ -41,6 +44,18 @@ export default function MilestonesScreen({ navigation }) {
     totalEnvironmentActions: trackingStats.totalEnvironmentActions || 0,
     totalSkills: skillsStats.completedSkills || 0,
     skillsXP: skillsXP,
+    // Trip stats
+    totalTrips: tripStats.totalTrips || 0,
+    totalTripDistance: tripStats.totalDistance || 0,
+    totalTripElevation: tripStats.totalElevation || 0,
+    tripsXP: tripStats.totalXP || 0,
+    motivationTrips: tripStats.motivationTrips || 0,
+    rainTrips: tripStats.rainTrips || 0,
+    snowTrips: tripStats.snowTrips || 0,
+    hardTrips: tripStats.hardTrips || 0,
+    expertTrips: tripStats.expertTrips || 0,
+    longestTrip: tripStats.longestTrip || 0,
+    highestElevationTrip: tripStats.highestElevationTrip || 0,
   }), [
     activityStats.totalActivities,
     activityStats.currentStreak,
@@ -50,6 +65,7 @@ export default function MilestonesScreen({ navigation }) {
     trackingStats.totalEnvironmentActions,
     skillsStats.completedSkills,
     skillsXP,
+    tripStats,
   ]);
 
   const {
@@ -91,11 +107,37 @@ export default function MilestonesScreen({ navigation }) {
         const streakDays = combinedStats?.currentStreak || 0;
         currentValue = Math.floor(streakDays / 7);
         break;
+      case 'dailyStreak': currentValue = combinedStats?.currentStreak || 0; break;
       case 'expeditions': currentValue = combinedStats?.totalExpeditions || 0; break;
       case 'environment': currentValue = combinedStats?.totalEnvironmentActions || 0; break;
       case 'skills': currentValue = combinedStats?.totalSkills || 0; break;
       case 'combined': currentValue = (combinedStats?.totalActivities || 0) + (combinedStats?.totalSkills || 0); break;
       case 'level': currentValue = level; break;
+      // Trip categories
+      case 'trips': currentValue = combinedStats?.totalTrips || 0; break;
+      case 'tripDistance': currentValue = combinedStats?.totalTripDistance || 0; break;
+      case 'tripElevation': currentValue = combinedStats?.totalTripElevation || 0; break;
+      case 'motivationTrips': currentValue = combinedStats?.motivationTrips || 0; break;
+      case 'weatherRain': currentValue = combinedStats?.rainTrips || 0; break;
+      case 'weatherSnow': currentValue = combinedStats?.snowTrips || 0; break;
+      case 'hardTrips': currentValue = combinedStats?.hardTrips || 0; break;
+      case 'expertTrips': currentValue = combinedStats?.expertTrips || 0; break;
+      case 'singleTripDistance': currentValue = combinedStats?.longestTrip || 0; break;
+      case 'singleTripElevation': currentValue = combinedStats?.highestElevationTrip || 0; break;
+      case 'totalXP': currentValue = totalXP || 0; break;
+      case 'variety': 
+      case 'varietyAdvanced':
+        // Count unique activity types
+        let types = 0;
+        if (combinedStats?.totalTrips > 0) types++;
+        if (combinedStats?.totalReflections > 0) types++;
+        if (combinedStats?.totalMoments > 0) types++;
+        if (combinedStats?.totalExpeditions > 0) types++;
+        if (combinedStats?.totalEnvironmentActions > 0) types++;
+        if (combinedStats?.totalSkills > 0) types++;
+        currentValue = types;
+        break;
+      default: currentValue = 0;
     }
 
     const progress = achievement.threshold > 0 
@@ -131,11 +173,25 @@ export default function MilestonesScreen({ navigation }) {
     reflections: 'Refleksjoner',
     moments: 'Mestringsmomenter',
     streak: 'Streaks',
+    dailyStreak: 'Daglig streak',
     expeditions: 'Ekspedisjoner',
     environment: 'Miljø',
     skills: 'Ferdigheter',
     combined: 'Kombinert',
     level: 'Nivå',
+    trips: 'Turer',
+    tripDistance: 'Distanse',
+    tripElevation: 'Høydemeter',
+    motivationTrips: 'Motivasjonsturer',
+    weatherRain: 'Regn-turer',
+    weatherSnow: 'Snø-turer',
+    hardTrips: 'Krevende turer',
+    expertTrips: 'Ekspert-turer',
+    singleTripDistance: 'Enkelttur distanse',
+    singleTripElevation: 'Enkelttur høyde',
+    totalXP: 'Total XP',
+    variety: 'Variasjon',
+    varietyAdvanced: 'Avansert variasjon',
     other: 'Andre',
   };
 

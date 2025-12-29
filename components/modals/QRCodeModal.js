@@ -16,7 +16,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
 } from 'react-native';
-import { API_BASE_URL } from '../../services/api';
+import { API_BASE_URL, notifyContactAdded } from '../../services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, Camera } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
@@ -438,6 +438,20 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
 
   const handleAddManualContact = () => {
     if (lookupResult) {
+      // Send push notification to the person being added
+      if (lookupResult.id && user) {
+        notifyContactAdded({
+          targetUserId: lookupResult.id,
+          addedByName: user.name || 'En Medvandrer',
+          addedByLevel: displayLevel,
+          addedById: user.id,
+        }).then(result => {
+          console.log('Manual contact notification result:', result);
+        }).catch(err => {
+          console.log('Manual contact notification error (non-critical):', err);
+        });
+      }
+      
       onScanSuccess(lookupResult);
       setPhoneNumber('');
       setLookupResult(null);

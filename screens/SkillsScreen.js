@@ -7,11 +7,14 @@ import {
   TouchableOpacity,
   Platform,
   Animated,
+  Pressable,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useSkills, SKILLS } from '../hooks/useSkills';
+import XPCelebration, { QuickXPPopup } from '../components/XPCelebration';
 
 const isWeb = Platform.OS === 'web';
 
@@ -36,12 +39,16 @@ const CATEGORY_COLORS = {
 export default function SkillsScreen({ navigation }) {
   const { completedSkills, toggleSkill, isSkillCompleted, getStats, getTotalXPEarned, loading } = useSkills();
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationXP, setCelebrationXP] = useState(0);
+  const [celebrationType, setCelebrationType] = useState('normal');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: theme.animations.normal,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
   }, []);
@@ -65,11 +72,27 @@ export default function SkillsScreen({ navigation }) {
     : skillsByCategory;
 
   const handleSkillToggle = async (skillId) => {
+    const skill = SKILLS.find(s => s.id === skillId);
     const wasAdded = await toggleSkill(skillId);
-    if (wasAdded) {
-      // Skill was added - XP will be recalculated via gamification system
-      // The screen will refresh when navigated back to
+    if (wasAdded && skill) {
+      // Show XP celebration
+      const xp = skill.xpReward || 50;
+      setCelebrationXP(xp);
+      // Determine celebration type based on XP
+      if (xp >= 100) {
+        setCelebrationType('big');
+      } else if (xp >= 75) {
+        setCelebrationType('normal');
+      } else {
+        setCelebrationType('normal');
+      }
+      setShowCelebration(true);
     }
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    setCelebrationXP(0);
   };
 
   const getCategoryStats = (category) => {
@@ -285,6 +308,20 @@ export default function SkillsScreen({ navigation }) {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* XP Celebration */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={handleCelebrationComplete}
+        pointerEvents={showCelebration ? 'auto' : 'none'}
+      >
+        <XPCelebration
+          visible={showCelebration}
+          xpAmount={celebrationXP}
+          celebrationType={celebrationType}
+          onComplete={handleCelebrationComplete}
+        />
+      </Pressable>
     </View>
   );
 }

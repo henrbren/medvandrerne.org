@@ -590,6 +590,42 @@ function AppWithNavigation() {
   const [isMobileWeb, setIsMobileWeb] = React.useState(false);
   const { visible: showProfileModal, openScanner, showProfileModal: handleOpenProfile, hideProfileModal } = useProfileModal();
 
+  // Set up notification listeners with navigation
+  useEffect(() => {
+    const cleanup = setupNotificationListeners(
+      // On notification received while app is in foreground
+      (notification) => {
+        console.log('Notification received:', notification.request.content);
+      },
+      // On user tap on notification
+      (response) => {
+        const data = response.notification.request.content.data;
+        console.log('User tapped notification with data:', data);
+        
+        if (!navigationRef.current) return;
+
+        // Handle different notification types
+        if (data?.type === 'contact_added') {
+          // Navigate to Flokken when someone adds you
+          navigationRef.current.navigate('Flokken');
+        } else if (data?.type === 'activity_message' && data?.activityId) {
+          // Navigate to activity messages
+          // First need to get the activity data
+          navigationRef.current.navigate('ActivityMessages', { 
+            activity: { id: data.activityId } 
+          });
+        } else if (data?.activityId) {
+          // Default: navigate to activity detail
+          navigationRef.current.navigate('ActivityDetail', {
+            activity: { id: data.activityId, title: data.activityTitle }
+          });
+        }
+      }
+    );
+
+    return cleanup;
+  }, []);
+
   React.useEffect(() => {
     if (isWeb) {
       const checkMobile = () => {
@@ -664,23 +700,6 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    // Set up notification listeners
-    const cleanup = setupNotificationListeners(
-      // On notification received while app is in foreground
-      (notification) => {
-        console.log('Notification received:', notification.request.content);
-      },
-      // On user tap on notification
-      (response) => {
-        const data = response.notification.request.content.data;
-        console.log('User tapped notification with data:', data);
-        // Navigation handling could be added here
-      }
-    );
-
-    return cleanup;
-  }, []);
 
   return (
     <SafeAreaProvider>

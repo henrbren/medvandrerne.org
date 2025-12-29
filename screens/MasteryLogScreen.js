@@ -11,11 +11,14 @@ import {
   Alert,
   Modal,
   KeyboardAvoidingView,
+  Pressable,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useMasteryLog } from '../hooks/useMasteryLog';
+import XPCelebration from '../components/XPCelebration';
 
 const isWeb = Platform.OS === 'web';
 
@@ -28,6 +31,8 @@ export default function MasteryLogScreen({ navigation }) {
   const [gratitude, setGratitude] = useState('');
   const [momentTitle, setMomentTitle] = useState('');
   const [momentCategory, setMomentCategory] = useState('physical');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationXP, setCelebrationXP] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   
   // FAB animations
@@ -39,6 +44,7 @@ export default function MasteryLogScreen({ navigation }) {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: theme.animations.normal,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
     
@@ -48,11 +54,13 @@ export default function MasteryLogScreen({ navigation }) {
         Animated.timing(fabPulse, {
           toValue: 1.1,
           duration: 1500,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(fabPulse, {
           toValue: 1,
           duration: 1500,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ])
@@ -64,6 +72,7 @@ export default function MasteryLogScreen({ navigation }) {
       Animated.timing(fabRotation, {
         toValue: 1,
         duration: 20000,
+        easing: Easing.linear,
         useNativeDriver: true,
       })
     );
@@ -112,6 +121,9 @@ export default function MasteryLogScreen({ navigation }) {
       setReflection('');
       setGratitude('');
       setShowEntryModal(false);
+      // Show XP celebration for reflection (30 XP)
+      setCelebrationXP(30);
+      setShowCelebration(true);
     }
   };
 
@@ -124,7 +136,15 @@ export default function MasteryLogScreen({ navigation }) {
       });
       setMomentTitle('');
       setShowMomentModal(false);
+      // Show XP celebration for mastery moment (40 XP)
+      setCelebrationXP(40);
+      setShowCelebration(true);
     }
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    setCelebrationXP(0);
   };
 
   const openMomentModal = (category) => {
@@ -628,6 +648,20 @@ export default function MasteryLogScreen({ navigation }) {
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* XP Celebration */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={handleCelebrationComplete}
+        pointerEvents={showCelebration ? 'auto' : 'none'}
+      >
+        <XPCelebration
+          visible={showCelebration}
+          xpAmount={celebrationXP}
+          celebrationType="normal"
+          onComplete={handleCelebrationComplete}
+        />
+      </Pressable>
     </View>
   );
 }

@@ -26,6 +26,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ContactDetailModal from '../components/modals/ContactDetailModal';
 import QRCodeModal from '../components/modals/QRCodeModal';
 import { getLevelName, getLevelColors } from '../utils/journeyUtils';
+import { notifyContactAdded } from '../services/api';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -172,6 +173,21 @@ export default function FlokkenScreen({ navigation }) {
         contactType: CONTACT_TYPE.SCANNED,
         addedAt: new Date().toISOString(),
       });
+
+      // Send push notification to the person who was added
+      // They should know someone added them!
+      if (contactData.id && user) {
+        notifyContactAdded({
+          targetUserId: contactData.id,
+          addedByName: user.name || 'En Medvandrer',
+          addedByLevel: Math.max(user.level || 1, localStats?.level || 1),
+          addedById: user.id,
+        }).then(result => {
+          console.log('Contact notification result:', result);
+        }).catch(err => {
+          console.log('Contact notification error (non-critical):', err);
+        });
+      }
 
       Alert.alert(
         'Lagt til!',

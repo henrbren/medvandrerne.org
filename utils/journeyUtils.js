@@ -2,6 +2,7 @@ import { theme } from '../constants/theme';
 
 export const getLevelName = (levelNum) => {
   const levelNames = {
+    // Beginner (1-10): Hiking gear theme
     1: 'Sokk',
     2: 'Sko',
     3: 'Sovepose',
@@ -12,6 +13,8 @@ export const getLevelName = (levelNum) => {
     8: 'Bålet',
     9: 'Kompass',
     10: 'Vandrestav',
+    
+    // Intermediate (11-20): Nature phenomena
     11: 'Fjellvandrer',
     12: 'Nordlys',
     13: 'Midnattssol',
@@ -22,6 +25,8 @@ export const getLevelName = (levelNum) => {
     18: 'Fjelltopp',
     19: 'Stormvind',
     20: 'Torden',
+    
+    // Advanced (21-30): Elements of power
     21: 'Blitz',
     22: 'Regnbue',
     23: 'Tornado',
@@ -31,130 +36,264 @@ export const getLevelName = (levelNum) => {
     27: 'Jordskjelv',
     28: 'Nova',
     29: 'Supernova',
-    30: 'Univers',
+    30: 'Galakse',
+    
+    // Expert (31-40): Mythical creatures
+    31: 'Valkyrie',
+    32: 'Drage',
+    33: 'Fenris',
+    34: 'Jotun',
+    35: 'Huginn',
+    36: 'Muninn',
+    37: 'Sleipnir',
+    38: 'Bifrost',
+    39: 'Yggdrasil',
+    40: 'Midgard',
+    
+    // Master (41-50): Norse gods
+    41: 'Thor',
+    42: 'Odin',
+    43: 'Freya',
+    44: 'Baldur',
+    45: 'Tyr',
+    46: 'Heimdall',
+    47: 'Njord',
+    48: 'Frigg',
+    49: 'Idunn',
+    50: 'Æsir',
+    
+    // Grandmaster (51-60): Cosmic themes
+    51: 'Komet',
+    52: 'Meteor',
+    53: 'Asteroid',
+    54: 'Planet',
+    55: 'Sol',
+    56: 'Nebula',
+    57: 'Pulsar',
+    58: 'Kvasar',
+    59: 'Svarthull',
+    60: 'Univers',
+    
+    // Legend (61-70): Elements
+    61: 'Ild',
+    62: 'Vann',
+    63: 'Jord',
+    64: 'Luft',
+    65: 'Lyn',
+    66: 'Is',
+    67: 'Lys',
+    68: 'Skygge',
+    69: 'Tid',
+    70: 'Rom',
+    
+    // Mythic (71-80): Abstract concepts
+    71: 'Visdom',
+    72: 'Styrke',
+    73: 'Mot',
+    74: 'Håp',
+    75: 'Tro',
+    76: 'Kjærlighet',
+    77: 'Fred',
+    78: 'Harmoni',
+    79: 'Balanse',
+    80: 'Enhet',
+    
+    // Immortal (81-90): Transcendent
+    81: 'Evighet',
+    82: 'Uendelig',
+    83: 'Opplyst',
+    84: 'Åndelig',
+    85: 'Guddommelig',
+    86: 'Hellig',
+    87: 'Ren',
+    88: 'Perfekt',
+    89: 'Absolutt',
+    90: 'Transcendent',
+    
+    // Summit (91-100): The ultimate journey
+    91: 'Oppstigeren',
+    92: 'Veiviseren',
+    93: 'Pioneren',
+    94: 'Legenden',
+    95: 'Ikonet',
+    96: 'Mesteren',
+    97: 'Grandmasteren',
+    98: 'Mytisk',
+    99: 'Udødelig',
+    100: 'Toppen 🏔️',
   };
   return levelNames[levelNum] || `Nivå ${levelNum}`;
 };
 
 export const getLevelColors = (levelNum) => {
+  // Beginner (1-10): Standard colors
   if (levelNum <= 2) {
-    // Medvandrer red theme for beginners
-    return {
-      primary: '#E53935',
-      secondary: '#EF5350',
-      glow: '#FF5252',
-      background: null,
-    };
+    return { primary: '#E53935', secondary: '#EF5350', glow: '#FF5252', background: null };
   } else if (levelNum <= 4) {
-    return {
-      primary: theme.colors.primary,
-      secondary: theme.colors.primaryLight,
-      glow: theme.colors.primary,
-      background: null,
-    };
+    return { primary: theme.colors.primary, secondary: theme.colors.primaryLight, glow: theme.colors.primary, background: null };
   } else if (levelNum <= 6) {
-    return {
-      primary: theme.colors.success,
-      secondary: '#4ADE80',
-      glow: theme.colors.success,
-      background: null,
-    };
+    return { primary: theme.colors.success, secondary: '#4ADE80', glow: theme.colors.success, background: null };
   } else if (levelNum <= 8) {
-    return {
-      primary: theme.colors.info,
-      secondary: '#22D3EE',
-      glow: theme.colors.info,
-      background: null,
-    };
+    return { primary: theme.colors.info, secondary: '#22D3EE', glow: theme.colors.info, background: null };
   } else if (levelNum <= 10) {
-    return {
-      primary: theme.colors.warning,
-      secondary: '#FBBF24',
-      glow: theme.colors.warning,
-      background: null,
-    };
-  } else if (levelNum <= 12) {
-    return {
-      primary: '#A855F7',
-      secondary: '#C084FC',
-      glow: '#E879F9',
-      background: '#0A0510',
-    };
+    return { primary: theme.colors.warning, secondary: '#FBBF24', glow: theme.colors.warning, background: null };
+  }
+  
+  // Intermediate (11-20): Deeper colors with backgrounds
+  else if (levelNum <= 12) {
+    return { primary: '#A855F7', secondary: '#C084FC', glow: '#E879F9', background: '#0A0510' };
   } else if (levelNum <= 15) {
-    return {
-      primary: '#EC4899',
-      secondary: '#F472B6',
-      glow: '#FB7185',
-      background: '#0F0509',
-    };
+    return { primary: '#EC4899', secondary: '#F472B6', glow: '#FB7185', background: '#0F0509' };
   } else if (levelNum <= 18) {
-    return {
-      primary: '#F59E0B',
-      secondary: '#FBBF24',
-      glow: '#FCD34D',
-      background: '#0F0A05',
-    };
-  } else if (levelNum <= 21) {
-    return {
-      primary: '#EF4444',
-      secondary: '#F87171',
-      glow: '#FCA5A5',
-      background: '#0F0505',
-    };
-  } else if (levelNum <= 24) {
-    return {
-      primary: '#8B5CF6',
-      secondary: '#A78BFA',
-      glow: '#C4B5FD',
-      background: '#0D0510',
-    };
+    return { primary: '#F59E0B', secondary: '#FBBF24', glow: '#FCD34D', background: '#0F0A05' };
+  } else if (levelNum <= 20) {
+    return { primary: '#EF4444', secondary: '#F87171', glow: '#FCA5A5', background: '#0F0505' };
+  }
+  
+  // Advanced (21-30): Rich purples and blues
+  else if (levelNum <= 24) {
+    return { primary: '#8B5CF6', secondary: '#A78BFA', glow: '#C4B5FD', background: '#0D0510' };
   } else if (levelNum <= 27) {
-    return {
-      primary: '#06B6D4',
-      secondary: '#22D3EE',
-      glow: '#67E8F9',
-      background: '#050F12',
-    };
-  } else if (levelNum <= 29) {
-    return {
-      primary: '#F97316',
-      secondary: '#FB923C',
-      glow: '#FDBA74',
-      background: '#0F0805',
-    };
+    return { primary: '#06B6D4', secondary: '#22D3EE', glow: '#67E8F9', background: '#050F12' };
+  } else if (levelNum <= 30) {
+    return { primary: '#6366F1', secondary: '#818CF8', glow: '#A5B4FC', background: '#050510' };
+  }
+  
+  // Expert (31-40): Mythical Norse theme - Deep greens and golds
+  else if (levelNum <= 35) {
+    return { primary: '#059669', secondary: '#10B981', glow: '#34D399', background: '#041F1A' };
+  } else if (levelNum <= 40) {
+    return { primary: '#D97706', secondary: '#F59E0B', glow: '#FBBF24', background: '#1A1505' };
+  }
+  
+  // Master (41-50): Norse gods - Majestic blues and purples
+  else if (levelNum <= 45) {
+    return { primary: '#2563EB', secondary: '#3B82F6', glow: '#60A5FA', background: '#0A1628' };
+  } else if (levelNum <= 50) {
+    return { primary: '#7C3AED', secondary: '#8B5CF6', glow: '#A78BFA', background: '#0F0A1F' };
+  }
+  
+  // Grandmaster (51-60): Cosmic - Deep space colors
+  else if (levelNum <= 55) {
+    return { primary: '#4F46E5', secondary: '#6366F1', glow: '#818CF8', background: '#0A0A1F' };
+  } else if (levelNum <= 60) {
+    return { primary: '#0F172A', secondary: '#1E293B', glow: '#475569', background: '#020617', special: 'cosmic' };
+  }
+  
+  // Legend (61-70): Elemental - Vibrant elemental colors
+  else if (levelNum <= 63) {
+    return { primary: '#DC2626', secondary: '#EF4444', glow: '#F87171', background: '#1A0505' }; // Fire
+  } else if (levelNum <= 66) {
+    return { primary: '#0284C7', secondary: '#0EA5E9', glow: '#38BDF8', background: '#051525' }; // Water/Ice
+  } else if (levelNum <= 70) {
+    return { primary: '#FBBF24', secondary: '#FCD34D', glow: '#FDE68A', background: '#1A1505' }; // Lightning/Light
+  }
+  
+  // Mythic (71-80): Abstract - Ethereal gradients
+  else if (levelNum <= 75) {
+    return { primary: '#BE185D', secondary: '#DB2777', glow: '#F472B6', background: '#1A0515' };
+  } else if (levelNum <= 80) {
+    return { primary: '#0D9488', secondary: '#14B8A6', glow: '#2DD4BF', background: '#051A1A' };
+  }
+  
+  // Immortal (81-90): Transcendent - Mystical colors
+  else if (levelNum <= 85) {
+    return { primary: '#9333EA', secondary: '#A855F7', glow: '#C084FC', background: '#0F051A' };
+  } else if (levelNum <= 90) {
+    return { primary: '#6D28D9', secondary: '#7C3AED', glow: '#8B5CF6', background: '#0A0520' };
+  }
+  
+  // Summit (91-100): Ultimate - Legendary gold and platinum
+  else if (levelNum <= 95) {
+    return { primary: '#B45309', secondary: '#D97706', glow: '#F59E0B', background: '#1A1005', special: 'legendary' };
+  } else if (levelNum <= 99) {
+    return { primary: '#78716C', secondary: '#A8A29E', glow: '#D6D3D1', background: '#1A1918', special: 'platinum' };
   } else {
-    return {
-      primary: '#6366F1',
-      secondary: '#818CF8',
-      glow: '#A5B4FC',
-      background: '#050510',
-    };
+    // Level 100 - The Summit! Rainbow/prismatic
+    return { primary: '#FFD700', secondary: '#FFA500', glow: '#FFFFFF', background: '#0A0A0A', special: 'summit' };
   }
 };
 
 export const getLevelAnimationConfig = (levelNum) => {
+  // Beginner (1-10): Simple to moderate animations
   if (levelNum <= 4) {
     return { pulse: false, glow: false, stars: false, particles: false, intensity: 1 };
   } else if (levelNum <= 7) {
     return { pulse: true, glow: false, stars: true, particles: false, intensity: 1.2 };
   } else if (levelNum <= 10) {
     return { pulse: true, glow: true, stars: true, particles: true, intensity: 1.5 };
-  } else if (levelNum <= 12) {
+  }
+  
+  // Intermediate (11-20): More impressive
+  else if (levelNum <= 12) {
     return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 2 };
   } else if (levelNum <= 15) {
     return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 2.5, rainbow: true };
   } else if (levelNum <= 18) {
     return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 3, rainbow: true, rapid: true };
-  } else if (levelNum <= 21) {
+  } else if (levelNum <= 20) {
     return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 3.5, rainbow: true, rapid: true, flash: true };
-  } else if (levelNum <= 24) {
+  }
+  
+  // Advanced (21-30): Epic tier
+  else if (levelNum <= 24) {
     return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 4, rainbow: true, rapid: true, flash: true, wave: true };
   } else if (levelNum <= 27) {
     return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 4.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true };
-  } else if (levelNum <= 29) {
-    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, legendary: true };
+  } else if (levelNum <= 30) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true };
+  }
+  
+  // Expert (31-40): Mythical tier
+  else if (levelNum <= 35) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 5.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true };
+  } else if (levelNum <= 40) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 6, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true };
+  }
+  
+  // Master (41-50): Godlike tier
+  else if (levelNum <= 45) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 6.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true };
+  } else if (levelNum <= 50) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 7, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true };
+  }
+  
+  // Grandmaster (51-60): Cosmic tier
+  else if (levelNum <= 55) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 7.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true };
+  } else if (levelNum <= 60) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 8, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true };
+  }
+  
+  // Legend (61-70): Elemental tier
+  else if (levelNum <= 65) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 8.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true };
+  } else if (levelNum <= 70) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 9, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true };
+  }
+  
+  // Mythic (71-80): Abstract tier
+  else if (levelNum <= 75) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 9.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true };
+  } else if (levelNum <= 80) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 10, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true };
+  }
+  
+  // Immortal (81-90): Transcendent tier
+  else if (levelNum <= 85) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 10.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true, transcendent: true };
+  } else if (levelNum <= 90) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 11, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true, transcendent: true };
+  }
+  
+  // Summit (91-100): Legendary/Ultimate tier
+  else if (levelNum <= 95) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 11.5, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true, transcendent: true, legendary: true };
+  } else if (levelNum <= 99) {
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 12, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true, transcendent: true, legendary: true, platinum: true };
   } else {
-    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 6, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, legendary: true, universe: true };
+    // Level 100 - The Summit! Maximum effects
+    return { pulse: true, glow: true, stars: true, particles: true, epic: true, intensity: 15, rainbow: true, rapid: true, flash: true, wave: true, cosmic: true, mythical: true, godlike: true, universe: true, elemental: true, abstract: true, transcendent: true, legendary: true, platinum: true, summit: true };
   }
 };
 
@@ -216,7 +355,14 @@ export const getAchievementMotivation = (achievementId) => {
     'level_15': 'Ekspert! Du har nådd nivå 15, og det viser at du har fullført en betydelig del av din reise. Du har bevist at du har styrken og utholdenheten til å nå dine mål.',
     'level_20': 'Nivålegende! Nivå 20 er en eksepsjonell prestasjon som viser at du har fullført en stor del av din reise. Du har bevist at du kan nå hva som helst du setter deg for.',
     'level_25': 'Legende! Nivå 25 er en legendarisk prestasjon. Du har fullstendig transformert livet ditt og bevist at ingen forandring er umulig. Du er en inspirasjon for alle.',
-    'level_30': 'Univers! Nivå 30 er den ultimate prestasjonen. Du har nådd toppen av din reise og bevist at du kan overvinne hva som helst. Du er en levende bevis på at bedring er mulig, og du kan nå hjelpe andre på deres reise.',
+    'level_30': 'Mester! Nivå 30 viser at du har mestret grunnlaget for varig forandring. Du har bygget en solid identitet basert på vekst og utvikling.',
+    'level_40': 'Ekspert! Nivå 40 viser eksepsjonell dedikasjon over lang tid. Du har bevist at du kan holde ut gjennom alle utfordringer som kommer din vei.',
+    'level_50': 'Grandmaster! Halvveis til toppen! Nivå 50 er en legendarisk milepæl som viser at du har transformert livet ditt fullstendig. Du er en inspirasjon for alle rundt deg.',
+    'level_60': 'Legende! Nivå 60 viser at du har oppnådd noe få klarer. Din utholdenhet og dedikasjon er eksepsjonell, og du bygger en arv som vil inspirere andre i generasjoner.',
+    'level_70': 'Mytisk! Nivå 70 er en prestasjon som grenser til det mytiske. Du har vist at mennesker kan overvinne hva som helst med vilje og utholdenhet.',
+    'level_80': 'Udødelig! Nivå 80 viser at du har oppnådd noe som vil leve videre. Din reise og dine prestasjoner vil inspirere andre lenge etter at du har nådd toppen.',
+    'level_90': 'Transcendent! Nivå 90 viser at du har gått utover det vanlige. Du har ikke bare forandret deg selv - du har forandret måten andre ser på hva som er mulig.',
+    'level_100': '🏔️ TOPPEN! Du har nådd nivå 100 - den ultimate prestasjonen! Du har bevist at med utholdenhet, vilje og mot kan man overvinne hva som helst. Du er ikke lenger en vandrer - du er en fyrtårn som viser andre veien. Din reise er en inspirasjon for alle som søker forandring. Du har nådd toppen, men reisen fortsetter - for nå kan du hjelpe andre å nå sine egne topper. Gratulerer med en legendarisk prestasjon!',
     'ten_combined': 'Mangefasettert! Du har nå fullført 10 aktiviteter eller ferdigheter, og det viser at du er en person som utforsker mange ulike områder. Dette er en viktig del av vekst.',
     'twenty_combined': 'Allsidig! Du har nå fullført 20 aktiviteter eller ferdigheter, og det viser at du er en person som konsekvent lærer og vokser. Dette bygger en sterk identitet.',
     'fifty_combined': 'Komplett! Du har nå fullført 50 aktiviteter eller ferdigheter, og det viser eksepsjonell dedikasjon. Du har bygget en solid grunnmur av erfaringer som vil støtte deg resten av livet.',

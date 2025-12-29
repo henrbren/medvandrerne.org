@@ -11,11 +11,14 @@ import {
   Alert,
   Modal,
   KeyboardAvoidingView,
+  Pressable,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useActivityTracking } from '../hooks/useActivityTracking';
+import XPCelebration from '../components/XPCelebration';
 
 const isWeb = Platform.OS === 'web';
 
@@ -26,6 +29,7 @@ export default function ExpeditionsScreen({ navigation }) {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('');
+  const [showCelebration, setShowCelebration] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   
   // FAB animations
@@ -37,6 +41,7 @@ export default function ExpeditionsScreen({ navigation }) {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: theme.animations.normal,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
     
@@ -46,11 +51,13 @@ export default function ExpeditionsScreen({ navigation }) {
         Animated.timing(fabPulse, {
           toValue: 1.1,
           duration: 1500,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(fabPulse, {
           toValue: 1,
           duration: 1500,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ])
@@ -62,6 +69,7 @@ export default function ExpeditionsScreen({ navigation }) {
       Animated.timing(fabRotation, {
         toValue: 1,
         duration: 20000,
+        easing: Easing.linear,
         useNativeDriver: true,
       })
     );
@@ -107,7 +115,15 @@ export default function ExpeditionsScreen({ navigation }) {
       setDescription('');
       setDuration('');
       setShowModal(false);
+      // Show XP celebration (75 XP for expedition)
+      setTimeout(() => {
+        setShowCelebration(true);
+      }, 300);
     }
+  };
+
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
   };
 
   const formatDate = (dateString) => {
@@ -377,6 +393,20 @@ export default function ExpeditionsScreen({ navigation }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* XP Celebration */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={handleCelebrationComplete}
+        pointerEvents={showCelebration ? 'auto' : 'none'}
+      >
+        <XPCelebration
+          visible={showCelebration}
+          xpAmount={75}
+          celebrationType="big"
+          onComplete={handleCelebrationComplete}
+        />
+      </Pressable>
     </View>
   );
 }

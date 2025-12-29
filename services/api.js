@@ -7,10 +7,52 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const API_BASE_URL = 'https://henrikb30.sg-host.com/api';
 const CACHE_KEY = '@medvandrerne_api_cache';
 const CACHE_TIMESTAMP_KEY = '@medvandrerne_api_cache_timestamp';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 timer i millisekunder
+
+// Different cache durations for different data types
+const CACHE_DURATIONS = {
+  default: 30 * 60 * 1000,      // 30 minutter for generelle data
+  activities: 5 * 60 * 1000,    // 5 minutter for aktiviteter (endres ofte)
+  calendar: 5 * 60 * 1000,      // 5 minutter for kalender
+  news: 15 * 60 * 1000,         // 15 minutter for nyheter
+  static: 24 * 60 * 60 * 1000,  // 24 timer for statiske data (organization, mission, etc.)
+};
+
+// Track individual cache timestamps for different data types
+const CACHE_TYPE_TIMESTAMPS_KEY = '@medvandrerne_cache_type_timestamps';
 
 /**
- * Sjekk om cache er gyldig
+ * Get cache duration for a specific data type
+ */
+function getCacheDuration(type) {
+  const staticTypes = ['organization', 'mission', 'coreActivities', 'supporters'];
+  if (staticTypes.includes(type)) return CACHE_DURATIONS.static;
+  if (type === 'activities' || type === 'calendar') return CACHE_DURATIONS.activities;
+  if (type === 'news') return CACHE_DURATIONS.news;
+  return CACHE_DURATIONS.default;
+}
+
+/**
+ * Sjekk om cache er gyldig for en spesifikk type
+ */
+async function isCacheValidForType(type = 'default') {
+  try {
+    const timestampsJson = await AsyncStorage.getItem(CACHE_TYPE_TIMESTAMPS_KEY);
+    const timestamps = timestampsJson ? JSON.parse(timestampsJson) : {};
+    const timestamp = timestamps[type];
+    
+    if (!timestamp) return false;
+    
+    const cacheAge = Date.now() - parseInt(timestamp, 10);
+    const duration = getCacheDuration(type);
+    return cacheAge < duration;
+  } catch (error) {
+    console.error('Error checking cache validity:', error);
+    return false;
+  }
+}
+
+/**
+ * Sjekk om generell cache er gyldig (legacy support)
  */
 async function isCacheValid() {
   try {
@@ -18,10 +60,24 @@ async function isCacheValid() {
     if (!timestamp) return false;
     
     const cacheAge = Date.now() - parseInt(timestamp, 10);
-    return cacheAge < CACHE_DURATION;
+    return cacheAge < CACHE_DURATIONS.default;
   } catch (error) {
     console.error('Error checking cache validity:', error);
     return false;
+  }
+}
+
+/**
+ * Set cache timestamp for a specific type
+ */
+async function setCacheTimestamp(type) {
+  try {
+    const timestampsJson = await AsyncStorage.getItem(CACHE_TYPE_TIMESTAMPS_KEY);
+    const timestamps = timestampsJson ? JSON.parse(timestampsJson) : {};
+    timestamps[type] = Date.now().toString();
+    await AsyncStorage.setItem(CACHE_TYPE_TIMESTAMPS_KEY, JSON.stringify(timestamps));
+  } catch (error) {
+    console.error('Error setting cache timestamp:', error);
   }
 }
 
@@ -106,11 +162,15 @@ export async function fetchAllData(forceRefresh = false) {
  */
 export async function fetchDataType(type, forceRefresh = false) {
   try {
-    // Sjekk cache først
+    // Sjekk type-spesifikk cache først
     if (!forceRefresh) {
-      const cached = await getCachedData();
-      if (cached && cached[type]) {
-        return cached[type];
+      const isValid = await isCacheValidForType(type);
+      if (isValid) {
+        const cached = await getCachedData();
+        if (cached && cached[type]) {
+          console.log(`Using cached ${type} data`);
+          return cached[type];
+        }
       }
     }
 
@@ -134,10 +194,12 @@ export async function fetchDataType(type, forceRefresh = false) {
       throw new Error(`Unknown data type: ${type}`);
     }
 
-    const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+    console.log(`Fetching fresh ${type} data from API...`);
+    const response = await fetch(`${API_BASE_URL}/${endpoint}?_t=${Date.now()}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        'Cache-Control': 'no-cache',
       },
     });
 
@@ -147,10 +209,11 @@ export async function fetchDataType(type, forceRefresh = false) {
 
     const data = await response.json();
     
-    // Oppdater cache
+    // Oppdater cache og timestamp
     const cached = await getCachedData() || {};
     cached[type] = data;
     await setCachedData(cached);
+    await setCacheTimestamp(type);
     
     return data;
   } catch (error) {
@@ -159,6 +222,7 @@ export async function fetchDataType(type, forceRefresh = false) {
     // Prøv cache som fallback
     const cached = await getCachedData();
     if (cached && cached[type]) {
+      console.log(`API failed, using stale ${type} cache`);
       return cached[type];
     }
     
@@ -173,8 +237,49 @@ export async function clearCache() {
   try {
     await AsyncStorage.removeItem(CACHE_KEY);
     await AsyncStorage.removeItem(CACHE_TIMESTAMP_KEY);
+    await AsyncStorage.removeItem(CACHE_TYPE_TIMESTAMPS_KEY);
+    console.log('Cache cleared');
   } catch (error) {
     console.error('Error clearing cache:', error);
+  }
+}
+
+/**
+ * Tøm cache for en spesifikk type (tvinger refresh neste gang)
+ */
+export async function clearCacheForType(type) {
+  try {
+    const timestampsJson = await AsyncStorage.getItem(CACHE_TYPE_TIMESTAMPS_KEY);
+    const timestamps = timestampsJson ? JSON.parse(timestampsJson) : {};
+    delete timestamps[type];
+    await AsyncStorage.setItem(CACHE_TYPE_TIMESTAMPS_KEY, JSON.stringify(timestamps));
+    console.log(`Cache cleared for ${type}`);
+  } catch (error) {
+    console.error(`Error clearing cache for ${type}:`, error);
+  }
+}
+
+/**
+ * Invalidate all dynamic caches (keep static ones)
+ */
+export async function invalidateDynamicCaches() {
+  try {
+    const timestampsJson = await AsyncStorage.getItem(CACHE_TYPE_TIMESTAMPS_KEY);
+    const timestamps = timestampsJson ? JSON.parse(timestampsJson) : {};
+    
+    // Only keep static data timestamps
+    const staticTypes = ['organization', 'mission', 'coreActivities', 'supporters'];
+    const newTimestamps = {};
+    staticTypes.forEach(type => {
+      if (timestamps[type]) {
+        newTimestamps[type] = timestamps[type];
+      }
+    });
+    
+    await AsyncStorage.setItem(CACHE_TYPE_TIMESTAMPS_KEY, JSON.stringify(newTimestamps));
+    console.log('Dynamic caches invalidated');
+  } catch (error) {
+    console.error('Error invalidating dynamic caches:', error);
   }
 }
 
@@ -184,5 +289,38 @@ export async function clearCache() {
 export function isOnline() {
   // Enkel sjekk - kan utvides med NetInfo hvis nødvendig
   return true; // Antar at vi alltid prøver å hente fra API først
+}
+
+/**
+ * Send push notification when someone is added as a contact
+ * @param {Object} params - Notification parameters
+ * @param {string} params.targetUserId - The user ID who was added (receives notification)
+ * @param {string} params.addedByName - Name of person who added them
+ * @param {number} params.addedByLevel - Level of person who added them
+ * @param {string} params.addedById - ID of person who added them
+ */
+export async function notifyContactAdded({ targetUserId, addedByName, addedByLevel, addedById }) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contacts/notify-added.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        targetUserId,
+        addedByName,
+        addedByLevel,
+        addedById,
+      }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error sending contact added notification:', error);
+    // Don't throw - this is a non-critical operation
+    return { success: false, error: error.message };
+  }
 }
 

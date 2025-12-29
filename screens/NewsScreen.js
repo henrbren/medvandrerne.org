@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
   Image,
   RefreshControl,
   FlatList,
+  Easing,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
@@ -30,33 +32,53 @@ const CATEGORIES = {
 };
 
 export default function NewsScreen({ navigation }) {
-  const { data, loading, refreshData } = useAppData();
+  const { data, loading, refreshData, softRefresh, isDataStale } = useAppData();
   const news = data.news || [];
   const [selectedCategory, setSelectedCategory] = useState('Alle');
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const headerScale = useRef(new Animated.Value(0.95)).current;
+  const hasAnimatedRef = useRef(false);
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: theme.animations.slow,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: theme.animations.slow,
-        useNativeDriver: true,
-      }),
-      Animated.spring(headerScale, {
-        toValue: 1,
-        ...theme.animations.spring,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+  // Refresh data when screen gains focus if data is stale
+  useFocusEffect(
+    useCallback(() => {
+      // Soft refresh if data might be stale
+      if (isDataStale && isDataStale()) {
+        softRefresh && softRefresh();
+      }
+      
+      // Animate if not already
+      if (!hasAnimatedRef.current) {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: theme.animations.slow,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: theme.animations.slow,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.spring(headerScale, {
+            toValue: 1,
+            ...theme.animations.spring,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          hasAnimatedRef.current = true;
+        });
+      } else {
+        fadeAnim.setValue(1);
+        slideAnim.setValue(0);
+        headerScale.setValue(1);
+      }
+    }, [isDataStale, softRefresh])
+  );
 
   // Get unique categories from news
   const categories = useMemo(() => {

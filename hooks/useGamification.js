@@ -12,37 +12,128 @@ const XP_PER_WEEK_STREAK = 25;
 // Trip XP is calculated dynamically based on distance, elevation, difficulty
 
 // Level thresholds (XP required for each level)
+// Progression: Early levels are quick, higher levels require more dedication
+// Level 100 requires significant long-term engagement
 const LEVEL_THRESHOLDS = [
-  0,      // Level 1
-  100,    // Level 2
-  250,    // Level 3
-  500,    // Level 4
-  800,    // Level 5
-  1200,   // Level 6
-  1700,   // Level 7
-  2300,   // Level 8
-  3000,   // Level 9
-  4000,   // Level 10
-  5200,   // Level 11
-  6600,   // Level 12
-  8200,   // Level 13
-  10000,  // Level 14
-  12000,  // Level 15
-  14500,  // Level 16
-  17500,  // Level 17
-  21000,  // Level 18
-  25000,  // Level 19
-  29500,  // Level 20
-  34500,  // Level 21
-  40000,  // Level 22
-  46000,  // Level 23
-  52500,  // Level 24
-  59500,  // Level 25
-  67000,  // Level 26
-  75000,  // Level 27
-  83500,  // Level 28
-  92500,  // Level 29
-  102000, // Level 30
+  // Beginner (1-10): Quick progression to hook users
+  0,        // Level 1
+  100,      // Level 2
+  250,      // Level 3
+  500,      // Level 4
+  800,      // Level 5
+  1200,     // Level 6
+  1700,     // Level 7
+  2300,     // Level 8
+  3000,     // Level 9
+  4000,     // Level 10
+  
+  // Intermediate (11-20): Steady growth
+  5200,     // Level 11
+  6600,     // Level 12
+  8200,     // Level 13
+  10000,    // Level 14
+  12000,    // Level 15
+  14500,    // Level 16
+  17500,    // Level 17
+  21000,    // Level 18
+  25000,    // Level 19
+  29500,    // Level 20
+  
+  // Advanced (21-30): Requires dedication
+  34500,    // Level 21
+  40000,    // Level 22
+  46000,    // Level 23
+  52500,    // Level 24
+  59500,    // Level 25
+  67000,    // Level 26
+  75000,    // Level 27
+  83500,    // Level 28
+  92500,    // Level 29
+  102000,   // Level 30
+  
+  // Expert (31-40): Serious commitment
+  112500,   // Level 31
+  124000,   // Level 32
+  136500,   // Level 33
+  150000,   // Level 34
+  165000,   // Level 35
+  181000,   // Level 36
+  198000,   // Level 37
+  216000,   // Level 38
+  236000,   // Level 39
+  257000,   // Level 40
+  
+  // Master (41-50): Long-term engagement
+  280000,   // Level 41
+  305000,   // Level 42
+  332000,   // Level 43
+  361000,   // Level 44
+  392000,   // Level 45
+  425000,   // Level 46
+  460000,   // Level 47
+  498000,   // Level 48
+  538000,   // Level 49
+  580000,   // Level 50
+  
+  // Grandmaster (51-60): True dedication
+  625000,   // Level 51
+  673000,   // Level 52
+  724000,   // Level 53
+  778000,   // Level 54
+  835000,   // Level 55
+  895000,   // Level 56
+  958000,   // Level 57
+  1025000,  // Level 58
+  1095000,  // Level 59
+  1170000,  // Level 60
+  
+  // Legend (61-70): Rare achievement
+  1250000,  // Level 61
+  1335000,  // Level 62
+  1425000,  // Level 63
+  1520000,  // Level 64
+  1620000,  // Level 65
+  1725000,  // Level 66
+  1835000,  // Level 67
+  1950000,  // Level 68
+  2070000,  // Level 69
+  2200000,  // Level 70
+  
+  // Mythic (71-80): Exceptional
+  2340000,  // Level 71
+  2490000,  // Level 72
+  2650000,  // Level 73
+  2820000,  // Level 74
+  3000000,  // Level 75
+  3190000,  // Level 76
+  3390000,  // Level 77
+  3600000,  // Level 78
+  3820000,  // Level 79
+  4050000,  // Level 80
+  
+  // Immortal (81-90): Elite status
+  4300000,  // Level 81
+  4560000,  // Level 82
+  4840000,  // Level 83
+  5140000,  // Level 84
+  5460000,  // Level 85
+  5800000,  // Level 86
+  6160000,  // Level 87
+  6540000,  // Level 88
+  6940000,  // Level 89
+  7360000,  // Level 90
+  
+  // Transcendent (91-100): The ultimate journey
+  7810000,  // Level 91
+  8280000,  // Level 92
+  8780000,  // Level 93
+  9310000,  // Level 94
+  9870000,  // Level 95
+  10460000, // Level 96
+  11080000, // Level 97
+  11730000, // Level 98
+  12410000, // Level 99
+  13130000, // Level 100 - The Summit! 🏔️
 ];
 
 // Achievement definitions
@@ -561,11 +652,74 @@ const ACHIEVEMENTS = [
   },
   {
     id: 'level_30',
-    title: 'Univers',
+    title: 'Mester',
     description: 'Nå nivå 30',
     icon: 'trophy',
     category: 'level',
     threshold: 30,
+    xpReward: 0,
+  },
+  {
+    id: 'level_40',
+    title: 'Ekspert',
+    description: 'Nå nivå 40',
+    icon: 'medal',
+    category: 'level',
+    threshold: 40,
+    xpReward: 0,
+  },
+  {
+    id: 'level_50',
+    title: 'Grandmaster',
+    description: 'Nå nivå 50 - Halvveis til toppen!',
+    icon: 'ribbon',
+    category: 'level',
+    threshold: 50,
+    xpReward: 0,
+  },
+  {
+    id: 'level_60',
+    title: 'Legende',
+    description: 'Nå nivå 60',
+    icon: 'diamond',
+    category: 'level',
+    threshold: 60,
+    xpReward: 0,
+  },
+  {
+    id: 'level_70',
+    title: 'Mytisk',
+    description: 'Nå nivå 70',
+    icon: 'planet',
+    category: 'level',
+    threshold: 70,
+    xpReward: 0,
+  },
+  {
+    id: 'level_80',
+    title: 'Udødelig',
+    description: 'Nå nivå 80',
+    icon: 'infinite',
+    category: 'level',
+    threshold: 80,
+    xpReward: 0,
+  },
+  {
+    id: 'level_90',
+    title: 'Transcendent',
+    description: 'Nå nivå 90',
+    icon: 'sparkles',
+    category: 'level',
+    threshold: 90,
+    xpReward: 0,
+  },
+  {
+    id: 'level_100',
+    title: 'Toppen! 🏔️',
+    description: 'Nå nivå 100 - Du har fullført reisen!',
+    icon: 'trophy',
+    category: 'level',
+    threshold: 100,
     xpReward: 0,
   },
   // Additional Combined milestones
@@ -761,6 +915,346 @@ const ACHIEVEMENTS = [
     threshold: 8848,
     xpReward: 1000,
   },
+  {
+    id: 'double_everest',
+    title: 'Dobbel Everest',
+    description: 'Gå totalt 17 696 høydemeter',
+    icon: 'flag',
+    category: 'tripElevation',
+    threshold: 17696,
+    xpReward: 2000,
+  },
+  {
+    id: 'fifty_thousand_elevation',
+    title: 'Fjellkonge',
+    description: 'Gå totalt 50 000 høydemeter',
+    icon: 'mountain',
+    category: 'tripElevation',
+    threshold: 50000,
+    xpReward: 5000,
+  },
+  
+  // Distance mega-milestones
+  {
+    id: 'pilgrim_distance',
+    title: 'Pilegrim',
+    description: 'Gå totalt 2500 km (Camino de Santiago lengde)',
+    icon: 'globe',
+    category: 'tripDistance',
+    threshold: 2500,
+    xpReward: 5000,
+  },
+  {
+    id: 'norway_distance',
+    title: 'Norge på langs',
+    description: 'Gå totalt 2518 km (Norge fra sør til nord)',
+    icon: 'flag',
+    category: 'tripDistance',
+    threshold: 2518,
+    xpReward: 7500,
+  },
+  
+  // Motivation trips (short but consistent)
+  {
+    id: 'first_motivation_trip',
+    title: 'Motivasjonstur',
+    description: 'Logg en motivasjonstur (under 5 km)',
+    icon: 'heart',
+    category: 'motivationTrips',
+    threshold: 1,
+    xpReward: 40,
+  },
+  {
+    id: 'five_motivation_trips',
+    title: 'Motivert',
+    description: 'Logg 5 motivasjonsturer',
+    icon: 'heart',
+    category: 'motivationTrips',
+    threshold: 5,
+    xpReward: 100,
+  },
+  {
+    id: 'ten_motivation_trips',
+    title: 'Hverdagsvandrer',
+    description: 'Logg 10 motivasjonsturer',
+    icon: 'heart',
+    category: 'motivationTrips',
+    threshold: 10,
+    xpReward: 200,
+  },
+  {
+    id: 'twenty_five_motivation_trips',
+    title: 'Motivasjonsmester',
+    description: 'Logg 25 motivasjonsturer',
+    icon: 'heart',
+    category: 'motivationTrips',
+    threshold: 25,
+    xpReward: 500,
+  },
+  {
+    id: 'fifty_motivation_trips',
+    title: 'Hverdagshelt',
+    description: 'Logg 50 motivasjonsturer',
+    icon: 'heart',
+    category: 'motivationTrips',
+    threshold: 50,
+    xpReward: 1000,
+  },
+  
+  // Weather braving achievements
+  {
+    id: 'rain_warrior',
+    title: 'Regnkriger',
+    description: 'Gå 5 turer i regn',
+    icon: 'rainy',
+    category: 'weatherRain',
+    threshold: 5,
+    xpReward: 150,
+  },
+  {
+    id: 'storm_chaser',
+    title: 'Stormjeger',
+    description: 'Gå 10 turer i regn',
+    icon: 'thunderstorm',
+    category: 'weatherRain',
+    threshold: 10,
+    xpReward: 300,
+  },
+  {
+    id: 'snow_wanderer',
+    title: 'Snøvandrer',
+    description: 'Gå 5 turer i snø',
+    icon: 'snow',
+    category: 'weatherSnow',
+    threshold: 5,
+    xpReward: 200,
+  },
+  {
+    id: 'winter_master',
+    title: 'Vintermester',
+    description: 'Gå 15 turer i snø',
+    icon: 'snow',
+    category: 'weatherSnow',
+    threshold: 15,
+    xpReward: 500,
+  },
+  
+  // Difficulty achievements
+  {
+    id: 'first_hard_trip',
+    title: 'Utfordrer',
+    description: 'Fullfør din første krevende tur',
+    icon: 'fitness',
+    category: 'hardTrips',
+    threshold: 1,
+    xpReward: 75,
+  },
+  {
+    id: 'five_hard_trips',
+    title: 'Tøffing',
+    description: 'Fullfør 5 krevende turer',
+    icon: 'fitness',
+    category: 'hardTrips',
+    threshold: 5,
+    xpReward: 250,
+  },
+  {
+    id: 'ten_hard_trips',
+    title: 'Jernmann',
+    description: 'Fullfør 10 krevende turer',
+    icon: 'barbell',
+    category: 'hardTrips',
+    threshold: 10,
+    xpReward: 500,
+  },
+  {
+    id: 'first_expert_trip',
+    title: 'Ekstremvandrer',
+    description: 'Fullfør din første ekspert-tur',
+    icon: 'skull',
+    category: 'expertTrips',
+    threshold: 1,
+    xpReward: 150,
+  },
+  {
+    id: 'five_expert_trips',
+    title: 'Ytterpunkt',
+    description: 'Fullfør 5 ekspert-turer',
+    icon: 'skull',
+    category: 'expertTrips',
+    threshold: 5,
+    xpReward: 500,
+  },
+  
+  // Variety achievements
+  {
+    id: 'diverse_activities',
+    title: 'Allsidig',
+    description: 'Ha minst 1 av hver: refleksjon, moment, tur, ferdighet',
+    icon: 'grid',
+    category: 'variety',
+    threshold: 4,
+    xpReward: 100,
+  },
+  {
+    id: 'well_rounded',
+    title: 'Balansert',
+    description: 'Ha minst 5 av hver: refleksjon, moment, tur',
+    icon: 'pie-chart',
+    category: 'varietyAdvanced',
+    threshold: 15,
+    xpReward: 300,
+  },
+  
+  // XP Milestones
+  {
+    id: 'xp_1000',
+    title: 'Første tusen',
+    description: 'Oppnå 1 000 XP totalt',
+    icon: 'star',
+    category: 'totalXP',
+    threshold: 1000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_5000',
+    title: 'XP-samler',
+    description: 'Oppnå 5 000 XP totalt',
+    icon: 'star',
+    category: 'totalXP',
+    threshold: 5000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_10000',
+    title: 'XP-jeger',
+    description: 'Oppnå 10 000 XP totalt',
+    icon: 'star',
+    category: 'totalXP',
+    threshold: 10000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_25000',
+    title: 'XP-mester',
+    description: 'Oppnå 25 000 XP totalt',
+    icon: 'medal',
+    category: 'totalXP',
+    threshold: 25000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_50000',
+    title: 'XP-legende',
+    description: 'Oppnå 50 000 XP totalt',
+    icon: 'ribbon',
+    category: 'totalXP',
+    threshold: 50000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_100000',
+    title: 'Sekssifret!',
+    description: 'Oppnå 100 000 XP totalt',
+    icon: 'trophy',
+    category: 'totalXP',
+    threshold: 100000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_500000',
+    title: 'Halvmillion',
+    description: 'Oppnå 500 000 XP totalt',
+    icon: 'diamond',
+    category: 'totalXP',
+    threshold: 500000,
+    xpReward: 0,
+  },
+  {
+    id: 'xp_1000000',
+    title: 'Millionær!',
+    description: 'Oppnå 1 000 000 XP totalt',
+    icon: 'sparkles',
+    category: 'totalXP',
+    threshold: 1000000,
+    xpReward: 0,
+  },
+  
+  // Single trip achievements
+  {
+    id: 'marathon_trip',
+    title: 'Maraton',
+    description: 'Gå en tur på minst 42 km',
+    icon: 'footsteps',
+    category: 'singleTripDistance',
+    threshold: 42,
+    xpReward: 200,
+  },
+  {
+    id: 'ultra_trip',
+    title: 'Ultravandrer',
+    description: 'Gå en tur på minst 100 km',
+    icon: 'flash',
+    category: 'singleTripDistance',
+    threshold: 100,
+    xpReward: 500,
+  },
+  {
+    id: 'thousand_meter_day',
+    title: 'Tusenmeteren',
+    description: 'Gå en tur med 1000+ høydemeter',
+    icon: 'trending-up',
+    category: 'singleTripElevation',
+    threshold: 1000,
+    xpReward: 150,
+  },
+  {
+    id: 'two_thousand_meter_day',
+    title: 'Toppbestiger',
+    description: 'Gå en tur med 2000+ høydemeter',
+    icon: 'flag',
+    category: 'singleTripElevation',
+    threshold: 2000,
+    xpReward: 350,
+  },
+  
+  // Daily consistency
+  {
+    id: 'seven_day_streak',
+    title: 'Ukesrytme',
+    description: 'Logg aktivitet 7 dager på rad',
+    icon: 'calendar',
+    category: 'dailyStreak',
+    threshold: 7,
+    xpReward: 75,
+  },
+  {
+    id: 'thirty_day_streak',
+    title: 'Månedsvane',
+    description: 'Logg aktivitet 30 dager på rad',
+    icon: 'calendar',
+    category: 'dailyStreak',
+    threshold: 30,
+    xpReward: 300,
+  },
+  {
+    id: 'hundred_day_streak',
+    title: 'Hundredagersclub',
+    description: 'Logg aktivitet 100 dager på rad',
+    icon: 'calendar',
+    category: 'dailyStreak',
+    threshold: 100,
+    xpReward: 1000,
+  },
+  {
+    id: 'year_streak',
+    title: 'Årsrytme',
+    description: 'Logg aktivitet 365 dager på rad',
+    icon: 'infinite',
+    category: 'dailyStreak',
+    threshold: 365,
+    xpReward: 5000,
+  },
 ];
 
 export const useGamification = (stats) => {
@@ -790,6 +1284,14 @@ export const useGamification = (stats) => {
         tripDistance: stats.totalTripDistance || 0,
         tripElevation: stats.totalTripElevation || 0,
         tripsXP: stats.tripsXP || 0,
+        // New achievement stats
+        motivationTrips: stats.motivationTrips || 0,
+        rainTrips: stats.rainTrips || 0,
+        snowTrips: stats.snowTrips || 0,
+        hardTrips: stats.hardTrips || 0,
+        expertTrips: stats.expertTrips || 0,
+        longestTrip: stats.longestTrip || 0,
+        highestElevationTrip: stats.highestElevationTrip || 0,
       });
       
       // Only recalculate if stats actually changed
@@ -947,6 +1449,10 @@ export const useGamification = (stats) => {
           const streakDays = stats.currentStreak || 0;
           currentValue = Math.floor(streakDays / 7);
           break;
+        case 'dailyStreak':
+          // Daily streak in days
+          currentValue = stats.currentStreak || 0;
+          break;
         case 'expeditions':
           currentValue = stats.totalExpeditions || 0;
           break;
@@ -971,6 +1477,45 @@ export const useGamification = (stats) => {
           break;
         case 'tripElevation':
           currentValue = stats.totalTripElevation || 0;
+          break;
+        case 'motivationTrips':
+          currentValue = stats.motivationTrips || 0;
+          break;
+        case 'weatherRain':
+          currentValue = stats.rainTrips || 0;
+          break;
+        case 'weatherSnow':
+          currentValue = stats.snowTrips || 0;
+          break;
+        case 'hardTrips':
+          currentValue = stats.hardTrips || 0;
+          break;
+        case 'expertTrips':
+          currentValue = stats.expertTrips || 0;
+          break;
+        case 'variety':
+          // Check if user has at least 1 of each: reflection, moment, trip, skill
+          const hasReflection = (stats.totalReflections || 0) >= 1 ? 1 : 0;
+          const hasMoment = (stats.totalMoments || 0) >= 1 ? 1 : 0;
+          const hasTrip = (stats.totalTrips || 0) >= 1 ? 1 : 0;
+          const hasSkill = (stats.totalSkills || 0) >= 1 ? 1 : 0;
+          currentValue = hasReflection + hasMoment + hasTrip + hasSkill;
+          break;
+        case 'varietyAdvanced':
+          // Check if user has at least 5 of each: reflection, moment, trip
+          const minReflections = Math.min(stats.totalReflections || 0, 5);
+          const minMoments = Math.min(stats.totalMoments || 0, 5);
+          const minTrips = Math.min(stats.totalTrips || 0, 5);
+          currentValue = minReflections + minMoments + minTrips;
+          break;
+        case 'totalXP':
+          currentValue = currentCalculatedXP;
+          break;
+        case 'singleTripDistance':
+          currentValue = stats.longestTrip || 0;
+          break;
+        case 'singleTripElevation':
+          currentValue = stats.highestElevationTrip || 0;
           break;
       }
 
@@ -1098,11 +1643,35 @@ export const useGamification = (stats) => {
           const streakDaysMilestone = stats?.currentStreak || 0;
           currentValue = Math.floor(streakDaysMilestone / 7);
           break;
+        case 'dailyStreak': currentValue = stats?.currentStreak || 0; break;
         case 'expeditions': currentValue = stats?.totalExpeditions || 0; break;
         case 'environment': currentValue = stats?.totalEnvironmentActions || 0; break;
         case 'skills': currentValue = stats?.totalSkills || 0; break;
         case 'combined': currentValue = (stats?.totalActivities || 0) + (stats?.totalSkills || 0); break;
         case 'level': currentValue = currentCalculatedLevel; break;
+        case 'trips': currentValue = stats?.totalTrips || 0; break;
+        case 'tripDistance': currentValue = stats?.totalTripDistance || 0; break;
+        case 'tripElevation': currentValue = stats?.totalTripElevation || 0; break;
+        case 'motivationTrips': currentValue = stats?.motivationTrips || 0; break;
+        case 'weatherRain': currentValue = stats?.rainTrips || 0; break;
+        case 'weatherSnow': currentValue = stats?.snowTrips || 0; break;
+        case 'hardTrips': currentValue = stats?.hardTrips || 0; break;
+        case 'expertTrips': currentValue = stats?.expertTrips || 0; break;
+        case 'variety':
+          const hasRef = (stats?.totalReflections || 0) >= 1 ? 1 : 0;
+          const hasMom = (stats?.totalMoments || 0) >= 1 ? 1 : 0;
+          const hasTr = (stats?.totalTrips || 0) >= 1 ? 1 : 0;
+          const hasSk = (stats?.totalSkills || 0) >= 1 ? 1 : 0;
+          currentValue = hasRef + hasMom + hasTr + hasSk;
+          break;
+        case 'varietyAdvanced':
+          currentValue = Math.min(stats?.totalReflections || 0, 5) + 
+                         Math.min(stats?.totalMoments || 0, 5) + 
+                         Math.min(stats?.totalTrips || 0, 5);
+          break;
+        case 'totalXP': currentValue = currentCalculatedXP; break;
+        case 'singleTripDistance': currentValue = stats?.longestTrip || 0; break;
+        case 'singleTripElevation': currentValue = stats?.highestElevationTrip || 0; break;
         case 'trips': currentValue = stats?.totalTrips || 0; break;
         case 'tripDistance': currentValue = stats?.totalTripDistance || 0; break;
         case 'tripElevation': currentValue = stats?.totalTripElevation || 0; break;

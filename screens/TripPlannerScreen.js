@@ -8,6 +8,7 @@ import {
   TextInput,
   Platform,
   Animated,
+  Easing,
   Alert,
   Modal,
   KeyboardAvoidingView,
@@ -18,11 +19,16 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
+import XPCelebration from '../components/XPCelebration';
 import { 
   useTripPlanner, 
   POPULAR_DESTINATIONS, 
   DIFFICULTY_LEVELS,
+  TRIP_LIMITS,
+  TRIP_XP_REWARDS,
   calculateTripXP,
+  getXPBreakdown,
+  validateTripData,
   getWeatherForecast,
   geocodeLocation,
 } from '../hooks/useTripPlanner';
@@ -89,54 +95,78 @@ const ElevationChart = ({ elevationData, distance }) => {
   );
 };
 
-// XP Preview Component
+// XP Preview Component - shows breakdown of XP earned
 const XPPreview = ({ trip }) => {
-  const xp = calculateTripXP(trip);
+  const { breakdown, capped, wasCapped } = getXPBreakdown(trip);
+  
+  // Check if this is a motivation trip (short walk)
+  const isMotivationTrip = trip.distance && trip.distance <= TRIP_XP_REWARDS.MOTIVATION_THRESHOLD_KM;
   
   return (
     <View style={styles.xpPreview}>
       <LinearGradient
-        colors={[theme.colors.warning, '#FFD60A']}
+        colors={isMotivationTrip ? [theme.colors.success, '#22C55E'] : [theme.colors.warning, '#FFD60A']}
         style={styles.xpPreviewGradient}
       >
-        <Icon name="star" size={24} color={theme.colors.white} />
+        <Icon name={isMotivationTrip ? 'heart' : 'star'} size={24} color={theme.colors.white} />
         <View style={styles.xpPreviewContent}>
-          <Text style={styles.xpPreviewTitle}>Du vil tjene</Text>
-          <Text style={styles.xpPreviewValue}>+{xp} XP</Text>
+          <Text style={styles.xpPreviewTitle}>
+            {isMotivationTrip ? 'Motivasjonstur! 💪' : 'Du vil tjene'}
+          </Text>
+          <Text style={styles.xpPreviewValue}>+{capped} XP</Text>
+          {wasCapped && (
+            <Text style={styles.xpCappedNote}>(maks per tur)</Text>
+          )}
         </View>
       </LinearGradient>
       <View style={styles.xpBreakdown}>
+        {breakdown.map((item, index) => (
+          <View key={index} style={styles.xpBreakdownItem}>
+            <View style={[
+              styles.xpBreakdownIcon,
+              item.label.includes('Motivasjon') && { backgroundColor: theme.colors.success + '20' }
+            ]}>
+              <Icon 
+                name={item.icon + '-outline'} 
+                size={14} 
+                color={item.label.includes('Motivasjon') ? theme.colors.success : theme.colors.textSecondary} 
+              />
+            </View>
+            <Text style={[
+              styles.xpBreakdownText,
+              item.label.includes('Motivasjon') && { color: theme.colors.success, fontWeight: '600' }
+            ]}>
+              {item.label}
+            </Text>
+            <Text style={[
+              styles.xpBreakdownValue,
+              item.label.includes('Motivasjon') && { color: theme.colors.success }
+            ]}>
+              +{item.xp}
+            </Text>
+          </View>
+        ))}
+        <View style={styles.xpBreakdownDivider} />
         <View style={styles.xpBreakdownItem}>
-          <Icon name="footsteps-outline" size={16} color={theme.colors.textSecondary} />
-          <Text style={styles.xpBreakdownText}>
-            Basis: 75 XP
+          <View style={styles.xpBreakdownIcon}>
+            <Icon name="checkmark-circle-outline" size={14} color={theme.colors.warning} />
+          </View>
+          <Text style={[styles.xpBreakdownText, { fontWeight: '700', color: theme.colors.text }]}>
+            Totalt
+          </Text>
+          <Text style={[styles.xpBreakdownValue, { fontWeight: '700', color: theme.colors.warning }]}>
+            {capped} XP
           </Text>
         </View>
-        {trip.distance > 0 && (
-          <View style={styles.xpBreakdownItem}>
-            <Icon name="walk-outline" size={16} color={theme.colors.textSecondary} />
-            <Text style={styles.xpBreakdownText}>
-              {trip.distance} km × 10 = +{Math.floor(trip.distance * 10)} XP
-            </Text>
-          </View>
-        )}
-        {trip.elevationGain > 0 && (
-          <View style={styles.xpBreakdownItem}>
-            <Icon name="trending-up-outline" size={16} color={theme.colors.textSecondary} />
-            <Text style={styles.xpBreakdownText}>
-              {trip.elevationGain}m × 0.15 = +{Math.floor((trip.elevationGain / 100) * 15)} XP
-            </Text>
-          </View>
-        )}
-        {trip.difficulty && trip.difficulty !== 'easy' && (
-          <View style={styles.xpBreakdownItem}>
-            <Icon name="fitness-outline" size={16} color={theme.colors.textSecondary} />
-            <Text style={styles.xpBreakdownText}>
-              Vanskelighetsbonus: +{DIFFICULTY_LEVELS.find(d => d.key === trip.difficulty)?.key === 'moderate' ? 25 : trip.difficulty === 'hard' ? 50 : 100} XP
-            </Text>
-          </View>
-        )}
       </View>
+      {isMotivationTrip && (
+        <View style={styles.motivationNote}>
+          <Icon name="information-circle-outline" size={16} color={theme.colors.success} />
+          <Text style={styles.motivationNoteText}>
+            Korte turer gir ekstra XP! Å komme seg ut er det viktigste. 🌟
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -166,6 +196,10 @@ export default function TripPlannerScreen({ navigation, route }) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saving, setSaving] = useState(false);
   
+  // XP Celebration state
+  const [showXPCelebration, setShowXPCelebration] = useState(false);
+  const [celebrationXP, setCelebrationXP] = useState(0);
+  
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -174,12 +208,14 @@ export default function TripPlannerScreen({ navigation, route }) {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: theme.animations.normal,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
         toValue: 0,
-        ...theme.animations.spring,
+        friction: 8,
+        tension: 100,
         useNativeDriver: true,
       }),
     ]).start();
@@ -272,24 +308,57 @@ export default function TripPlannerScreen({ navigation, route }) {
       return;
     }
     
-    setSaving(true);
-    try {
-      await saveTrip(currentTrip);
+    // Validate trip data first
+    const { warnings } = validateTripData(currentTrip);
+    
+    // If there are warnings about unrealistic values, confirm with user
+    if (warnings.length > 0) {
       Alert.alert(
-        'Tur lagret! 🎉',
-        `Du har tjent ${calculateTripXP(currentTrip)} XP for denne turen!`,
+        '⚠️ Merk',
+        warnings.join('\n\n') + '\n\nVil du fortsette?',
         [
-          {
-            text: 'Fantastisk!',
-            onPress: () => navigation.goBack(),
+          { text: 'Avbryt', style: 'cancel' },
+          { 
+            text: 'Fortsett', 
+            onPress: () => doSaveTrip(),
           },
         ]
       );
+    } else {
+      doSaveTrip();
+    }
+  };
+  
+  const doSaveTrip = async () => {
+    setSaving(true);
+    try {
+      const result = await saveTrip(currentTrip);
+      const { trip, warnings } = result;
+      
+      // Show XP celebration overlay
+      setCelebrationXP(trip.xpEarned);
+      setShowXPCelebration(true);
+      
+      // If values were capped, show a brief note
+      if (trip.wasCapped) {
+        setTimeout(() => {
+          Alert.alert(
+            'Merk',
+            'Noen verdier ble justert til maksgrensene for å holde XP realistisk.',
+            [{ text: 'OK' }]
+          );
+        }, 500);
+      }
     } catch (error) {
       Alert.alert('Feil', 'Kunne ikke lagre turen. Prøv igjen.');
     } finally {
       setSaving(false);
     }
+  };
+  
+  const handleCelebrationComplete = () => {
+    setShowXPCelebration(false);
+    navigation.goBack();
   };
   
   // Save as planned route
@@ -510,24 +579,38 @@ export default function TripPlannerScreen({ navigation, route }) {
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>Distanse (km)</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    parseFloat(distance) > TRIP_LIMITS.WARNING_DISTANCE_KM && styles.inputWarning,
+                    parseFloat(distance) > TRIP_LIMITS.MAX_DISTANCE_KM && styles.inputError,
+                  ]}
                   placeholder="0"
                   placeholderTextColor={theme.colors.textTertiary}
                   value={distance}
                   onChangeText={setDistance}
                   keyboardType="numeric"
                 />
+                {parseFloat(distance) > TRIP_LIMITS.MAX_DISTANCE_KM && (
+                  <Text style={styles.limitWarning}>Maks {TRIP_LIMITS.MAX_DISTANCE_KM} km</Text>
+                )}
               </View>
               <View style={[styles.inputGroup, { flex: 1, marginLeft: theme.spacing.md }]}>
                 <Text style={styles.inputLabel}>Høydemeter</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    parseFloat(elevationGain) > TRIP_LIMITS.WARNING_ELEVATION_M && styles.inputWarning,
+                    parseFloat(elevationGain) > TRIP_LIMITS.MAX_ELEVATION_M && styles.inputError,
+                  ]}
                   placeholder="0"
                   placeholderTextColor={theme.colors.textTertiary}
                   value={elevationGain}
                   onChangeText={setElevationGain}
                   keyboardType="numeric"
                 />
+                {parseFloat(elevationGain) > TRIP_LIMITS.MAX_ELEVATION_M && (
+                  <Text style={styles.limitWarning}>Maks {TRIP_LIMITS.MAX_ELEVATION_M} m</Text>
+                )}
               </View>
             </View>
             
@@ -569,24 +652,38 @@ export default function TripPlannerScreen({ navigation, route }) {
                 <View style={[styles.inputGroup, { flex: 1 }]}>
                   <Text style={styles.inputLabel}>Distanse (km)</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      parseFloat(distance) > TRIP_LIMITS.WARNING_DISTANCE_KM && styles.inputWarning,
+                      parseFloat(distance) > TRIP_LIMITS.MAX_DISTANCE_KM && styles.inputError,
+                    ]}
                     placeholder="0"
                     placeholderTextColor={theme.colors.textTertiary}
                     value={distance}
                     onChangeText={setDistance}
                     keyboardType="numeric"
                   />
+                  {parseFloat(distance) > TRIP_LIMITS.MAX_DISTANCE_KM && (
+                    <Text style={styles.limitWarning}>Maks {TRIP_LIMITS.MAX_DISTANCE_KM} km</Text>
+                  )}
                 </View>
                 <View style={[styles.inputGroup, { flex: 1, marginLeft: theme.spacing.md }]}>
                   <Text style={styles.inputLabel}>Høydemeter</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      parseFloat(elevationGain) > TRIP_LIMITS.WARNING_ELEVATION_M && styles.inputWarning,
+                      parseFloat(elevationGain) > TRIP_LIMITS.MAX_ELEVATION_M && styles.inputError,
+                    ]}
                     placeholder="0"
                     placeholderTextColor={theme.colors.textTertiary}
                     value={elevationGain}
                     onChangeText={setElevationGain}
                     keyboardType="numeric"
                   />
+                  {parseFloat(elevationGain) > TRIP_LIMITS.MAX_ELEVATION_M && (
+                    <Text style={styles.limitWarning}>Maks {TRIP_LIMITS.MAX_ELEVATION_M} m</Text>
+                  )}
                 </View>
               </View>
             )}
@@ -764,6 +861,14 @@ export default function TripPlannerScreen({ navigation, route }) {
         
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* XP Celebration Overlay */}
+      <XPCelebration
+        visible={showXPCelebration}
+        xpAmount={celebrationXP}
+        onComplete={handleCelebrationComplete}
+        celebrationType={celebrationXP >= 200 ? 'epic' : celebrationXP >= 100 ? 'big' : 'normal'}
+      />
     </View>
   );
 }
@@ -996,6 +1101,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.borderLight,
   },
+  inputWarning: {
+    borderColor: theme.colors.warning,
+    borderWidth: 2,
+  },
+  inputError: {
+    borderColor: theme.colors.error,
+    borderWidth: 2,
+    backgroundColor: theme.colors.error + '10',
+  },
+  limitWarning: {
+    ...theme.typography.caption,
+    color: theme.colors.error,
+    marginTop: 4,
+    fontWeight: '600',
+  },
   textArea: {
     minHeight: 100,
     textAlignVertical: 'top',
@@ -1157,9 +1277,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: theme.spacing.sm,
   },
+  xpBreakdownIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: theme.colors.surfaceElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   xpBreakdownText: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
+    flex: 1,
+  },
+  xpBreakdownValue: {
+    ...theme.typography.caption,
+    color: theme.colors.text,
+    fontWeight: '600',
+  },
+  xpBreakdownDivider: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    marginVertical: theme.spacing.xs,
+  },
+  xpCappedNote: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    opacity: 0.7,
+    fontSize: 11,
+  },
+  motivationNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.success + '15',
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.success + '30',
+  },
+  motivationNoteText: {
+    ...theme.typography.caption,
+    color: theme.colors.success,
+    flex: 1,
+    lineHeight: 18,
   },
   actionButtons: {
     paddingHorizontal: isWeb ? 0 : theme.spacing.lg,

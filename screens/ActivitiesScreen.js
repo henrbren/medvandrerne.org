@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
   Animated,
   ActivityIndicator,
   RefreshControl,
+  Easing,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
@@ -45,8 +47,9 @@ const getActivityTypeColor = (type) => {
 export default function ActivitiesScreen({ navigation }) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const { data, loading, refreshData, clearDataCache } = useAppData();
-  const { registrations } = useRegistrations();
+  const hasAnimatedRef = useRef(false);
+  const { data, loading, refreshData, clearDataCache, softRefresh, isDataStale } = useAppData();
+  const { registrations, loadRegistrations } = useRegistrations();
   const [refreshing, setRefreshing] = useState(false);
   
   // Kombiner Google Calendar og lokale aktiviteter
@@ -57,23 +60,40 @@ export default function ActivitiesScreen({ navigation }) {
   const activities = [...calendarEvents, ...localActivities].sort((a, b) => {
     return (a.date || '').localeCompare(b.date || '');
   });
-  
-  // Debug: Log what we have
-  console.log('ActivitiesScreen - calendar events:', calendarEvents.length);
-  console.log('ActivitiesScreen - local activities:', localActivities.length);
-  console.log('ActivitiesScreen - total activities:', activities.length);
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: theme.animations.normal,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+  // Refresh data when screen gains focus if data is stale
+  useFocusEffect(
+    useCallback(() => {
+      // Load registrations when focused
+      loadRegistrations();
+      
+      // Soft refresh if data might be stale
+      if (isDataStale && isDataStale()) {
+        softRefresh && softRefresh();
+      }
+      
+      // Animate if not already
+      if (!hasAnimatedRef.current) {
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: theme.animations.normal,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start(() => {
+          hasAnimatedRef.current = true;
+        });
+      } else {
+        fadeAnim.setValue(1);
+      }
+    }, [loadRegistrations, isDataStale, softRefresh])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refreshData();
+    await Promise.all([
+      refreshData(),
+      loadRegistrations(),
+    ]);
     setRefreshing(false);
   };
   
