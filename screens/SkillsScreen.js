@@ -25,6 +25,8 @@ const CATEGORY_NAMES = {
   social: 'Sosialt',
   physical: 'Fysisk',
   endurance: 'Utholdenhet',
+  nature: 'Natur',
+  mindfulness: 'Nærvær',
 };
 
 const CATEGORY_COLORS = {
@@ -34,6 +36,8 @@ const CATEGORY_COLORS = {
   social: theme.colors.primary,
   physical: theme.colors.success,
   endurance: theme.colors.primaryLight,
+  nature: '#2E7D32', // Mørk grønn for natur
+  mindfulness: '#7B1FA2', // Lilla for nærvær/mindfulness
 };
 
 export default function SkillsScreen({ navigation }) {

@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
     loadStoredAuth();
   }, []);
 
-  const loadStoredAuth = async () => {
+  const loadStoredAuth = async (onGamificationSync = null) => {
     try {
       const [storedToken, storedUser] = await Promise.all([
         AsyncStorage.getItem(AUTH_TOKEN_KEY),
@@ -27,10 +27,17 @@ export function AuthProvider({ children }) {
 
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
         
-        // Verify token is still valid
-        await refreshUserData(storedToken);
+        // Verify token is still valid and get fresh data
+        const refreshedUser = await refreshUserData(storedToken);
+        
+        // Sync gamification data with backend user data
+        if (onGamificationSync && (refreshedUser || userData)) {
+          console.log('Syncing gamification on app load');
+          await onGamificationSync(refreshedUser || userData);
+        }
       }
     } catch (err) {
       console.error('Error loading auth:', err);
@@ -77,7 +84,7 @@ export function AuthProvider({ children }) {
     return null;
   };
 
-  const login = async (phone) => {
+  const login = async (phone, onGamificationSync = null) => {
     setLoading(true);
     setError(null);
 
@@ -104,6 +111,12 @@ export function AuthProvider({ children }) {
           AsyncStorage.setItem(AUTH_TOKEN_KEY, data.token),
           AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user)),
         ]);
+
+        // If gamification sync callback provided, call it with user data
+        if (onGamificationSync && data.user) {
+          console.log('Triggering gamification sync after login');
+          await onGamificationSync(data.user);
+        }
 
         return { success: true, user: data.user, isNew: data.message.includes('opprettet') };
       } else {

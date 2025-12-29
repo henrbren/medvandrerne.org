@@ -1,7 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../services/api';
+import { getLevelName } from '../utils/journeyUtils';
 
 const GAMIFICATION_STORAGE_KEY = '@medvandrerne_gamification';
+const LAST_SYNC_KEY = '@medvandrerne_gamification_last_sync';
+const SYNC_DEBOUNCE_MS = 5000; // Wait 5 seconds before syncing to backend
 const XP_PER_ACTIVITY_REGISTRATION = 10; // XP for registering
 const XP_PER_ACTIVITY_COMPLETION = 40; // XP for completing (total 50)
 const XP_PER_REFLECTION = 30;
@@ -1261,7 +1265,8 @@ export const useGamification = (stats) => {
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
   const [totalXP, setTotalXP] = useState(null); // Start with null to indicate not loaded yet
   const [loading, setLoading] = useState(true);
-  const [lastXPUpdate, setLastXPUpdate] = useState(null);
+  const lastXPUpdateRef = useRef(null);
+  const xpUpdateTimeoutRef = useRef(null);
 
   useEffect(() => {
     loadGamificationData();
@@ -1295,10 +1300,17 @@ export const useGamification = (stats) => {
       });
       
       // Only recalculate if stats actually changed
-      if (statsHash !== lastXPUpdate) {
-        setLastXPUpdate(statsHash);
+      if (statsHash !== lastXPUpdateRef.current) {
+        lastXPUpdateRef.current = statsHash;
+        
+        // Clear any existing timeout to avoid multiple calculations
+        if (xpUpdateTimeoutRef.current) {
+          clearTimeout(xpUpdateTimeoutRef.current);
+        }
+        
         // Use a debounce to avoid rapid recalculations during data loading
-        const timeoutId = setTimeout(() => {
+        xpUpdateTimeoutRef.current = setTimeout(() => {
+          xpUpdateTimeoutRef.current = null; // Clear ref after execution
           // Calculate XP first, then check achievements
           calculateXP().then(() => {
             // Use a small delay to ensure state is updated
@@ -1307,12 +1319,20 @@ export const useGamification = (stats) => {
             }, 50);
           });
         }, 100); // Debounce to wait for all stats to settle
-        
-        return () => clearTimeout(timeoutId);
       }
     }
+    // No cleanup function here - we manage the timeout manually via the ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stats, loading]);
+
+  // Separate cleanup effect for unmount only
+  useEffect(() => {
+    return () => {
+      if (xpUpdateTimeoutRef.current) {
+        clearTimeout(xpUpdateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const loadGamificationData = async () => {
     try {
@@ -1717,7 +1737,7 @@ export const useGamification = (stats) => {
     // First reset state to ensure clean slate
     setUnlockedAchievements([]);
     setTotalXP(0);
-    setLastXPUpdate(null);
+    lastXPUpdateRef.current = null;
     // Then load from storage (which should be empty after reset)
     await loadGamificationData();
     // Recalculate based on current stats (which should be 0 after reset)
@@ -1727,6 +1747,106 @@ export const useGamification = (stats) => {
     }
     setLoading(false);
   };
+
+  // Sync progress to backend (debounced)
+  const syncTimeoutRef = useRef(null);
+  
+  const syncToBackend = useCallback(async (xp) => {
+    try {
+      const token = await AsyncStorage.getItem('@medvandrerne_auth_token');
+      if (!token) {
+        console.log('No auth token, skipping backend sync');
+        return;
+      }
+
+      const currentLevel = getLevel(xp);
+      const levelName = getLevelName(currentLevel);
+
+      console.log('Syncing progress to backend:', { totalPoints: xp, level: currentLevel });
+      
+      const response = await fetch(`${API_BASE_URL}/users/sync-progress.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify({
+          totalPoints: xp,
+          completedActivities: stats?.totalCompletedActivities || 0,
+          completedExpeditions: stats?.totalExpeditions || 0,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          console.log('Progress synced to backend successfully');
+          await AsyncStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
+        }
+      } else {
+        console.log('Backend sync failed:', response.status);
+      }
+    } catch (error) {
+      console.error('Error syncing to backend:', error);
+    }
+  }, [stats]);
+
+  // Schedule backend sync when XP changes
+  useEffect(() => {
+    if (totalXP > 0 && !loading) {
+      // Clear existing timeout
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+      
+      // Schedule new sync
+      syncTimeoutRef.current = setTimeout(() => {
+        syncToBackend(totalXP);
+      }, SYNC_DEBOUNCE_MS);
+    }
+    
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, [totalXP, loading, syncToBackend]);
+
+  // Load progress from backend (called after login)
+  const loadFromBackend = useCallback(async (userData) => {
+    if (!userData) return false;
+    
+    console.log('Loading progress from backend user data:', {
+      totalPoints: userData.totalPoints,
+      level: userData.level,
+    });
+    
+    // If backend has progress data, use it if it's higher than local
+    const backendXP = userData.totalPoints || 0;
+    const localXP = totalXP || 0;
+    
+    // Use the higher value (in case local has more recent data)
+    if (backendXP > localXP) {
+      console.log('Backend has more XP, updating local:', backendXP);
+      setTotalXP(backendXP);
+      await saveGamificationData({ unlockedAchievements, totalXP: backendXP });
+      return true;
+    } else if (localXP > backendXP) {
+      console.log('Local has more XP, syncing to backend:', localXP);
+      // Sync local to backend
+      await syncToBackend(localXP);
+    }
+    
+    return false;
+  }, [totalXP, unlockedAchievements, syncToBackend]);
+
+  // Force immediate sync to backend
+  const forceSyncToBackend = useCallback(async () => {
+    if (totalXP > 0) {
+      await syncToBackend(totalXP);
+    }
+  }, [totalXP, syncToBackend]);
 
   return {
     level,
@@ -1739,6 +1859,9 @@ export const useGamification = (stats) => {
     loading,
     recalculateXP,
     reloadData,
+    loadFromBackend,
+    forceSyncToBackend,
   };
 };
+
 

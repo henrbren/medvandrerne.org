@@ -1,13 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 // Thresholds for different celebration types
-// Lowered to show celebrations more often for engagement
 const CELEBRATION_THRESHOLDS = {
-  QUICK: 10,      // Show quick popup (any small XP gain)
-  NORMAL: 25,     // Show normal celebration (reflections, small actions)
-  BIG: 50,        // Show big celebration (mastery moments, skills)
-  EPIC: 100,      // Show epic celebration (trips, completing activities)
-  LEGENDARY: 200, // Show legendary celebration (major achievements)
+  QUICK: 1,       // Show quick popup for any XP gain
+  NORMAL: 25,     // (Not used for automatic detection anymore)
+  BIG: 50,        // (Not used for automatic detection anymore)
+  EPIC: 100,      // (Not used for automatic detection anymore)
+  LEGENDARY: 200, // (Not used for automatic detection anymore)
 };
 
 export const useXPCelebration = (currentXP, currentLevel) => {
@@ -22,6 +21,7 @@ export const useXPCelebration = (currentXP, currentLevel) => {
   const previousLevel = useRef(currentLevel);
   const celebrationQueue = useRef([]);
   const isProcessing = useRef(false);
+  const hasInitialized = useRef(false); // Skip first detection on screen load
 
   // Determine celebration type based on XP gained
   const getCelebrationType = (xpGained) => {
@@ -69,10 +69,19 @@ export const useXPCelebration = (currentXP, currentLevel) => {
       return;
     }
 
+    // Skip the first detection after initialization to avoid showing
+    // celebrations when the screen first loads
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      previousXP.current = currentXP;
+      previousLevel.current = currentLevel;
+      return;
+    }
+
     const xpGained = currentXP - previousXP.current;
     const didLevelUp = currentLevel > previousLevel.current;
 
-    // Level up always triggers a full celebration, even for 0 or small XP gains
+    // Level up triggers a full celebration
     if (didLevelUp) {
       celebrationQueue.current.push({
         type: 'full',
@@ -86,24 +95,12 @@ export const useXPCelebration = (currentXP, currentLevel) => {
       if (!isProcessing.current) {
         processQueue();
       }
-    } else if (xpGained > 0) {
-      // Regular XP gain without level up
-      if (xpGained >= CELEBRATION_THRESHOLDS.NORMAL) {
-        // Queue a full celebration
-        celebrationQueue.current.push({
-          type: 'full',
-          xp: xpGained,
-          celebrationType: getCelebrationType(xpGained),
-          levelUp: false,
-          newLevel: null,
-        });
-      } else if (xpGained >= CELEBRATION_THRESHOLDS.QUICK) {
-        // Queue a quick popup
-        celebrationQueue.current.push({
-          type: 'quick',
-          xp: xpGained,
-        });
-      }
+    } else if (xpGained > 0 && xpGained >= CELEBRATION_THRESHOLDS.QUICK) {
+      // Regular XP gain - only show quick popup (no full celebration)
+      celebrationQueue.current.push({
+        type: 'quick',
+        xp: xpGained,
+      });
 
       // Start processing if not already
       if (!isProcessing.current) {
@@ -122,7 +119,7 @@ export const useXPCelebration = (currentXP, currentLevel) => {
       levelUp: forceLevelUp, 
       newLevel: forceNewLevel, 
       position,
-      forceFull = false, // Force a full celebration even for small amounts
+      forceFull = false, // Force a full celebration (only use for special occasions)
     } = options;
 
     // Level up always gets a full epic celebration
@@ -134,8 +131,8 @@ export const useXPCelebration = (currentXP, currentLevel) => {
         levelUp: true,
         newLevel: forceNewLevel,
       });
-    } else if (xpAmount >= CELEBRATION_THRESHOLDS.NORMAL || forceFull || forceType) {
-      // Show full celebration for larger amounts or if forced
+    } else if (forceFull || forceType) {
+      // Only show full celebration if explicitly forced (for special occasions)
       celebrationQueue.current.push({
         type: 'full',
         xp: xpAmount,
@@ -144,7 +141,7 @@ export const useXPCelebration = (currentXP, currentLevel) => {
         newLevel: null,
       });
     } else if (xpAmount >= CELEBRATION_THRESHOLDS.QUICK) {
-      // Show quick popup for small amounts
+      // Default: show quick popup for XP gains
       celebrationQueue.current.push({
         type: 'quick',
         xp: xpAmount,

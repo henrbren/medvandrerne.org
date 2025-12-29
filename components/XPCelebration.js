@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import Icon from './Icon';
 import { theme } from '../constants/theme';
 
@@ -78,6 +79,19 @@ export default function XPCelebration({
       xpScale.setValue(0);
       badgeScale.setValue(0);
 
+      // Initial haptic feedback based on celebration type
+      if (Platform.OS !== 'web') {
+        if (celebrationType === 'legendary' || xpAmount >= 200) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else if (celebrationType === 'epic' || xpAmount >= 100) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        } else if (celebrationType === 'big' || xpAmount >= 50) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } else {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+      }
+
       // Fade in overlay
       Animated.timing(overlayOpacity, {
         toValue: 1,
@@ -88,6 +102,10 @@ export default function XPCelebration({
 
       // Pop in XP badge after short delay
       setTimeout(() => {
+        // Haptic for badge pop
+        if (Platform.OS !== 'web') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
         Animated.spring(xpScale, {
           toValue: 1,
           friction: 6,
@@ -96,11 +114,12 @@ export default function XPCelebration({
         }).start();
       }, 100);
 
-      // Count up XP
+      // Count up XP with haptic pulses
       const countDuration = 1200;
       const steps = 30;
       const stepDuration = countDuration / steps;
       const increment = xpAmount / steps;
+      const hapticInterval = Math.ceil(steps / 6); // Haptic every ~5 steps
       
       let step = 0;
       const countInterval = setInterval(() => {
@@ -108,15 +127,28 @@ export default function XPCelebration({
         countValue.current = Math.min(Math.round(increment * step), xpAmount);
         setDisplayXP(countValue.current);
         
+        // Light haptic pulse during counting
+        if (Platform.OS !== 'web' && step % hapticInterval === 0) {
+          Haptics.selectionAsync();
+        }
+        
         if (step >= steps) {
           clearInterval(countInterval);
           setDisplayXP(xpAmount);
+          // Final haptic when count completes
+          if (Platform.OS !== 'web') {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }
         }
       }, stepDuration);
 
       // Level up badge
       if (levelUp) {
         setTimeout(() => {
+          // Strong haptic for level up
+          if (Platform.OS !== 'web') {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          }
           Animated.spring(badgeScale, {
             toValue: 1,
             friction: 6,
@@ -148,7 +180,7 @@ export default function XPCelebration({
       badgeScale.setValue(0);
       setDisplayXP(0);
     }
-  }, [visible, xpAmount]);
+  }, [visible, xpAmount, celebrationType, levelUp]);
 
   if (!visible) return null;
 
@@ -222,6 +254,11 @@ export function QuickXPPopup({ visible, xpAmount, position = { x: width / 2, y: 
       scale.setValue(0);
       translateY.setValue(0);
       opacity.setValue(1);
+
+      // Light haptic for quick popup
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
 
       Animated.spring(scale, {
         toValue: 1,

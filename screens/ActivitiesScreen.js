@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Easing,
+  Alert,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
@@ -20,6 +22,8 @@ import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useAppData } from '../contexts/AppDataContext';
 import { useRegistrations } from '../hooks/useRegistrations';
+import { useInvitations } from '../hooks/useInvitations';
+import { getLevelColors } from '../utils/journeyUtils';
 
 const isWeb = Platform.OS === 'web';
 
@@ -49,8 +53,16 @@ export default function ActivitiesScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasAnimatedRef = useRef(false);
   const { data, loading, refreshData, clearDataCache, softRefresh, isDataStale } = useAppData();
-  const { registrations, loadRegistrations } = useRegistrations();
+  const { registrations, loadRegistrations, registerForActivity } = useRegistrations();
+  const { 
+    getPendingInvitations, 
+    respondToInvitation, 
+    fetchInvitations, 
+    pendingCount,
+    markAsSeen,
+  } = useInvitations();
   const [refreshing, setRefreshing] = useState(false);
+  const [respondingTo, setRespondingTo] = useState(null); // Track which invitation is being responded to
   
   // Kombiner Google Calendar og lokale aktiviteter
   const calendarEvents = data.calendar || [];
@@ -64,8 +76,9 @@ export default function ActivitiesScreen({ navigation }) {
   // Refresh data when screen gains focus if data is stale
   useFocusEffect(
     useCallback(() => {
-      // Load registrations when focused
+      // Load registrations and invitations when focused
       loadRegistrations();
+      fetchInvitations();
       
       // Soft refresh if data might be stale
       if (isDataStale && isDataStale()) {
@@ -85,7 +98,7 @@ export default function ActivitiesScreen({ navigation }) {
       } else {
         fadeAnim.setValue(1);
       }
-    }, [loadRegistrations, isDataStale, softRefresh])
+    }, [loadRegistrations, fetchInvitations, isDataStale, softRefresh])
   );
 
   const onRefresh = async () => {
@@ -93,9 +106,57 @@ export default function ActivitiesScreen({ navigation }) {
     await Promise.all([
       refreshData(),
       loadRegistrations(),
+      fetchInvitations(),
     ]);
     setRefreshing(false);
   };
+
+  // Handle responding to an invitation
+  const handleInvitationResponse = async (invitation, accept) => {
+    setRespondingTo(invitation.id);
+    
+    try {
+      // Get the activity to register for if accepting
+      const activity = activities.find(a => a.id === invitation.activityId);
+      
+      const result = await respondToInvitation(
+        invitation.id, 
+        accept ? 'accept' : 'decline',
+        accept, // autoRegister
+        'Medvandrer' // userName - ideally get from user context
+      );
+      
+      if (result.success) {
+        if (accept) {
+          // Also register locally if we have the activity
+          if (activity) {
+            await registerForActivity(activity);
+          }
+          Alert.alert(
+            '✅ Du er påmeldt!',
+            `Du er nå påmeldt "${invitation.activityTitle}"`,
+            [{ text: 'Flott!' }]
+          );
+        } else {
+          Alert.alert(
+            'Invitasjon avslått',
+            `Du har avslått invitasjonen til "${invitation.activityTitle}"`,
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        Alert.alert('Feil', result.error || 'Kunne ikke svare på invitasjonen');
+      }
+    } catch (error) {
+      console.error('Error responding to invitation:', error);
+      Alert.alert('Feil', 'Noe gikk galt. Prøv igjen.');
+    } finally {
+      setRespondingTo(null);
+    }
+  };
+
+  // Get pending invitations
+  const pendingInvitations = getPendingInvitations();
   
   const markedDates = {};
   activities.forEach((activity) => {
@@ -192,6 +253,107 @@ export default function ActivitiesScreen({ navigation }) {
           />
         }
       >
+        {/* Pending Invitations */}
+        {pendingInvitations.length > 0 && (
+          <View style={styles.invitationsSection}>
+            <View style={styles.invitationsHeader}>
+              <Icon name="mail" size={18} color={theme.colors.info} />
+              <Text style={styles.invitationsHeaderText}>Invitasjoner</Text>
+              <View style={styles.invitationsBadge}>
+                <Text style={styles.invitationsBadgeText}>{pendingInvitations.length}</Text>
+              </View>
+            </View>
+            {pendingInvitations.map((invitation) => {
+              const levelColors = getLevelColors(invitation.senderLevel || 1);
+              const isResponding = respondingTo === invitation.id;
+              
+              return (
+                <View key={invitation.id} style={styles.invitationCard}>
+                  <View style={styles.invitationTop}>
+                    <View style={[styles.invitationAvatar, { borderColor: levelColors.primary }]}>
+                      <Text style={[styles.invitationAvatarText, { color: levelColors.primary }]}>
+                        {(invitation.senderName || 'M').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.invitationInfo}>
+                      <Text style={styles.invitationSender}>{invitation.senderName || 'En Medvandrer'}</Text>
+                      <Text style={styles.invitationText}>inviterer deg til</Text>
+                    </View>
+                  </View>
+                  
+                  <TouchableOpacity
+                    style={styles.invitationActivityCard}
+                    onPress={() => {
+                      const activity = activities.find(a => a.id === invitation.activityId);
+                      if (activity) {
+                        navigation.navigate('ActivityDetail', { activity });
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Icon name="calendar" size={20} color={theme.colors.primary} />
+                    <View style={styles.invitationActivityInfo}>
+                      <Text style={styles.invitationActivityTitle} numberOfLines={1}>
+                        {invitation.activityTitle || 'Aktivitet'}
+                      </Text>
+                      {invitation.activityDate && (
+                        <Text style={styles.invitationActivityDate}>
+                          {new Date(invitation.activityDate).toLocaleDateString('nb-NO', {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short'
+                          })}
+                        </Text>
+                      )}
+                    </View>
+                    <Icon name="chevron-forward" size={16} color={theme.colors.textTertiary} />
+                  </TouchableOpacity>
+
+                  {invitation.message && (
+                    <View style={styles.invitationMessage}>
+                      <Icon name="chatbubble-outline" size={14} color={theme.colors.textTertiary} />
+                      <Text style={styles.invitationMessageText}>"{invitation.message}"</Text>
+                    </View>
+                  )}
+                  
+                  <View style={styles.invitationActions}>
+                    <TouchableOpacity
+                      style={[styles.invitationDeclineButton, isResponding && styles.buttonDisabled]}
+                      onPress={() => handleInvitationResponse(invitation, false)}
+                      disabled={isResponding}
+                      activeOpacity={0.7}
+                    >
+                      {isResponding && respondingTo === invitation.id ? (
+                        <ActivityIndicator size="small" color={theme.colors.error} />
+                      ) : (
+                        <>
+                          <Icon name="close" size={16} color={theme.colors.error} />
+                          <Text style={styles.invitationDeclineText}>Avslå</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.invitationAcceptButton, isResponding && styles.buttonDisabled]}
+                      onPress={() => handleInvitationResponse(invitation, true)}
+                      disabled={isResponding}
+                      activeOpacity={0.7}
+                    >
+                      {isResponding && respondingTo === invitation.id ? (
+                        <ActivityIndicator size="small" color={theme.colors.white} />
+                      ) : (
+                        <>
+                          <Icon name="checkmark" size={16} color={theme.colors.white} />
+                          <Text style={styles.invitationAcceptText}>Bli med!</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>
           <TouchableOpacity
@@ -758,5 +920,162 @@ const styles = StyleSheet.create({
   
   bottomSpacer: {
     height: theme.spacing.xxl,
+  },
+
+  // Invitations Section
+  invitationsSection: {
+    paddingHorizontal: isWeb ? 0 : theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
+  },
+  invitationsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  invitationsHeaderText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  invitationsBadge: {
+    backgroundColor: theme.colors.info,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xs,
+  },
+  invitationsBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.white,
+  },
+  invitationCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.sm,
+    borderWidth: 2,
+    borderColor: theme.colors.info + '30',
+    ...theme.shadows.small,
+  },
+  invitationTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  invitationAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    backgroundColor: theme.colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: theme.spacing.md,
+  },
+  invitationAvatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  invitationInfo: {
+    flex: 1,
+  },
+  invitationSender: {
+    ...theme.typography.body,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  invitationText: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+  },
+  invitationActivityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary + '10',
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  invitationActivityInfo: {
+    flex: 1,
+  },
+  invitationActivityTitle: {
+    ...theme.typography.body,
+    fontWeight: '700',
+    color: theme.colors.text,
+    fontSize: 15,
+  },
+  invitationActivityDate: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  invitationMessage: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  invitationMessageText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
+    fontStyle: 'italic',
+    flex: 1,
+    lineHeight: 20,
+  },
+  invitationActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  invitationDeclineButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.xs,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.error + '15',
+    borderWidth: 1,
+    borderColor: theme.colors.error + '30',
+  },
+  invitationDeclineText: {
+    ...theme.typography.body,
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.error,
+  },
+  invitationAcceptButton: {
+    flex: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.xs,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.success,
+  },
+  invitationAcceptText: {
+    ...theme.typography.body,
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.white,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });

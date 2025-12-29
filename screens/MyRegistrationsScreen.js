@@ -50,7 +50,25 @@ const getActivityTypeColor = (type) => {
 const isUpcoming = (activity) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const activityDate = new Date(activity.endDate || activity.date);
+  
+  // Parse the activity date, handling different formats
+  const dateString = activity.endDate || activity.date;
+  if (!dateString) return false;
+  
+  let activityDate = new Date(dateString);
+  
+  // If date is invalid or parsed incorrectly (e.g., year is way off), try to fix it
+  if (isNaN(activityDate.getTime())) {
+    console.warn('Invalid date for activity:', activity.title, dateString);
+    return false;
+  }
+  
+  // Reset time to start of day for fair comparison
+  activityDate.setHours(0, 0, 0, 0);
+  
+  // Debug logging
+  console.log('isUpcoming check:', activity.title, '| Date:', dateString, '| Parsed:', activityDate.toISOString(), '| Today:', today.toISOString(), '| Result:', activityDate >= today);
+  
   return activityDate >= today;
 };
 
@@ -95,11 +113,13 @@ export default function MyRegistrationsScreen() {
   const fetchUnreadCounts = useCallback(async () => {
     if (!userId || registrations.length === 0) return;
     
-    console.log('Fetching unread counts for', registrations.length, 'activities');
+    // Use a local copy to avoid stale closures
+    const currentRegistrations = [...registrations];
+    console.log('Fetching unread counts for', currentRegistrations.length, 'activities');
     const counts = {};
     
     // Fetch all counts in parallel for faster loading
-    const fetchPromises = registrations.map(async (activityId) => {
+    const fetchPromises = currentRegistrations.map(async (activityId) => {
       try {
         // Add timestamp to prevent caching
         const response = await fetch(
@@ -132,19 +152,23 @@ export default function MyRegistrationsScreen() {
     });
     
     setUnreadCounts(counts);
-    console.log('Updated unread counts:', counts);
-  }, [registrations, userId]);
+  }, [userId]); // Only depend on userId - registrations accessed via closure
 
   // Refresh registrations when screen is focused
+  // Using empty deps to only run on focus, not on every state change
   useFocusEffect(
     useCallback(() => {
       console.log('MyRegistrationsScreen focused - refreshing data');
       loadRegistrations();
-      // Fetch unread counts fresh each time screen gets focus
-      // This ensures counts are updated after viewing messages
-      fetchUnreadCounts();
-    }, [loadRegistrations, fetchUnreadCounts])
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  // Fetch unread counts when registrations or userId changes
+  useEffect(() => {
+    if (userId && registrations.length > 0) {
+      fetchUnreadCounts();
+    }
+  }, [registrations.length, userId]); // Only re-fetch when count changes, not the array itself
 
   useEffect(() => {
     Animated.timing(fadeAnim, {

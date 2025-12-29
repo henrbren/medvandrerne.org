@@ -42,6 +42,7 @@ import TripPlannerScreen from './screens/TripPlannerScreen';
 import MyTripsScreen from './screens/MyTripsScreen';
 import ActivityMessagesScreen from './screens/ActivityMessagesScreen';
 import MyRegistrationsScreen from './screens/MyRegistrationsScreen';
+import JourneyWrappedScreen from './screens/JourneyWrappedScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -577,6 +578,15 @@ function TabNavigator({ navigationRef, currentRoute, onOpenProfile }) {
           headerBackTitleVisible: true,
           title: 'Mine påmeldinger',
           headerRight: headerRight,
+        }}
+      />
+      <Stack.Screen
+        name="JourneyWrapped"
+        component={JourneyWrappedScreen}
+        options={{
+          headerShown: false,
+          presentation: 'fullScreenModal',
+          animation: 'fade',
         }}
       />
     </Stack.Navigator>

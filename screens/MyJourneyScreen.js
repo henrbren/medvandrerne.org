@@ -169,11 +169,11 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
     setQuickAddType(null);
     await loadData();
     
-    // Trigger XP celebration if XP was earned
+    // Trigger XP celebration if XP was earned (quick popup only)
     if (xpEarned > 0) {
       // Small delay to let the modal close first
       setTimeout(() => {
-        triggerCelebration(xpEarned, { forceFull: true });
+        triggerCelebration(xpEarned);
       }, 300);
     }
   };
@@ -348,44 +348,57 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
         contentContainerStyle={[styles.scrollContent, isWeb && styles.scrollContentWeb]}
         bounces={true}
       >
-        {/* HERO: Level Card - Compact but impactful */}
+        {/* HERO: Level Card - Compact but impactful - Tappable to open Journey Wrapped */}
         {!gamificationLoading && totalXP !== null && (
           <Animated.View style={[styles.heroSection, { opacity: fadeAnim }]}>
-            <LinearGradient
-              colors={[levelColors.primary, levelColors.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => navigation.navigate('JourneyWrapped', {
+                level,
+                totalXP,
+                stats: combinedStats,
+                achievements: unlockedAchievements,
+                xpProgress,
+              })}
             >
-              <View style={styles.heroContent}>
-                <View style={styles.heroLeft}>
-                  <View style={styles.levelBadge}>
-                    <Text style={styles.levelNumber}>{level}</Text>
+              <LinearGradient
+                colors={[levelColors.primary, levelColors.secondary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroCard}
+              >
+                <View style={styles.heroContent}>
+                  <View style={styles.heroLeft}>
+                    <View style={styles.levelBadge}>
+                      <Text style={styles.levelNumber}>{level}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.heroCenter}>
+                    <Text style={styles.levelName}>{getLevelName(level)}</Text>
+                    <Text style={styles.xpText}>{totalXP.toLocaleString()} XP</Text>
+                    {xpProgress.next && (
+                      <View style={styles.progressContainer}>
+                        <View style={styles.progressBar}>
+                          <View style={[styles.progressFill, { width: `${xpProgress.progress * 100}%` }]} />
+                        </View>
+                        <Text style={styles.progressText}>
+                          {Math.round(xpProgress.progress * 100)}% til nivå {level + 1}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.heroRight}>
+                    {animConfig.epic ? (
+                      <View style={styles.epicBadge}>
+                        <Icon name="sparkles" size={20} color="#FFD700" />
+                      </View>
+                    ) : (
+                      <Icon name="chevron-forward" size={22} color="rgba(255,255,255,0.6)" />
+                    )}
                   </View>
                 </View>
-                <View style={styles.heroCenter}>
-                  <Text style={styles.levelName}>{getLevelName(level)}</Text>
-                  <Text style={styles.xpText}>{totalXP.toLocaleString()} XP</Text>
-                  {xpProgress.next && (
-                    <View style={styles.progressContainer}>
-                      <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${xpProgress.progress * 100}%` }]} />
-                      </View>
-                      <Text style={styles.progressText}>
-                        {Math.round(xpProgress.progress * 100)}% til nivå {level + 1}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <View style={styles.heroRight}>
-                  {animConfig.epic && (
-                    <View style={styles.epicBadge}>
-                      <Icon name="sparkles" size={20} color="#FFD700" />
-                    </View>
-                  )}
-                </View>
-              </View>
-            </LinearGradient>
+              </LinearGradient>
+            </TouchableOpacity>
           </Animated.View>
         )}
 

@@ -22,6 +22,7 @@ import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useRegistrations } from '../hooks/useRegistrations';
 import { useActivityStats } from '../hooks/useActivityStats';
+import InviteFriendModal from '../components/modals/InviteFriendModal';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -108,6 +109,7 @@ export default function ActivityDetailScreen() {
   const [isCompletedState, setIsCompletedState] = useState(false);
   const [registrationCount, setRegistrationCount] = useState(activity?.registrationCount || 0);
   const [isLoading, setIsLoading] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -628,6 +630,24 @@ export default function ActivityDetailScreen() {
                     <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
                   </TouchableOpacity>
                 )}
+
+                {/* Invite from Flokken - Only visible when registered */}
+                {isRegisteredState && (
+                  <TouchableOpacity
+                    style={styles.inviteButton}
+                    activeOpacity={0.85}
+                    onPress={() => setShowInviteModal(true)}
+                  >
+                    <View style={styles.inviteButtonIcon}>
+                      <Icon name="person-add" size={24} color={theme.colors.info} />
+                    </View>
+                    <View style={styles.inviteButtonContent}>
+                      <Text style={styles.inviteButtonTitle}>Inviter fra Flokken</Text>
+                      <Text style={styles.inviteButtonSubtitle}>Del aktiviteten med en venn</Text>
+                    </View>
+                    <Icon name="chevron-forward" size={20} color={theme.colors.textTertiary} />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -635,6 +655,13 @@ export default function ActivityDetailScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Invite Friend Modal */}
+      <InviteFriendModal
+        visible={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        activity={activity}
+      />
     </View>
   );
 }
@@ -1024,6 +1051,42 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs / 2,
   },
   messagesButtonSubtitle: {
+    ...theme.typography.caption,
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+
+  // Invite Button
+  inviteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.info + '10',
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+    borderWidth: 2,
+    borderColor: theme.colors.info + '30',
+  },
+  inviteButtonIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.info + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inviteButtonContent: {
+    flex: 1,
+  },
+  inviteButtonTitle: {
+    ...theme.typography.body,
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs / 2,
+  },
+  inviteButtonSubtitle: {
     ...theme.typography.caption,
     fontSize: 12,
     color: theme.colors.textSecondary,
