@@ -30,7 +30,7 @@ export const useInvitations = () => {
     if (userId) {
       fetchInvitations();
     }
-  }, [userId]);
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Fetch all invitations for the current user

@@ -28,18 +28,8 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
  */
 export default function InviteFriendModal({ visible, onClose, activity }) {
   const { contacts, loading: contactsLoading } = useContacts();
-  const { sendInvitation, hasInvitedContactToActivity, sentInvitations } = useInvitations();
+  const { sendInvitation, hasInvitedContactToActivity } = useInvitations();
   const { user, localStats } = useAuth();
-
-  // Debug logging
-  useEffect(() => {
-    if (visible) {
-      console.log('InviteFriendModal opened');
-      console.log('Activity:', activity?.title);
-      console.log('Contacts count:', contacts?.length);
-      console.log('Contacts loading:', contactsLoading);
-    }
-  }, [visible, contacts, contactsLoading, activity]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContact, setSelectedContact] = useState(null);
@@ -104,7 +94,7 @@ export default function InviteFriendModal({ visible, onClose, activity }) {
   // Check if contact has already been invited to this activity
   const isAlreadyInvited = useCallback((contactId) => {
     return hasInvitedContactToActivity(contactId, activity?.id);
-  }, [hasInvitedContactToActivity, activity?.id, sentInvitations]);
+  }, [hasInvitedContactToActivity, activity?.id]);
 
   // Handle selecting a contact
   const handleSelectContact = (contact) => {
