@@ -33,6 +33,7 @@ import { SAMPLE_ACTIVITIES } from '../constants/data';
 import { getLevelColors, getLevelAnimationConfig, getLevelName, getAchievementMotivation } from '../utils/journeyUtils';
 import XPCelebration, { QuickXPPopup } from '../components/XPCelebration';
 import { useXPCelebration } from '../hooks/useXPCelebration';
+import LevelBackground from '../components/LevelBackground';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -123,6 +124,7 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
     onCelebrationComplete,
     dismissCelebration,
     triggerCelebration,
+    resetCelebrationState,
   } = useXPCelebration(totalXP, level);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -214,17 +216,56 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await Promise.all([
-                AsyncStorage.removeItem('@medvandrerne_gamification'),
-                AsyncStorage.removeItem('@medvandrerne_skills'),
-                AsyncStorage.removeItem('@medvandrerne_mastery_log'),
-                AsyncStorage.removeItem('@medvandrerne_mastery_moments'),
-                AsyncStorage.removeItem('@medvandrerne_expeditions'),
-                AsyncStorage.removeItem('@medvandrerne_environment_actions'),
-                AsyncStorage.removeItem('@medvandrerne_activity_stats'),
-                AsyncStorage.removeItem('@medvandrerne_registrations'),
-                AsyncStorage.removeItem('@medvandrerne_trips'),
-              ]);
+              // Reset celebration state first to prevent any celebrations during reset
+              resetCelebrationState();
+              
+              // All storage keys that should be reset
+              const keysToReset = [
+                // Gamification & XP
+                '@medvandrerne_gamification',
+                '@medvandrerne_gamification_last_sync',
+                
+                // Skills
+                '@medvandrerne_skills',
+                
+                // Mastery log & moments
+                '@medvandrerne_mastery_log',
+                '@medvandrerne_mastery_moments',
+                
+                // Activities & tracking
+                '@medvandrerne_expeditions',
+                '@medvandrerne_environment_actions',
+                '@medvandrerne_activity_stats',
+                '@medvandrerne_completed_activities',
+                
+                // Registrations
+                '@medvandrerne_registrations',
+                '@medvandrerne_registration_counts',
+                
+                // Trips
+                '@medvandrerne_trips',
+                '@medvandrerne_trip_routes',
+                
+                // Pedometer / steps
+                '@medvandrerne_pedometer',
+                '@medvandrerne_pedometer_history',
+                
+                // Contacts & favorites
+                '@medvandrerne_contacts',
+                '@medvandrerne_favorite_contacts',
+                '@medvandrerne_favorite_groups',
+                
+                // Location sharing
+                '@medvandrerne_location_sharing',
+                
+                // Invitations cache
+                '@medvandrerne_invitations_cache',
+              ];
+              
+              await Promise.all(
+                keysToReset.map(key => AsyncStorage.removeItem(key))
+              );
+              
               await new Promise(resolve => setTimeout(resolve, 200));
               await Promise.all([
                 loadRegistrations(),
@@ -357,6 +398,12 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
 
   return (
     <View style={[styles.container, level > 11 && levelColors.background && { backgroundColor: levelColors.background }]}>
+      {/* Animated level-based background stripes */}
+      <LevelBackground 
+        level={level} 
+        boosted={quickPopup.visible || showCelebration}
+      />
+      
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -854,7 +901,6 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
       <QuickXPPopup
         visible={quickPopup.visible}
         xpAmount={quickPopup.xp}
-        position={quickPopup.position}
       />
     </View>
   );

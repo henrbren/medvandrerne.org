@@ -80,6 +80,15 @@ export const useXPCelebration = (currentXP, currentLevel) => {
 
     const xpGained = currentXP - previousXP.current;
     const didLevelUp = currentLevel > previousLevel.current;
+    const didLevelDown = currentLevel < previousLevel.current;
+
+    // Ignore level/XP resets (e.g., when user resets data)
+    if (didLevelDown || (xpGained < 0 && Math.abs(xpGained) > 100)) {
+      // Level went down or XP dropped significantly - this is a reset, not a celebration
+      previousXP.current = currentXP;
+      previousLevel.current = currentLevel;
+      return;
+    }
 
     // Level up triggers a full celebration
     if (didLevelUp) {
@@ -168,6 +177,21 @@ export const useXPCelebration = (currentXP, currentLevel) => {
     onCelebrationComplete();
   }, [onCelebrationComplete]);
 
+  // Reset celebration state (for use when resetting all data)
+  const resetCelebrationState = useCallback(() => {
+    celebrationQueue.current = [];
+    isProcessing.current = false;
+    hasInitialized.current = false;
+    setShowCelebration(false);
+    setCelebrationXP(0);
+    setCelebrationType('normal');
+    setLevelUp(false);
+    setNewLevel(null);
+    setQuickPopup({ visible: false, xp: 0, position: { x: 0, y: 0 } });
+    previousXP.current = null;
+    previousLevel.current = null;
+  }, []);
+
   return {
     // State
     showCelebration,
@@ -181,6 +205,7 @@ export const useXPCelebration = (currentXP, currentLevel) => {
     triggerCelebration,
     onCelebrationComplete,
     dismissCelebration,
+    resetCelebrationState,
     
     // Thresholds for reference
     CELEBRATION_THRESHOLDS,

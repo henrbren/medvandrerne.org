@@ -15,6 +15,67 @@ import { theme } from '../constants/theme';
 
 const { width, height } = Dimensions.get('window');
 
+// Celebration text variations for different XP levels
+const CELEBRATION_TEXTS = {
+  legendary: [
+    { title: '🏆 LEGENDARISK!', subtitle: 'Du er en ekte mester!' },
+    { title: '👑 KONGEPOENG!', subtitle: 'Naturen bøyer seg for deg!' },
+    { title: '🌟 SUPERHELTNIVÅ!', subtitle: 'Er du i det hele tatt menneskelig?!' },
+    { title: '🔥 PÅ FYYYYR!', subtitle: 'Noen ring brannvesenet!' },
+    { title: '💎 DIAMANT!', subtitle: 'Sjelden og verdifull!' },
+    { title: '🚀 ROMFART!', subtitle: 'Houston, vi har en legende!' },
+    { title: '⚡ GUDMODUS!', subtitle: 'Thor ville vært sjalu!' },
+    { title: '🎯 BULLSEYE!', subtitle: 'Perfeksjon personifisert!' },
+  ],
+  epic: [
+    { title: '⚡ EPISK!', subtitle: 'Fantastisk prestasjon!' },
+    { title: '🔥 DU BRENNER!', subtitle: 'Ingen kan stoppe deg nå!' },
+    { title: '💪 KRAFTPAKKE!', subtitle: 'Muskler og hjerne i harmoni!' },
+    { title: '🌊 BØLGEN!', subtitle: 'Du surfer på toppen!' },
+    { title: '🎸 ROCKESTJERNE!', subtitle: 'Naturen er din scene!' },
+    { title: '⭐ SUPERSTJERNE!', subtitle: 'Du lyser opp skogen!' },
+    { title: '🏔️ FJELLGEIT!', subtitle: 'Ingen topp er for høy!' },
+    { title: '🦅 ØRNEØYE!', subtitle: 'Du ser alt og mestrer alt!' },
+  ],
+  big: [
+    { title: '🌟 FANTASTISK!', subtitle: 'Du gjør det flott!' },
+    { title: '💫 IMPONERENDE!', subtitle: 'Bare fortsett sånn!' },
+    { title: '🎉 PARTY!', subtitle: 'Feiring er på sin plass!' },
+    { title: '🌈 REGNBUE!', subtitle: 'Fargerik innsats!' },
+    { title: '🍀 HELDIG!', subtitle: 'Eller er det bare talent?' },
+    { title: '🎯 TREFF!', subtitle: 'Rett i blinken!' },
+    { title: '🌲 SKOGSMESTER!', subtitle: 'Naturen elsker deg!' },
+    { title: '🦊 LUSANSEN!', subtitle: 'Smart og rask!' },
+  ],
+  normal: [
+    { title: '✨ BRA JOBBA!', subtitle: 'Fortsett sånn!' },
+    { title: '👍 NICE!', subtitle: 'Hvert skritt teller!' },
+    { title: '🌿 GRØNT LYS!', subtitle: 'Du er på rett vei!' },
+    { title: '🚶 STEGVIS!', subtitle: 'Små skritt, stor fremgang!' },
+    { title: '💚 HJERTE!', subtitle: 'Naturen setter pris på deg!' },
+    { title: '🌱 VEKST!', subtitle: 'Du blomstrer!' },
+    { title: '⚡ ENERGI!', subtitle: 'La den flyte!' },
+    { title: '🎈 OPPTUR!', subtitle: 'Bare oppover herfra!' },
+    { title: '🐿️ EKORNENERGI!', subtitle: 'Samler poeng som nøtter!' },
+    { title: '🦔 PIGGSVIN!', subtitle: 'Liten men tøff!' },
+  ],
+};
+
+// Level up text variations
+const LEVEL_UP_TEXTS = [
+  { title: '🎊 NIVÅ OPP!', subtitle: 'Du har nådd nye høyder!' },
+  { title: '🆙 LEVEL UP!', subtitle: 'Neste kapittel begynner!' },
+  { title: '🏅 FORFREMMET!', subtitle: 'Du klatrer oppover!' },
+  { title: '🌟 OPPGRADERING!', subtitle: 'Ny og forbedret versjon!' },
+  { title: '🚀 AVANSERT!', subtitle: 'Ingenting stopper deg!' },
+  { title: '👆 NESTE NIVÅ!', subtitle: 'Himmelens grensen!' },
+  { title: '🎖️ RANGERT OPP!', subtitle: 'Respekt!' },
+  { title: '⬆️ STIGNING!', subtitle: 'Du flyr høyt nå!' },
+];
+
+// Helper to get random item from array
+const getRandomItem = (array) => array[Math.floor(Math.random() * array.length)];
+
 // Main XP Celebration Component - Simplified version without particles
 export default function XPCelebration({ 
   visible, 
@@ -29,39 +90,57 @@ export default function XPCelebration({
   const badgeScale = useRef(new Animated.Value(0)).current;
   const [displayXP, setDisplayXP] = useState(0);
   const countValue = useRef(0);
+  // Store the random texts so they don't change during animation
+  const celebrationText = useRef(null);
+  const levelUpText = useRef(null);
 
   const getCelebrationConfig = () => {
+    // Get random text for this celebration (only once per celebration)
+    if (!celebrationText.current) {
+      if (celebrationType === 'legendary' || xpAmount >= 200) {
+        celebrationText.current = getRandomItem(CELEBRATION_TEXTS.legendary);
+      } else if (celebrationType === 'epic' || xpAmount >= 100) {
+        celebrationText.current = getRandomItem(CELEBRATION_TEXTS.epic);
+      } else if (celebrationType === 'big' || xpAmount >= 50) {
+        celebrationText.current = getRandomItem(CELEBRATION_TEXTS.big);
+      } else {
+        celebrationText.current = getRandomItem(CELEBRATION_TEXTS.normal);
+      }
+    }
+    
+    const text = celebrationText.current;
+    
     // Priority: celebrationType first, then xpAmount thresholds (lowered for more frequent celebrations)
     if (celebrationType === 'legendary' || xpAmount >= 200) {
       return {
         duration: 3500,
         gradient: ['#FFD700', '#FF6347', '#FF4500'],
-        title: '🏆 LEGENDARISK!',
-        subtitle: 'Du er en ekte mester!',
+        title: text.title,
+        subtitle: text.subtitle,
         icon: 'trophy',
       };
     } else if (celebrationType === 'epic' || xpAmount >= 100) {
       return {
         duration: 3000,
         gradient: ['#9B59B6', '#8E44AD', '#6C3483'],
-        title: '⚡ EPISK!',
-        subtitle: 'Fantastisk prestasjon!',
+        title: text.title,
+        subtitle: text.subtitle,
         icon: 'flash',
       };
     } else if (celebrationType === 'big' || xpAmount >= 50) {
       return {
         duration: 2500,
         gradient: ['#3498DB', '#2980B9', '#1ABC9C'],
-        title: '🌟 FANTASTISK!',
-        subtitle: 'Du gjør det flott!',
+        title: text.title,
+        subtitle: text.subtitle,
         icon: 'star',
       };
     } else {
       return {
         duration: 2000,
         gradient: [theme.colors.success, '#22C55E'],
-        title: '✨ BRA JOBBA!',
-        subtitle: 'Fortsett sånn!',
+        title: text.title,
+        subtitle: text.subtitle,
         icon: 'star',
       };
     }
@@ -179,6 +258,9 @@ export default function XPCelebration({
       xpScale.setValue(0);
       badgeScale.setValue(0);
       setDisplayXP(0);
+      // Reset text refs so we get new random texts next time
+      celebrationText.current = null;
+      levelUpText.current = null;
     }
   }, [visible, xpAmount, celebrationType, levelUp]);
 
@@ -218,22 +300,31 @@ export default function XPCelebration({
       </Animated.View>
 
       {/* Level Up Badge */}
-      {levelUp && newLevel && (
-        <Animated.View
-          style={[
-            styles.levelUpContainer,
-            { transform: [{ scale: badgeScale }] },
-          ]}
-        >
-          <LinearGradient
-            colors={['#FFD700', '#FFA500']}
-            style={styles.levelUpBadge}
+      {levelUp && newLevel && (() => {
+        // Get random level up text (only once per celebration)
+        if (!levelUpText.current) {
+          levelUpText.current = getRandomItem(LEVEL_UP_TEXTS);
+        }
+        const lvlText = levelUpText.current;
+        
+        return (
+          <Animated.View
+            style={[
+              styles.levelUpContainer,
+              { transform: [{ scale: badgeScale }] },
+            ]}
           >
-            <Icon name="arrow-up-circle" size={28} color={theme.colors.white} />
-            <Text style={styles.levelUpText}>Nivå {newLevel}!</Text>
-          </LinearGradient>
-        </Animated.View>
-      )}
+            <LinearGradient
+              colors={['#FFD700', '#FFA500']}
+              style={styles.levelUpBadge}
+            >
+              <Text style={styles.levelUpTitle}>{lvlText.title}</Text>
+              <Text style={styles.levelUpLevel}>Nivå {newLevel}</Text>
+              <Text style={styles.levelUpSubtitle}>{lvlText.subtitle}</Text>
+            </LinearGradient>
+          </Animated.View>
+        );
+      })()}
 
       {/* Tap to dismiss */}
       <View style={styles.dismissHint}>
@@ -243,8 +334,8 @@ export default function XPCelebration({
   );
 }
 
-// Quick XP popup for smaller gains
-export function QuickXPPopup({ visible, xpAmount, position = { x: width / 2, y: height / 2 } }) {
+// Quick XP popup for smaller gains - always shows centered at top of screen
+export function QuickXPPopup({ visible, xpAmount }) {
   const scale = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -270,7 +361,7 @@ export function QuickXPPopup({ visible, xpAmount, position = { x: width / 2, y: 
       setTimeout(() => {
         Animated.parallel([
           Animated.timing(translateY, {
-            toValue: -50,
+            toValue: -30,
             duration: 600,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
@@ -291,10 +382,8 @@ export function QuickXPPopup({ visible, xpAmount, position = { x: width / 2, y: 
   return (
     <Animated.View
       style={[
-        styles.quickPopup,
+        styles.quickPopupContainer,
         {
-          left: position.x - 40,
-          top: position.y - 20,
           transform: [{ scale }, { translateY }],
           opacity,
         },
@@ -393,15 +482,16 @@ const styles = StyleSheet.create({
   },
   levelUpContainer: {
     position: 'absolute',
-    top: height * 0.28,
+    bottom: height * 0.22, // Position below the centered XP card
   },
   levelUpBadge: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 50,
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 32,
+    borderRadius: 20,
+    minWidth: 180,
     ...Platform.select({
       ios: {
         shadowColor: '#FFD700',
@@ -417,10 +507,23 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  levelUpText: {
-    fontSize: 22,
+  levelUpTitle: {
+    fontSize: 18,
     fontWeight: '800',
     color: theme.colors.white,
+    marginBottom: 4,
+  },
+  levelUpLevel: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: theme.colors.white,
+    marginBottom: 4,
+  },
+  levelUpSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
   },
   dismissHint: {
     position: 'absolute',
@@ -431,8 +534,12 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     opacity: 0.5,
   },
-  quickPopup: {
+  quickPopupContainer: {
     position: 'absolute',
+    top: 100, // Safe distance from top (below status bar and headers)
+    left: 0,
+    right: 0,
+    alignItems: 'center',
     zIndex: 9998,
   },
   quickPopupGradient: {
