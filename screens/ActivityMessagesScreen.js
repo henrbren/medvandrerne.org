@@ -234,16 +234,17 @@ export default function ActivityMessagesScreen() {
     }, [fetchMessages])
   );
 
-  // Mark messages as read
+  // Mark messages as read - with cache-busting
   const markAsRead = async (messageIds) => {
-    if (!userId || !activity?.id) return;
+    if (!userId || !activity?.id || messageIds.length === 0) return;
     
     try {
-      await fetch(`${API_BASE_URL}/activity-messages/mark-read.php`, {
+      const response = await fetch(`${API_BASE_URL}/activity-messages/mark-read.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
         },
         body: JSON.stringify({
           activityId: activity.id,
@@ -252,7 +253,10 @@ export default function ActivityMessagesScreen() {
         }),
       });
       
-      setReadMessages(prev => [...new Set([...prev, ...messageIds])]);
+      if (response.ok) {
+        setReadMessages(prev => [...new Set([...prev, ...messageIds])]);
+        console.log('Marked messages as read:', messageIds);
+      }
     } catch (error) {
       console.error('Error marking as read:', error);
     }

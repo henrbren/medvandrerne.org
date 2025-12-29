@@ -11,6 +11,7 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
+  Easing,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -90,42 +91,66 @@ export default function MyRegistrationsScreen() {
     getUserId();
   }, []);
 
-  // Fetch unread message counts
+  // Fetch unread message counts with cache-busting
   const fetchUnreadCounts = useCallback(async () => {
-    if (!userId) return;
+    if (!userId || registrations.length === 0) return;
     
+    console.log('Fetching unread counts for', registrations.length, 'activities');
     const counts = {};
-    for (const activityId of registrations) {
+    
+    // Fetch all counts in parallel for faster loading
+    const fetchPromises = registrations.map(async (activityId) => {
       try {
+        // Add timestamp to prevent caching
         const response = await fetch(
-          `${API_BASE_URL}/activity-messages/get.php?activityId=${activityId}&userId=${userId}`,
-          { method: 'GET', headers: { 'Accept': 'application/json' } }
+          `${API_BASE_URL}/activity-messages/get.php?activityId=${activityId}&userId=${userId}&_t=${Date.now()}`,
+          { 
+            method: 'GET', 
+            headers: { 
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache',
+            } 
+          }
         );
         if (response.ok) {
           const result = await response.json();
-          if (result.success && result.unreadCount > 0) {
-            counts[activityId] = result.unreadCount;
+          if (result.success) {
+            return { activityId, count: result.unreadCount || 0 };
           }
         }
       } catch (error) {
-        console.error('Error fetching unread count:', error);
+        console.error('Error fetching unread count for', activityId, error);
       }
-    }
+      return { activityId, count: 0 };
+    });
+    
+    const results = await Promise.all(fetchPromises);
+    results.forEach(({ activityId, count }) => {
+      if (count > 0) {
+        counts[activityId] = count;
+      }
+    });
+    
     setUnreadCounts(counts);
+    console.log('Updated unread counts:', counts);
   }, [registrations, userId]);
 
   // Refresh registrations when screen is focused
   useFocusEffect(
     useCallback(() => {
+      console.log('MyRegistrationsScreen focused - refreshing data');
       loadRegistrations();
+      // Fetch unread counts fresh each time screen gets focus
+      // This ensures counts are updated after viewing messages
       fetchUnreadCounts();
-    }, [fetchUnreadCounts])
+    }, [loadRegistrations, fetchUnreadCounts])
   );
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: theme.animations.normal,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
   }, []);

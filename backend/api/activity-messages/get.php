@@ -6,6 +6,11 @@
 require_once __DIR__ . '/../../config.php';
 setCorsHeaders();
 
+// Prevent caching for live data
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Get activity ID from query parameter
 $activityId = $_GET['activityId'] ?? null;
 
