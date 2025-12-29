@@ -9,6 +9,7 @@ const XP_PER_MASTERY_MOMENT = 40;
 const XP_PER_EXPEDITION = 60;
 const XP_PER_ENVIRONMENT_ACTION = 35;
 const XP_PER_WEEK_STREAK = 25;
+// Trip XP is calculated dynamically based on distance, elevation, difficulty
 
 // Level thresholds (XP required for each level)
 const LEVEL_THRESHOLDS = [
@@ -613,6 +614,153 @@ const ACHIEVEMENTS = [
     threshold: 200,
     xpReward: 5000,
   },
+  // Trip achievements
+  {
+    id: 'first_trip',
+    title: 'Første tur',
+    description: 'Logg din første tur',
+    icon: 'footsteps',
+    category: 'trips',
+    threshold: 1,
+    xpReward: 50,
+  },
+  {
+    id: 'three_trips',
+    title: 'Turglad',
+    description: 'Logg 3 turer',
+    icon: 'footsteps',
+    category: 'trips',
+    threshold: 3,
+    xpReward: 100,
+  },
+  {
+    id: 'five_trips',
+    title: 'Turentusiast',
+    description: 'Logg 5 turer',
+    icon: 'footsteps',
+    category: 'trips',
+    threshold: 5,
+    xpReward: 150,
+  },
+  {
+    id: 'ten_trips',
+    title: 'Erfaren turgåer',
+    description: 'Logg 10 turer',
+    icon: 'trail-sign',
+    category: 'trips',
+    threshold: 10,
+    xpReward: 300,
+  },
+  {
+    id: 'twenty_five_trips',
+    title: 'Turveteran',
+    description: 'Logg 25 turer',
+    icon: 'trail-sign',
+    category: 'trips',
+    threshold: 25,
+    xpReward: 750,
+  },
+  {
+    id: 'fifty_trips',
+    title: 'Turekspert',
+    description: 'Logg 50 turer',
+    icon: 'compass',
+    category: 'trips',
+    threshold: 50,
+    xpReward: 1500,
+  },
+  {
+    id: 'hundred_trips',
+    title: 'Turlegende',
+    description: 'Logg 100 turer',
+    icon: 'compass',
+    category: 'trips',
+    threshold: 100,
+    xpReward: 3000,
+  },
+  // Distance milestones
+  {
+    id: 'first_10km',
+    title: 'Første 10 km',
+    description: 'Gå totalt 10 km',
+    icon: 'walk',
+    category: 'tripDistance',
+    threshold: 10,
+    xpReward: 50,
+  },
+  {
+    id: 'first_50km',
+    title: 'Halvmaraton',
+    description: 'Gå totalt 50 km',
+    icon: 'walk',
+    category: 'tripDistance',
+    threshold: 50,
+    xpReward: 150,
+  },
+  {
+    id: 'first_100km',
+    title: 'Hundrekilometeren',
+    description: 'Gå totalt 100 km',
+    icon: 'walk',
+    category: 'tripDistance',
+    threshold: 100,
+    xpReward: 300,
+  },
+  {
+    id: 'first_500km',
+    title: 'Langdistansevandrer',
+    description: 'Gå totalt 500 km',
+    icon: 'walk',
+    category: 'tripDistance',
+    threshold: 500,
+    xpReward: 1000,
+  },
+  {
+    id: 'first_1000km',
+    title: 'Norgesvandrer',
+    description: 'Gå totalt 1000 km',
+    icon: 'globe',
+    category: 'tripDistance',
+    threshold: 1000,
+    xpReward: 2500,
+  },
+  // Elevation milestones
+  {
+    id: 'first_1000m_elevation',
+    title: 'Fjellklatrer',
+    description: 'Gå totalt 1000 høydemeter',
+    icon: 'trending-up',
+    category: 'tripElevation',
+    threshold: 1000,
+    xpReward: 100,
+  },
+  {
+    id: 'first_5000m_elevation',
+    title: 'Fjellentusiast',
+    description: 'Gå totalt 5000 høydemeter',
+    icon: 'trending-up',
+    category: 'tripElevation',
+    threshold: 5000,
+    xpReward: 300,
+  },
+  {
+    id: 'first_10000m_elevation',
+    title: 'Toppvandrer',
+    description: 'Gå totalt 10 000 høydemeter',
+    icon: 'trending-up',
+    category: 'tripElevation',
+    threshold: 10000,
+    xpReward: 750,
+  },
+  {
+    id: 'everest_elevation',
+    title: 'Everest-høyde',
+    description: 'Gå totalt 8848 høydemeter (Everest-høyde)',
+    icon: 'flag',
+    category: 'tripElevation',
+    threshold: 8848,
+    xpReward: 1000,
+  },
 ];
 
 export const useGamification = (stats) => {
@@ -638,6 +786,10 @@ export const useGamification = (stats) => {
         environment: stats.totalEnvironmentActions || 0,
         skills: stats.totalSkills || 0,
         skillsXP: stats.skillsXP || 0,
+        trips: stats.totalTrips || 0,
+        tripDistance: stats.totalTripDistance || 0,
+        tripElevation: stats.totalTripElevation || 0,
+        tripsXP: stats.tripsXP || 0,
       });
       
       // Only recalculate if stats actually changed
@@ -724,6 +876,11 @@ export const useGamification = (stats) => {
       baseXP += stats.skillsXP;
     }
     
+    // XP from trips - trips calculate their own XP dynamically
+    if (stats.tripsXP !== undefined && stats.tripsXP !== null) {
+      baseXP += stats.tripsXP;
+    }
+    
     // Ensure baseXP is never negative
     return Math.max(0, baseXP);
   };
@@ -805,6 +962,15 @@ export const useGamification = (stats) => {
           break;
         case 'level':
           currentValue = currentLevel;
+          break;
+        case 'trips':
+          currentValue = stats.totalTrips || 0;
+          break;
+        case 'tripDistance':
+          currentValue = stats.totalTripDistance || 0;
+          break;
+        case 'tripElevation':
+          currentValue = stats.totalTripElevation || 0;
           break;
       }
 
@@ -937,6 +1103,9 @@ export const useGamification = (stats) => {
         case 'skills': currentValue = stats?.totalSkills || 0; break;
         case 'combined': currentValue = (stats?.totalActivities || 0) + (stats?.totalSkills || 0); break;
         case 'level': currentValue = currentCalculatedLevel; break;
+        case 'trips': currentValue = stats?.totalTrips || 0; break;
+        case 'tripDistance': currentValue = stats?.totalTripDistance || 0; break;
+        case 'tripElevation': currentValue = stats?.totalTripElevation || 0; break;
       }
 
       const progress = achievement.threshold > 0 

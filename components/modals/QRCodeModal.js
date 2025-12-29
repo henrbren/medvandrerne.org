@@ -13,7 +13,10 @@ import {
   ActivityIndicator,
   ScrollView,
   Platform,
+  TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { API_BASE_URL } from '../../services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, Camera } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
@@ -262,6 +265,12 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
+  
+  // Manual lookup state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResult, setLookupResult] = useState(null);
+  const [lookupError, setLookupError] = useState(null);
 
   useEffect(() => {
     if (visible) {
@@ -358,7 +367,84 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
   const handleClose = () => {
     setMode('show');
     setScanned(false);
+    setPhoneNumber('');
+    setLookupResult(null);
+    setLookupError(null);
     onClose();
+  };
+
+  // Manual phone lookup
+  const handlePhoneLookup = async () => {
+    if (!phoneNumber || phoneNumber.length < 8) {
+      setLookupError('Skriv inn et gyldig telefonnummer (8 siffer)');
+      return;
+    }
+
+    setLookupLoading(true);
+    setLookupError(null);
+    setLookupResult(null);
+
+    try {
+      // Normalize phone number
+      let phone = phoneNumber.replace(/\s+/g, '').replace(/[^0-9+]/g, '');
+      if (!phone.startsWith('+')) {
+        phone = '+47' + phone.replace(/^0/, '');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/users/lookup.php?_t=${Date.now()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        body: JSON.stringify({ phoneNumbers: [phone] }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.users && data.users.length > 0) {
+        const foundUser = data.users[0];
+        
+        // Check if user found themselves
+        if (foundUser.id === user?.id) {
+          setLookupError('Du kan ikke legge til deg selv som kontakt');
+          setLookupLoading(false);
+          return;
+        }
+
+        setLookupResult({
+          type: 'medvandrer',
+          id: foundUser.id,
+          name: foundUser.name || 'Medvandrer',
+          phone: foundUser.phone,
+          email: foundUser.email,
+          avatarUrl: foundUser.avatarUrl,
+          level: foundUser.level || 1,
+          levelName: foundUser.levelName || 'Nybegynner',
+          totalPoints: foundUser.totalPoints || 0,
+          completedActivities: foundUser.completedActivities || 0,
+          memberSince: foundUser.memberSince,
+        });
+      } else {
+        setLookupError('Fant ingen bruker med dette telefonnummeret');
+      }
+    } catch (error) {
+      console.error('Lookup error:', error);
+      setLookupError('Kunne ikke søke. Sjekk internettforbindelsen.');
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
+  const handleAddManualContact = () => {
+    if (lookupResult) {
+      onScanSuccess(lookupResult);
+      setPhoneNumber('');
+      setLookupResult(null);
+      setLookupError(null);
+      setMode('show');
+      onClose();
+    }
   };
 
   if (!visible) return null;
@@ -391,7 +477,7 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
           >
             <Icon 
               name="qr-code-outline" 
-              size={20} 
+              size={18} 
               color={mode === 'show' ? theme.colors.white : theme.colors.text} 
             />
             <Text style={[styles.modeButtonText, mode === 'show' && styles.modeButtonTextActive]}>
@@ -404,17 +490,38 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
           >
             <Icon 
               name="scan-outline" 
-              size={20} 
+              size={18} 
               color={mode === 'scan' ? theme.colors.white : theme.colors.text} 
             />
             <Text style={[styles.modeButtonText, mode === 'scan' && styles.modeButtonTextActive]}>
-              Scan kode
+              Scan
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeButton, mode === 'manual' && styles.modeButtonActive]}
+            onPress={() => {
+              setMode('manual');
+              setLookupResult(null);
+              setLookupError(null);
+            }}
+          >
+            <Icon 
+              name="keypad-outline" 
+              size={18} 
+              color={mode === 'manual' ? theme.colors.white : theme.colors.text} 
+            />
+            <Text style={[styles.modeButtonText, mode === 'manual' && styles.modeButtonTextActive]}>
+              Manuell
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Content */}
-        <View style={styles.content}>
+        <KeyboardAvoidingView 
+          style={styles.content} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
+        >
           {mode === 'show' ? (
             <ScrollView 
               style={styles.scrollView}
@@ -494,7 +601,7 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
                 </View>
               </Animated.View>
             </ScrollView>
-          ) : (
+          ) : mode === 'scan' ? (
             <View style={styles.scanContainer}>
               {hasPermission === false ? (
                 <View style={styles.noPermission}>
@@ -538,8 +645,131 @@ export default function QRCodeModal({ visible, onClose, user, localStats, onScan
                 </View>
               )}
             </View>
-          )}
-        </View>
+          ) : mode === 'manual' ? (
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.manualContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.manualContainer}>
+                <View style={styles.manualIcon}>
+                  <Icon name="call" size={40} color={levelColors.primary} />
+                </View>
+                <Text style={styles.manualTitle}>Legg til med telefonnummer</Text>
+                <Text style={styles.manualDescription}>
+                  Skriv inn telefonnummeret til personen du vil legge til i Flokken
+                </Text>
+                
+                {/* Phone Input */}
+                <View style={styles.phoneInputContainer}>
+                  <View style={styles.phonePrefix}>
+                    <Text style={styles.phonePrefixText}>+47</Text>
+                  </View>
+                  <TextInput
+                    style={styles.phoneInput}
+                    value={phoneNumber}
+                    onChangeText={(text) => {
+                      setPhoneNumber(text.replace(/[^0-9]/g, ''));
+                      setLookupError(null);
+                      setLookupResult(null);
+                    }}
+                    placeholder="Telefonnummer"
+                    placeholderTextColor={theme.colors.textTertiary}
+                    keyboardType="phone-pad"
+                    maxLength={8}
+                    autoFocus={false}
+                  />
+                  {phoneNumber.length > 0 && (
+                    <TouchableOpacity 
+                      style={styles.clearButton}
+                      onPress={() => {
+                        setPhoneNumber('');
+                        setLookupResult(null);
+                        setLookupError(null);
+                      }}
+                    >
+                      <Icon name="close-circle" size={20} color={theme.colors.textTertiary} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Search Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.searchButton,
+                    { backgroundColor: levelColors.primary },
+                    (phoneNumber.length < 8 || lookupLoading) && styles.searchButtonDisabled,
+                  ]}
+                  onPress={handlePhoneLookup}
+                  disabled={phoneNumber.length < 8 || lookupLoading}
+                >
+                  {lookupLoading ? (
+                    <ActivityIndicator size="small" color={theme.colors.white} />
+                  ) : (
+                    <>
+                      <Icon name="search" size={20} color={theme.colors.white} />
+                      <Text style={styles.searchButtonText}>Søk</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {/* Error Message */}
+                {lookupError && (
+                  <View style={styles.errorContainer}>
+                    <Icon name="alert-circle" size={18} color={theme.colors.error} />
+                    <Text style={styles.errorText}>{lookupError}</Text>
+                  </View>
+                )}
+
+                {/* Found User */}
+                {lookupResult && (
+                  <View style={styles.foundUserContainer}>
+                    <View style={styles.foundUserCard}>
+                      <View style={[styles.foundUserAvatarRing, { borderColor: getLevelColors(lookupResult.level).primary }]}>
+                        {lookupResult.avatarUrl ? (
+                          <Image source={{ uri: lookupResult.avatarUrl }} style={styles.foundUserAvatar} />
+                        ) : (
+                          <View style={[styles.foundUserAvatarPlaceholder, { backgroundColor: getLevelColors(lookupResult.level).primary }]}>
+                            <Text style={styles.foundUserAvatarText}>
+                              {(lookupResult.name || 'M').charAt(0).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.foundUserInfo}>
+                        <Text style={styles.foundUserName}>{lookupResult.name}</Text>
+                        <View style={[styles.foundUserBadge, { backgroundColor: getLevelColors(lookupResult.level).primary + '20' }]}>
+                          <Icon name="shield-checkmark" size={12} color={getLevelColors(lookupResult.level).primary} />
+                          <Text style={[styles.foundUserLevel, { color: getLevelColors(lookupResult.level).primary }]}>
+                            Nivå {lookupResult.level} · {lookupResult.levelName}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={[styles.addContactButton, { backgroundColor: levelColors.primary }]}
+                      onPress={handleAddManualContact}
+                    >
+                      <Icon name="person-add" size={20} color={theme.colors.white} />
+                      <Text style={styles.addContactButtonText}>Legg til i Flokken</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Hint */}
+                {!lookupResult && !lookupError && (
+                  <View style={styles.manualHint}>
+                    <Icon name="information-circle" size={16} color={theme.colors.textTertiary} />
+                    <Text style={styles.manualHintText}>
+                      Personen må være registrert i Medvandrerne-appen for å kunne finnes
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          ) : null}
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -825,5 +1055,192 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: -100,
     overflow: 'hidden',
+  },
+  // Manual mode styles
+  manualContent: {
+    paddingBottom: 40,
+  },
+  manualContainer: {
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.xl,
+  },
+  manualIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  manualTitle: {
+    ...theme.typography.h3,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  manualDescription: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    width: '100%',
+    marginBottom: theme.spacing.md,
+  },
+  phonePrefix: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    borderRightWidth: 1,
+    borderRightColor: theme.colors.border,
+    backgroundColor: theme.colors.surfaceAlt || 'rgba(255,255,255,0.05)',
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderBottomLeftRadius: theme.borderRadius.lg,
+  },
+  phonePrefixText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
+  },
+  phoneInput: {
+    flex: 1,
+    ...theme.typography.body,
+    color: theme.colors.text,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    fontSize: 18,
+    letterSpacing: 1,
+  },
+  clearButton: {
+    padding: theme.spacing.md,
+  },
+  searchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.lg,
+    width: '100%',
+    marginBottom: theme.spacing.lg,
+  },
+  searchButtonDisabled: {
+    opacity: 0.5,
+  },
+  searchButtonText: {
+    ...theme.typography.button,
+    color: theme.colors.white,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.error + '15',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
+    width: '100%',
+    marginBottom: theme.spacing.md,
+  },
+  errorText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.error,
+    flex: 1,
+  },
+  foundUserContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  foundUserCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    width: '100%',
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  foundUserAvatarRing: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    padding: 2,
+    marginRight: theme.spacing.md,
+  },
+  foundUserAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  foundUserAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  foundUserAvatarText: {
+    ...theme.typography.h3,
+    color: theme.colors.white,
+  },
+  foundUserInfo: {
+    flex: 1,
+  },
+  foundUserName: {
+    ...theme.typography.h4,
+    color: theme.colors.text,
+    marginBottom: 4,
+  },
+  foundUserBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  foundUserLevel: {
+    ...theme.typography.caption,
+    fontWeight: '600',
+  },
+  addContactButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.borderRadius.lg,
+    width: '100%',
+  },
+  addContactButtonText: {
+    ...theme.typography.button,
+    color: theme.colors.white,
+  },
+  manualHint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    marginTop: theme.spacing.md,
+  },
+  manualHintText: {
+    ...theme.typography.caption,
+    color: theme.colors.textTertiary,
+    flex: 1,
+    textAlign: 'center',
   },
 });

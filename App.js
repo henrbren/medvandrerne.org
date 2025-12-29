@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -8,12 +8,14 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from './constants/theme';
 import Sidebar from './components/Sidebar';
+import ProfileHeaderButton from './components/ProfileHeaderButton';
+import ProfileModal from './components/modals/ProfileModal';
 import { requestPermissions } from './services/notifications';
 import { AppDataProvider } from './contexts/AppDataContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ProfileModalProvider, useProfileModal } from './contexts/ProfileModalContext';
 
 import HomeScreen from './screens/HomeScreen';
-import ProfileScreen from './screens/ProfileScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
 import FlokkenScreen from './screens/FlokkenScreen';
 import LocalGroupsScreen from './screens/LocalGroupsScreen';
@@ -34,6 +36,10 @@ import NewsDetailScreen from './screens/NewsDetailScreen';
 import MembershipScreen from './screens/MembershipScreen';
 import FlokkenSettingsScreen from './screens/FlokkenSettingsScreen';
 import FlokkenMapScreen from './screens/FlokkenMapScreen';
+import ProfileInfoScreen from './screens/ProfileInfoScreen';
+import ProfileSettingsScreen from './screens/ProfileSettingsScreen';
+import TripPlannerScreen from './screens/TripPlannerScreen';
+import MyTripsScreen from './screens/MyTripsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -44,8 +50,13 @@ if (isWeb) {
   require('./web.css');
 }
 
-function TabNavigator({ navigationRef, currentRoute }) {
+function TabNavigator({ navigationRef, currentRoute, onOpenProfile }) {
   const insets = useSafeAreaInsets();
+  
+  // Common header right button for profile
+  const headerRight = () => (
+    <ProfileHeaderButton onPress={onOpenProfile} />
+  );
   
   return (
     <Stack.Navigator>
@@ -67,8 +78,6 @@ function TabNavigator({ navigationRef, currentRoute }) {
                   iconName = focused ? 'calendar' : 'calendar-outline';
                 } else if (route.name === 'Flokken') {
                   iconName = focused ? 'people' : 'people-outline';
-                } else if (route.name === 'Profil') {
-                  iconName = focused ? 'person' : 'person-outline';
                 }
 
                 return <Ionicons name={iconName} size={size} color={color} />;
@@ -108,6 +117,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
               headerTitleContainerStyle: {
                 paddingHorizontal: Platform.OS === 'ios' ? 0 : 16,
               },
+              headerRight: headerRight,
             })}
           >
             <Tab.Screen 
@@ -124,6 +134,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
                 },
                 headerTransparent: true,
                 headerBlurEffect: 'dark',
+                headerRight: headerRight,
               })}
             />
             <Tab.Screen 
@@ -131,21 +142,22 @@ function TabNavigator({ navigationRef, currentRoute }) {
               component={MyJourneyScreen}
               options={{
                 headerTitle: 'Min vandring',
+                headerRight: headerRight,
               }}
             />
-            <Tab.Screen name="Aktiviteter" component={ActivitiesScreen} />
+            <Tab.Screen 
+              name="Aktiviteter" 
+              component={ActivitiesScreen}
+              options={{
+                headerRight: headerRight,
+              }}
+            />
             <Tab.Screen 
               name="Flokken" 
               component={FlokkenScreen}
               options={{
                 headerTitle: 'Flokken',
-              }}
-            />
-            <Tab.Screen 
-              name="Profil" 
-              component={ProfileScreen}
-              options={{
-                headerTitle: 'Min Profil',
+                headerRight: headerRight,
               }}
             />
           </Tab.Navigator>
@@ -166,6 +178,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Kontaktinformasjon',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -183,6 +196,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Lokallag',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -200,6 +214,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Kjernevirksomhet',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -217,6 +232,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Aktivitet',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -234,6 +250,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Reisebok',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -251,6 +268,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Ferdigheter',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -268,6 +286,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Alle milepæler',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -285,6 +304,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Lokallag',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -302,6 +322,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Om oss',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -319,6 +340,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Kontakt',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -336,6 +358,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Ekspedisjoner',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -353,6 +376,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Miljøaksjoner',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -370,6 +394,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Nyheter',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -387,6 +412,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Nyhet',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -404,6 +430,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Medlemskap',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -421,6 +448,7 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Innstillinger',
+          headerRight: headerRight,
         }}
       />
       <Stack.Screen
@@ -438,6 +466,79 @@ function TabNavigator({ navigationRef, currentRoute }) {
           headerBackTitle: 'Tilbake',
           headerBackTitleVisible: true,
           title: 'Kart',
+          headerRight: headerRight,
+        }}
+      />
+      <Stack.Screen
+        name="ProfileInfo"
+        component={ProfileInfoScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Profilinformasjon',
+          headerRight: headerRight,
+        }}
+      />
+      <Stack.Screen
+        name="ProfileSettings"
+        component={ProfileSettingsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Innstillinger',
+          headerRight: headerRight,
+        }}
+      />
+      <Stack.Screen
+        name="TripPlanner"
+        component={TripPlannerScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Planlegg tur',
+          headerRight: headerRight,
+        }}
+      />
+      <Stack.Screen
+        name="MyTrips"
+        component={MyTripsScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+          },
+          headerTintColor: theme.colors.white,
+          headerTitleStyle: {
+            fontWeight: '700',
+            fontSize: 18,
+          },
+          headerBackTitle: 'Tilbake',
+          headerBackTitleVisible: true,
+          title: 'Mine turer',
+          headerRight: headerRight,
         }}
       />
     </Stack.Navigator>
@@ -449,6 +550,7 @@ function AppWithNavigation() {
   const [currentRoute, setCurrentRoute] = React.useState('Hjem');
   const [navigationReady, setNavigationReady] = React.useState(false);
   const [isMobileWeb, setIsMobileWeb] = React.useState(false);
+  const { visible: showProfileModal, openScanner, showProfileModal: handleOpenProfile, hideProfileModal } = useProfileModal();
 
   React.useEffect(() => {
     if (isWeb) {
@@ -480,15 +582,31 @@ function AppWithNavigation() {
     >
       <View style={styles.appContainer}>
         {isWeb && !isMobileWeb && navigationReady && navigationRef.current && (
-          <Sidebar navigation={navigationRef.current} currentRoute={currentRoute} />
+          <Sidebar 
+            navigation={navigationRef.current} 
+            currentRoute={currentRoute}
+            onOpenProfile={() => handleOpenProfile()}
+          />
         )}
         <View style={[
           styles.contentContainer, 
           isWeb && !isMobileWeb && styles.webContentContainer
         ]}>
-          <TabNavigator navigationRef={navigationRef} currentRoute={currentRoute} />
+          <TabNavigator 
+            navigationRef={navigationRef} 
+            currentRoute={currentRoute} 
+            onOpenProfile={() => handleOpenProfile()}
+          />
         </View>
       </View>
+      
+      {/* Profile Modal - accessible from all screens */}
+      <ProfileModal 
+        visible={showProfileModal}
+        onClose={hideProfileModal}
+        navigation={navigationRef.current}
+        initialOpenScanner={openScanner}
+      />
     </NavigationContainer>
   );
 }
@@ -507,8 +625,10 @@ export default function App() {
     <SafeAreaProvider>
       <AppDataProvider>
         <AuthProvider>
-          <StatusBar style="light" backgroundColor={theme.colors.primary} />
-          <AppWithNavigation />
+          <ProfileModalProvider>
+            <StatusBar style="light" backgroundColor={theme.colors.primary} />
+            <AppWithNavigation />
+          </ProfileModalProvider>
         </AuthProvider>
       </AppDataProvider>
     </SafeAreaProvider>

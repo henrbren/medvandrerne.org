@@ -12,10 +12,10 @@ const menuItems = [
   { name: 'Min vandring', icon: 'map', route: 'Min vandring', color: theme.colors.success },
   { name: 'Aktiviteter', icon: 'calendar', route: 'Aktiviteter', color: theme.colors.primaryLight },
   { name: 'Flokken', icon: 'people', route: 'Flokken', color: theme.colors.info },
-  { name: 'Min Profil', icon: 'person', route: 'Profil', color: theme.colors.warning },
+  { name: 'Min Profil', icon: 'person', route: 'profile-modal', color: theme.colors.warning, isModal: true },
 ];
 
-export default function Sidebar({ navigation, currentRoute }) {
+export default function Sidebar({ navigation, currentRoute, onOpenProfile }) {
   if (!isWeb) return null;
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -71,11 +71,19 @@ export default function Sidebar({ navigation, currentRoute }) {
         {menuItems.map((item, index) => {
           const isActive = currentRoute === item.route;
           
+          const handlePress = () => {
+            if (item.isModal && onOpenProfile) {
+              onOpenProfile();
+            } else {
+              navigation.navigate(item.route);
+            }
+          };
+          
           return (
             <TouchableOpacity
               key={item.route}
               style={[styles.menuItem, isActive && styles.menuItemActive]}
-              onPress={() => navigation.navigate(item.route)}
+              onPress={handlePress}
               activeOpacity={0.8}
             >
               {isActive && (

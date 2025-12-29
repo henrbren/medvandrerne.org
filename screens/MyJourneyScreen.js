@@ -26,6 +26,7 @@ import { useMasteryLog } from '../hooks/useMasteryLog';
 import { useActivityTracking } from '../hooks/useActivityTracking';
 import { useSkills, SKILLS } from '../hooks/useSkills';
 import { useGamification } from '../hooks/useGamification';
+import { useTripPlanner } from '../hooks/useTripPlanner';
 import { SAMPLE_ACTIVITIES } from '../constants/data';
 import { getLevelColors, getLevelAnimationConfig, getLevelName, getAchievementMotivation } from '../utils/journeyUtils';
 
@@ -55,6 +56,7 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
   const { entries, moments, getStats: getMasteryStats, loadData, addEntry, addMoment } = useMasteryLog();
   const { expeditions, environmentActions, getStats: getTrackingStats, loadData: loadTrackingData } = useActivityTracking();
   const { skills, completedSkills, toggleSkill, getStats: getSkillsStats, getTotalXPEarned, loadSkills } = useSkills();
+  const { trips, getStats: getTripStats, loadData: loadTripData } = useTripPlanner();
   
   // Modal states for quick add
   const [showReflectionModal, setShowReflectionModal] = useState(false);
@@ -74,6 +76,7 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
   const trackingStats = getTrackingStats();
   const skillsStats = getSkillsStats();
   const skillsXP = getTotalXPEarned();
+  const tripStats = getTripStats();
   const combinedStats = React.useMemo(() => ({
     totalActivities: activityStats.totalActivities || 0,
     totalCompletedActivities: activityStats.totalCompletedActivities || 0,
@@ -85,6 +88,10 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
     totalEnvironmentActions: trackingStats.totalEnvironmentActions || 0,
     totalSkills: skillsStats.completedSkills || 0,
     skillsXP: skillsXP,
+    totalTrips: tripStats.totalTrips || 0,
+    totalTripDistance: tripStats.totalDistance || 0,
+    totalTripElevation: tripStats.totalElevation || 0,
+    tripsXP: tripStats.totalXP || 0,
   }), [
     activityStats.totalActivities,
     activityStats.totalCompletedActivities,
@@ -96,6 +103,10 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
     trackingStats.totalEnvironmentActions,
     skillsStats.completedSkills,
     skillsXP,
+    tripStats.totalTrips,
+    tripStats.totalDistance,
+    tripStats.totalElevation,
+    tripStats.totalXP,
   ]);
   
   const {
@@ -133,6 +144,7 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
         await loadData();
         await loadTrackingData();
         await loadSkills();
+        await loadTripData();
         // Don't manually recalculate - useGamification hook will handle it automatically
         // when stats update. This prevents double calculations and blinking.
       };
@@ -632,112 +644,93 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
         {/* Level & XP Section */}
         {!gamificationLoading && totalXP !== null && (
           <AnimatedSection delay={50}>
-            <View style={styles.levelSection}>
-              <View style={styles.levelCardContainer}>
-                {/* Rotating stars around the card - outside card but inside container */}
-                {(() => {
-                  const colors = getLevelColors(level);
-                  const animConfig = getLevelAnimationConfig(level);
-                  return animConfig.stars ? starAnims.map((starAnim, index) => (
-                    <RotatingStar
-                      key={`star-${index}`}
-                      index={index}
-                      starAnim={starAnim}
-                      colors={colors}
-                      animConfig={animConfig}
-                    />
-                  )) : null;
-                })()}
-                <Animated.View
-                  style={[
-                    styles.levelCard,
-                    {
-                      transform: [{ scale: pulseAnim }],
-                    },
-                  ]}
-                >
-                  {(() => {
-                    const colors = getLevelColors(level);
-                    const animConfig = getLevelAnimationConfig(level);
-                    const glowOpacity = glowAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.3, 0.8],
-                    });
-                    
-                    return (
-                      <>
-                        {animConfig.glow && (
-                          <Animated.View
-                            style={[
-                              styles.levelGlow,
-                              {
-                                backgroundColor: colors.glow,
-                                opacity: glowOpacity,
-                                shadowColor: colors.glow,
-                                shadowRadius: 20,
-                                shadowOpacity: 1,
-                                elevation: 10,
-                              },
-                            ]}
-                          />
-                        )}
-                        <LinearGradient
-                          colors={[colors.primary, colors.secondary]}
-                          style={styles.levelGradient}
-                        >
-                          <View style={styles.levelHeader}>
-                            <View style={[styles.levelBadge, { borderColor: 'rgba(255, 255, 255, 0.4)' }]}>
-                              <Text style={styles.levelNumber}>{level}</Text>
-                              {/* Sparkle effect inside badge for high levels */}
-                              {animConfig.epic && (
-                                <Animated.View
-                                  style={[
-                                    styles.badgeSparkle,
-                                    {
-                                      opacity: glowAnim.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [0.5, 1],
-                                      }),
-                                    },
-                                  ]}
-                                >
-                                  <Icon name="star" size={12} color={theme.colors.white} />
-                                </Animated.View>
-                              )}
-                            </View>
-                            <View style={styles.levelInfo}>
-                              <Text style={styles.levelLabel}>{getLevelName(level)}</Text>
-                              <Text style={styles.levelSubLabel}>Nivå {level}</Text>
-                              <Text style={styles.xpText}>{totalXP} XP</Text>
-                            </View>
+            {(() => {
+              const colors = getLevelColors(level);
+              const animConfig = getLevelAnimationConfig(level);
+              return (
+                <View style={styles.levelSection}>
+                  <View style={styles.levelCardWrapper}>
+                    {/* Clean card like førerkort - no pulsing background */}
+                    <LinearGradient
+                      colors={[colors.primary, colors.secondary]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.levelCardGradient}
+                    >
+                      {/* Holographic overlay like førerkort */}
+                      <View style={styles.holographicOverlay} pointerEvents="none" />
+                      
+                      {/* Header row like førerkort */}
+                      <View style={styles.levelCardHeader}>
+                        <View style={styles.levelCardLogo}>
+                          <Icon name="walk" size={20} color={theme.colors.white} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.levelCardTitle}>MEDVANDRERNE</Text>
+                          <Text style={styles.levelCardSubtitle}>Vandrerbevis</Text>
+                        </View>
+                        {animConfig.epic && (
+                          <View style={styles.levelCardBadgeIcon}>
+                            <Icon name="star" size={16} color={theme.colors.white} />
                           </View>
-                          {xpProgress.next && (
-                            <View style={styles.xpProgressContainer}>
-                              <View style={styles.xpProgressBar}>
-                                <Animated.View
-                                  style={[
-                                    styles.xpProgressFill,
-                                    {
-                                      width: `${xpProgress.progress * 100}%`,
-                                      backgroundColor: colors.secondary,
-                                    },
-                                  ]}
-                                />
-                              </View>
-                              <View style={styles.xpProgressText}>
-                                <Text style={styles.xpProgressLabel}>
-                                  {xpProgress.current} / {xpProgress.next} XP til neste nivå
-                                </Text>
-                              </View>
-                            </View>
-                          )}
-                        </LinearGradient>
-                      </>
-                    );
-                  })()}
-                </Animated.View>
-              </View>
-            </View>
+                        )}
+                      </View>
+                      
+                      {/* Main content */}
+                      <View style={styles.levelCardContent}>
+                        <View style={styles.levelBadge}>
+                          <Text style={styles.levelNumber}>{level}</Text>
+                        </View>
+                        <View style={styles.levelInfo}>
+                          <Text style={styles.levelLabel}>{getLevelName(level)}</Text>
+                          <View style={styles.levelLabelRow}>
+                            <Icon name="shield-checkmark-outline" size={14} color={theme.colors.white} />
+                            <Text style={styles.levelSubLabel}>Nivå {level}</Text>
+                          </View>
+                        </View>
+                      </View>
+                      
+                      {/* Stats row like førerkort */}
+                      <View style={styles.levelStatsRow}>
+                        <View style={styles.levelStat}>
+                          <Text style={styles.levelStatValue}>{totalXP.toLocaleString()}</Text>
+                          <Text style={styles.levelStatLabel}>XP</Text>
+                        </View>
+                        <View style={styles.levelStatDivider} />
+                        <View style={styles.levelStat}>
+                          <Text style={styles.levelStatValue}>{combinedStats.totalActivities}</Text>
+                          <Text style={styles.levelStatLabel}>Aktiviteter</Text>
+                        </View>
+                        <View style={styles.levelStatDivider} />
+                        <View style={styles.levelStat}>
+                          <Text style={styles.levelStatValue}>{combinedStats.totalSkills}</Text>
+                          <Text style={styles.levelStatLabel}>Ferdigheter</Text>
+                        </View>
+                      </View>
+                      
+                      {/* XP Progress */}
+                      {xpProgress.next && (
+                        <View style={styles.xpProgressContainer}>
+                          <View style={styles.xpProgressBar}>
+                            <View
+                              style={[
+                                styles.xpProgressFill,
+                                {
+                                  width: `${xpProgress.progress * 100}%`,
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={styles.xpProgressLabel}>
+                            {xpProgress.current} / {xpProgress.next} XP til neste nivå
+                          </Text>
+                        </View>
+                      )}
+                    </LinearGradient>
+                  </View>
+                </View>
+              );
+            })()}
           </AnimatedSection>
         )}
 
@@ -808,6 +801,20 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
                 <View style={styles.quickStatContentCompact}>
                   <Text style={styles.quickStatNumberCompact}>{trackingStats.totalExpeditions}</Text>
                   <Text style={styles.quickStatLabelCompact}>Ekspedisjoner</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickStatCardCompact}
+                onPress={() => navigation.navigate('MyTrips')}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.quickStatIconCompact, { backgroundColor: theme.colors.success + '20' }]}>
+                  <Icon name="footsteps" size={18} color={theme.colors.success} />
+                </View>
+                <View style={styles.quickStatContentCompact}>
+                  <Text style={styles.quickStatNumberCompact}>{tripStats.totalTrips}</Text>
+                  <Text style={styles.quickStatLabelCompact}>Turer</Text>
                 </View>
               </TouchableOpacity>
 
@@ -1222,6 +1229,84 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
           </Pressable>
         </View>
 
+        {/* Trips Section */}
+        <AnimatedSection delay={350}>
+          <View style={styles.section}>
+            <View style={[styles.sectionHeader, { zIndex: 1001, position: 'relative' }]}>
+              <Icon name="footsteps-outline" size={24} color={theme.colors.success} />
+              <Text style={styles.sectionTitle}>Mine turer</Text>
+              <Text style={styles.achievementCount}>{tripStats.totalTrips}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  console.log('Se alle turer pressed');
+                  navigation.navigate('MyTrips');
+                }}
+                activeOpacity={0.7}
+                style={styles.seeAllButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <View style={styles.seeAllButtonContent}>
+                  <Text style={styles.seeAllLink}>Se alle</Text>
+                  <Icon name="chevron-forward" size={16} color={theme.colors.primary} />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </AnimatedSection>
+
+        {/* Trip Stats and CTA */}
+        <View style={styles.section}>
+          {tripStats.totalTrips > 0 ? (
+            <View style={styles.tripStatsContainer}>
+              <View style={styles.tripStatsRow}>
+                <View style={styles.tripStatCard}>
+                  <Icon name="walk" size={24} color={theme.colors.success} />
+                  <Text style={styles.tripStatValue}>{tripStats.totalDistance} km</Text>
+                  <Text style={styles.tripStatLabel}>Totalt gått</Text>
+                </View>
+                <View style={styles.tripStatCard}>
+                  <Icon name="trending-up" size={24} color={theme.colors.warning} />
+                  <Text style={styles.tripStatValue}>{tripStats.totalElevation}m</Text>
+                  <Text style={styles.tripStatLabel}>Høydemeter</Text>
+                </View>
+                <View style={styles.tripStatCard}>
+                  <Icon name="star" size={24} color={theme.colors.primary} />
+                  <Text style={styles.tripStatValue}>{tripStats.totalXP}</Text>
+                  <Text style={styles.tripStatLabel}>XP fra turer</Text>
+                </View>
+              </View>
+            </View>
+          ) : null}
+          
+          <Pressable
+            onPress={() => {
+              console.log('Plan trip button pressed');
+              navigation.navigate('TripPlanner');
+            }}
+            style={({ pressed }) => [
+              styles.tripPlannerButton,
+              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+            ]}
+          >
+            <LinearGradient
+              colors={[theme.colors.success, '#22C55E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.tripPlannerGradient}
+            >
+              <View style={styles.tripPlannerContent}>
+                <View style={styles.tripPlannerIcon}>
+                  <Icon name="map" size={32} color={theme.colors.white} />
+                </View>
+                <View style={styles.tripPlannerText}>
+                  <Text style={styles.tripPlannerTitle}>Planlegg en tur</Text>
+                  <Text style={styles.tripPlannerSubtitle}>Søk destinasjoner, sjekk vær og tjen XP</Text>
+                </View>
+                <Icon name="chevron-forward" size={24} color={theme.colors.white} />
+              </View>
+            </LinearGradient>
+          </Pressable>
+        </View>
 
         <View style={styles.bottomSpacer} />
 
@@ -1750,37 +1835,107 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     flex: 1,
   },
+  // Level card styles - førerkort inspired
   levelSection: {
     paddingHorizontal: isWeb ? 0 : theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    zIndex: 1,
+    marginBottom: theme.spacing.lg,
+  },
+  levelCardWrapper: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    ...theme.shadows.glow,
+  },
+  levelCardGradient: {
+    padding: theme.spacing.lg,
+    overflow: 'hidden',
     position: 'relative',
   },
-  levelCardContainer: {
+  levelCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  levelCardLogo: {
+    width: 36,
+    height: 36,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    minHeight: 200,
+  },
+  levelCardTitle: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    fontSize: 11,
+  },
+  levelCardSubtitle: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    opacity: 0.8,
+    fontSize: 11,
+  },
+  levelCardBadgeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  levelCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
     marginBottom: theme.spacing.md,
-    zIndex: 1,
   },
-  levelCard: {
-    borderRadius: theme.borderRadius.xl,
-    overflow: 'visible',
-    ...theme.shadows.medium,
-    position: 'relative',
-    width: '100%',
+  levelLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginTop: 2,
   },
-  levelGlow: {
+  levelStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: theme.borderRadius.lg,
+    paddingVertical: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+  },
+  levelStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  levelStatValue: {
+    ...theme.typography.title,
+    color: theme.colors.white,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  levelStatLabel: {
+    ...theme.typography.caption,
+    color: theme.colors.white,
+    opacity: 0.8,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  levelStatDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  holographicOverlay: {
     position: 'absolute',
-    top: -15,
-    left: -15,
-    right: -15,
-    bottom: -15,
-    borderRadius: theme.borderRadius.xl + 15,
-    zIndex: -1,
-    shadowOffset: { width: 0, height: 0 },
-    pointerEvents: 'none',
+    top: -20,
+    right: -60,
+    width: 150,
+    height: '300%',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    transform: [{ rotate: '15deg' }],
   },
   rotatingStar: {
     position: 'absolute',
@@ -1806,30 +1961,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 10,
   },
-  levelGradient: {
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.xl,
-    overflow: 'hidden',
-  },
-  levelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: theme.spacing.md,
-  },
   levelBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 56,
+    height: 56,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: theme.spacing.sm,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   levelNumber: {
     ...theme.typography.h1,
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '800',
     color: theme.colors.white,
   },
@@ -1837,45 +1981,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   levelLabel: {
-    ...theme.typography.h3,
-    fontSize: 20,
-    fontWeight: '800',
+    ...theme.typography.h2,
+    fontSize: 22,
+    fontWeight: '700',
     color: theme.colors.white,
-    marginBottom: 2,
   },
   levelSubLabel: {
-    ...theme.typography.caption,
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: theme.spacing.xs / 2,
-  },
-  xpText: {
     ...theme.typography.body,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '500',
     color: 'rgba(255, 255, 255, 0.9)',
   },
   xpProgressContainer: {
-    marginTop: theme.spacing.sm,
+    marginTop: 0,
   },
   xpProgressBar: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     borderRadius: theme.borderRadius.sm,
     overflow: 'hidden',
     marginBottom: theme.spacing.xs,
   },
   xpProgressFill: {
     height: '100%',
-    backgroundColor: theme.colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: theme.borderRadius.sm,
   },
   xpProgressLabel: {
     ...theme.typography.caption,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
   },
   achievementCount: {
     ...theme.typography.body,
@@ -2627,6 +2764,73 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: theme.colors.error,
+  },
+  // Trip section styles
+  tripStatsContainer: {
+    marginBottom: theme.spacing.md,
+  },
+  tripStatsRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  tripStatCard: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    alignItems: 'center',
+    ...theme.shadows.small,
+  },
+  tripStatValue: {
+    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.text,
+    marginTop: theme.spacing.xs,
+  },
+  tripStatLabel: {
+    ...theme.typography.caption,
+    fontSize: 11,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  tripPlannerButton: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    ...theme.shadows.medium,
+  },
+  tripPlannerGradient: {
+    padding: theme.spacing.lg,
+  },
+  tripPlannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+  },
+  tripPlannerIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tripPlannerText: {
+    flex: 1,
+  },
+  tripPlannerTitle: {
+    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.white,
+    marginBottom: 2,
+  },
+  tripPlannerSubtitle: {
+    ...theme.typography.caption,
+    fontSize: 13,
+    color: theme.colors.white,
+    opacity: 0.9,
   },
 });
 

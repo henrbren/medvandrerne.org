@@ -13,19 +13,26 @@ import {
   TextInput,
   RefreshControl,
   KeyboardAvoidingView,
+  Keyboard,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
 import { theme } from '../constants/theme';
 import { useContacts, CONTACT_TYPE } from '../hooks/useContacts';
 import { useLocationSharing } from '../hooks/useLocationSharing';
+import { useProfileModal } from '../contexts/ProfileModalContext';
+import { useAuth } from '../contexts/AuthContext';
 import ContactDetailModal from '../components/modals/ContactDetailModal';
+import QRCodeModal from '../components/modals/QRCodeModal';
+import { getLevelName, getLevelColors } from '../utils/journeyUtils';
 
 const { width } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 export default function FlokkenScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const searchBarBottom = useRef(new Animated.Value(Platform.OS === 'ios' ? 28 : 12)).current;
   const hasAnimatedRef = useRef(false);
   
   // Hooks
@@ -33,23 +40,29 @@ export default function FlokkenScreen({ navigation }) {
     contacts, 
     loading: contactsLoading, 
     removeContact, 
+    updateContact,
+    addContact,
     loadContacts,
     syncContactsWithBackend,
     getContactsWithLocation,
   } = useContacts();
   
   const { isSharing } = useLocationSharing();
+  const { showProfileModal } = useProfileModal();
+  const { user, localStats } = useAuth();
 
   // State
   const [selectedContact, setSelectedContact] = useState(null);
   const [showContactDetail, setShowContactDetail] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrModalMode, setQRModalMode] = useState('scan');
 
-  // Set header button for map
+  // Set header left button for map (profile button is already set globally in App.js)
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
+      headerLeft: () => (
         <TouchableOpacity
           onPress={() => navigation.navigate('FlokkenMap')}
           style={styles.headerButton}
@@ -59,6 +72,36 @@ export default function FlokkenScreen({ navigation }) {
       ),
     });
   }, [navigation]);
+
+  // Keyboard handling for floating search bar
+  useEffect(() => {
+    const baseBottom = Platform.OS === 'ios' ? 28 : 12;
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        Animated.spring(searchBarBottom, {
+          toValue: e.endCoordinates.height - (Platform.OS === 'ios' ? 0 : 0) + 8,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+      }
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        Animated.spring(searchBarBottom, {
+          toValue: baseBottom,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, [searchBarBottom]);
 
   useFocusEffect(
     useCallback(() => {
@@ -105,6 +148,43 @@ export default function FlokkenScreen({ navigation }) {
   const handleCloseContactDetail = () => {
     setShowContactDetail(false);
     setSelectedContact(null);
+  };
+
+  // Handle contact data update from detail modal
+  const handleContactUpdated = async (updatedContact) => {
+    // Update the contact in storage with the fresh backend data
+    await updateContact(updatedContact.id, updatedContact);
+  };
+
+  // Handle QR scan success - add scanned contact
+  const handleScanSuccess = async (contactData) => {
+    try {
+      // Check if contact already exists
+      const existingContact = contacts.find(c => c.id === contactData.id);
+      if (existingContact) {
+        Alert.alert('Allerede lagt til', `${contactData.name || 'Denne personen'} er allerede i Flokken din.`);
+        return;
+      }
+
+      // Add the scanned contact
+      await addContact({
+        ...contactData,
+        contactType: CONTACT_TYPE.SCANNED,
+        addedAt: new Date().toISOString(),
+      });
+
+      Alert.alert(
+        'Lagt til!',
+        `${contactData.name || 'Medvandrer'} er nå i Flokken din.`,
+        [{ text: 'Flott!' }]
+      );
+
+      // Reload contacts
+      loadContacts();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      Alert.alert('Feil', 'Kunne ikke legge til kontakten. Prøv igjen.');
+    }
   };
 
   // Split contacts into categories
@@ -174,7 +254,7 @@ export default function FlokkenScreen({ navigation }) {
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{contact.name || 'Medvandrer'}</Text>
         <Text style={styles.contactSubtitle}>
-          {contact.levelName || `Nivå ${contact.level || 1}`}
+          Nivå {contact.level || 1}{contact.levelName ? ` · ${contact.levelName}` : ''}
           {contact.groupName ? ` · ${contact.groupName}` : ''}
         </Text>
       </View>
@@ -225,6 +305,39 @@ export default function FlokkenScreen({ navigation }) {
             />
           }
         >
+          {/* Me Card - Link to QR Code */}
+          {user && (
+            <TouchableOpacity 
+              style={styles.meCard}
+              onPress={() => {
+                setQRModalMode('show');
+                setShowQRModal(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.meAvatar, { borderColor: getLevelColors(Math.max(user.level || 1, localStats?.level || 1)).primary }]}>
+                {user.avatarUrl ? (
+                  <Image source={{ uri: user.avatarUrl }} style={styles.meAvatarImage} />
+                ) : (
+                  <View style={[styles.meAvatarPlaceholder, { backgroundColor: getLevelColors(Math.max(user.level || 1, localStats?.level || 1)).primary }]}>
+                    <Text style={styles.meAvatarText}>
+                      {(user.name || 'M').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.meInfo}>
+                <Text style={styles.meName}>{user.name || 'Medvandrer'}</Text>
+                <Text style={styles.meLevel}>
+                  Nivå {Math.max(user.level || 1, localStats?.level || 1)} · {getLevelName(Math.max(user.level || 1, localStats?.level || 1))}
+                </Text>
+              </View>
+              <View style={styles.meQrButton}>
+                <Icon name="qr-code" size={24} color={theme.colors.primary} />
+              </View>
+            </TouchableOpacity>
+          )}
+
           {/* Favorites Section */}
           {filteredFavorites.length > 0 && (
             <View style={styles.section}>
@@ -269,10 +382,13 @@ export default function FlokkenScreen({ navigation }) {
               </Text>
               <TouchableOpacity 
                 style={styles.scanButton}
-                onPress={() => navigation.navigate('Profil', { openScanner: true })}
+                onPress={() => {
+                  setQRModalMode('scan');
+                  setShowQRModal(true);
+                }}
               >
                 <Icon name="qr-code-outline" size={18} color={theme.colors.white} />
-                <Text style={styles.scanButtonText}>Scan en kode</Text>
+                <Text style={styles.scanButtonText}>Legg til kontakt</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -303,9 +419,12 @@ export default function FlokkenScreen({ navigation }) {
           {contacts.length > 0 && (
             <TouchableOpacity 
               style={styles.addContactButton}
-              onPress={() => navigation.navigate('Profil', { openScanner: true })}
+              onPress={() => {
+                setQRModalMode('scan');
+                setShowQRModal(true);
+              }}
             >
-              <Icon name="add" size={20} color={theme.colors.primary} />
+              <Icon name="person-add" size={20} color={theme.colors.primary} />
               <Text style={styles.addContactText}>Legg til kontakt</Text>
             </TouchableOpacity>
           )}
@@ -314,10 +433,13 @@ export default function FlokkenScreen({ navigation }) {
           <View style={styles.bottomSpacer} />
         </ScrollView>
 
-        {/* Search Bar at Bottom */}
-        <View style={styles.searchContainer}>
+        {/* Search Bar - Floating */}
+        <Animated.View style={[
+          styles.searchContainer,
+          { bottom: searchBarBottom }
+        ]}>
           <View style={styles.searchBar}>
-            <Icon name="search" size={18} color={theme.colors.textTertiary} />
+            <Icon name="search" size={16} color={theme.colors.textTertiary} />
             <TextInput
               style={styles.searchInput}
               placeholder="Søk i kontakter..."
@@ -328,11 +450,11 @@ export default function FlokkenScreen({ navigation }) {
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Icon name="close-circle" size={18} color={theme.colors.textTertiary} />
+                <Icon name="close-circle" size={16} color={theme.colors.textTertiary} />
               </TouchableOpacity>
             )}
           </View>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       {/* Contact Detail Modal */}
@@ -341,6 +463,17 @@ export default function FlokkenScreen({ navigation }) {
         onClose={handleCloseContactDetail}
         contact={selectedContact}
         onRemove={handleRemoveContact}
+        onContactUpdated={handleContactUpdated}
+      />
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        visible={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        user={user}
+        localStats={localStats}
+        onScanSuccess={handleScanSuccess}
+        initialMode={qrModalMode}
       />
     </View>
   );
@@ -355,7 +488,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerButton: {
-    marginHorizontal: 8,
+    marginLeft: 8,
     padding: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -366,6 +499,58 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
+  },
+  meCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+  },
+  meAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 2,
+    padding: 2,
+    marginRight: theme.spacing.md,
+  },
+  meAvatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  meAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  meAvatarText: {
+    ...theme.typography.h3,
+    color: theme.colors.white,
+  },
+  meInfo: {
+    flex: 1,
+  },
+  meName: {
+    ...theme.typography.h4,
+    color: theme.colors.text,
+    marginBottom: 2,
+  },
+  meLevel: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
+  },
+  meQrButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   section: {
     marginBottom: theme.spacing.lg,
@@ -540,32 +725,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   bottomSpacer: {
-    height: 80,
+    height: 56,
   },
   searchContainer: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.sm,
-    paddingBottom: Platform.OS === 'ios' ? 34 : theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    left: theme.spacing.lg,
+    right: theme.spacing.lg,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    paddingHorizontal: theme.spacing.md,
-    height: 44,
-    gap: theme.spacing.sm,
+    backgroundColor: 'rgba(44, 44, 46, 0.92)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    height: 38,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   searchInput: {
     flex: 1,
-    ...theme.typography.body,
+    fontSize: 15,
     color: theme.colors.text,
     padding: 0,
   },

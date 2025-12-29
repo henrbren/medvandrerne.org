@@ -160,6 +160,15 @@ export const useContacts = () => {
     return { success: true };
   }, [contacts]);
 
+  // Update a single contact with new data
+  const updateContact = useCallback(async (contactId, newData) => {
+    const updated = contacts.map(c => 
+      c.id === contactId ? { ...c, ...newData, updatedAt: new Date().toISOString() } : c
+    );
+    await saveContacts(updated);
+    return { success: true };
+  }, [contacts]);
+
   // Get contact by ID
   const getContact = useCallback((contactId) => {
     return contacts.find(c => c.id === contactId) || null;
@@ -259,6 +268,7 @@ export const useContacts = () => {
     addFavoriteCoordinator,
     removeContact,
     toggleFavorite,
+    updateContact,
     getContact,
     hasContact,
     hasCoordinatorContact,

@@ -110,6 +110,16 @@ const Icon = ({ name, size = 24, color = '#000', library = 'ionicons' }) => {
     'qr-code-outline': { lib: 'ionicons', name: 'qr-code-outline' },
     'warning': { lib: 'ionicons', name: 'warning' },
     'warning-outline': { lib: 'ionicons', name: 'warning-outline' },
+    'scan': { lib: 'ionicons', name: 'scan' },
+    'scan-outline': { lib: 'ionicons', name: 'scan-outline' },
+    'keypad': { lib: 'ionicons', name: 'keypad' },
+    'keypad-outline': { lib: 'ionicons', name: 'keypad-outline' },
+    'search': { lib: 'ionicons', name: 'search' },
+    'search-outline': { lib: 'ionicons', name: 'search-outline' },
+    'alert-circle': { lib: 'ionicons', name: 'alert-circle' },
+    'alert-circle-outline': { lib: 'ionicons', name: 'alert-circle-outline' },
+    'share-outline': { lib: 'ionicons', name: 'share-outline' },
+    'camera-off': { lib: 'materialcommunity', name: 'camera-off' },
   };
 
   const iconConfig = iconMap[name] || { lib: 'ionicons', name: 'help-circle-outline' };

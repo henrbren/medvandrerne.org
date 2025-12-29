@@ -3,37 +3,81 @@
         "id": 1,
         "title": "Nytt samarbeid med Gjensidigestiftelsen",
         "date": "2025-11-15",
+        "category": "Samarbeid",
         "excerpt": "Vi er stolte av å annonsere et nytt samarbeid med Gjensidigestiftelsen som vil styrke vår støtte til rusavhengige.",
-        "image": "https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=Nytt+Samarbeid",
-        "readTime": "2 min",
-        "category": "Samarbeid"
+        "content": "Medvandrerne har inngått en historisk samarbeidsavtale med Gjensidigestiftelsen som vil bidra til å styrke vårt arbeid med rusavhengige i hele Norge.\n\nSamarbeidet innebærer en flerårig støtte som vil gjøre det mulig for oss å:\n\n• Utvide våre ekspedisjoner og aktiviteter\n• Styrke oppfølgingen av deltakere\n• Etablere nye lokallag i flere byer\n• Videreutvikle våre frivilligprogrammer\n\nGjensidigestiftelsen har over mange år støttet organisasjoner som jobber med forebygging og rehabilitering, og vi er takknemlige for tilliten de viser oss.\n\n\"Dette samarbeidet betyr mye for oss og de vi jobber for. Med denne støtten kan vi nå flere mennesker og gi dem muligheten til å oppleve mestring og fellesskap i naturen,\" sier daglig leder Henrik Brenøe.\n\nSamarbeidet trer i kraft fra januar 2026.",
+        "image": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&h=400&fit=crop",
+        "readTime": "3 min",
+        "author": "Henrik Brenøe",
+        "tags": ["samarbeid", "gjensidigestiftelsen", "støtte", "utvikling"]
     },
     {
         "id": 2,
         "title": "Femundløpet 2026 - Påmelding åpnet",
         "date": "2025-11-10",
+        "category": "Arrangement",
         "excerpt": "Påmelding til Femundløpet 2026 er nå åpen. Vi ser frem til en fantastisk uke med mestring og fellesskap.",
-        "image": "https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=Femundl%C3%B8pet",
-        "readTime": "3 min",
-        "category": "Arrangement"
+        "content": "Den årlige Femundløpet-ekspedisjonen er et av våre mest populære arrangement, og nå kan du melde deg på 2026-utgaven!\n\nFemundløpet er en unik opplevelse der deltakere får følge hundekjørere gjennom vakre norske vinterlandskap. For mange av våre deltakere er dette en livsendrende opplevelse som gir ny styrke og motivasjon.\n\nHva inkluderer turen?\n• Transport til og fra Røros\n• Overnatting i varme gammer og hytter\n• All mat og drikke\n• Følge av erfarne ledere og frivillige\n• Hundekjøring og skiturer\n• Fellesaktiviteter og samlinger\n\nVi har begrenset antall plasser, så meld deg på så snart som mulig!\n\nFor spørsmål, kontakt oss på post@medvandrerne.no eller ring 22 22 22 22.",
+        "image": "https://images.unsplash.com/photo-1517783999520-f068d7431a60?w=800&h=400&fit=crop",
+        "readTime": "4 min",
+        "author": "Siri Holmen",
+        "tags": ["femundløpet", "ekspedisjon", "vinter", "hundekjøring", "påmelding"]
     },
     {
         "id": 3,
         "title": "Lokallag Bergen arrangerer høsttur",
         "date": "2025-11-08",
+        "category": "Lokallag",
         "excerpt": "Bergen lokallag inviterer til høsttur i nærområdet. Perfekt mulighet for nye deltagere å bli kjent med vår måte å arbeide på.",
-        "image": "https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=H%C3%B8sttur+Bergen",
+        "content": "Bergen lokallag inviterer alle interesserte til høsttur i de vakre fjellene rundt Bergen!\n\nTuren passer for alle nivåer, og vi tilpasser ruten etter gruppens kapasitet. Det viktigste er ikke hvor langt vi går, men at vi er sammen og støtter hverandre underveis.\n\nPraktisk informasjon:\n• Dato: Lørdag 23. november\n• Oppmøte: Kl. 09:00 ved Fløibanen\n• Varighet: Ca. 4-5 timer\n• Ta med: Matpakke, varme klær, gode sko\n\nVi sørger for varm drikke og noe å bite i underveis. Turen er gratis for alle.\n\nPåmelding til bergen@medvandrerne.no innen 20. november.\n\nVel møtt!",
+        "image": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=400&fit=crop",
+        "gallery": [
+            "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
+            "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=400&h=300&fit=crop"
+        ],
         "readTime": "2 min",
-        "category": "Lokallag"
+        "author": "Elin Skarpsno",
+        "tags": ["bergen", "lokallag", "tur", "høst", "fjell"]
     },
     {
         "id": 4,
         "title": "Årsrapport 2024 er ute",
         "date": "2025-11-01",
+        "category": "Rapport",
         "excerpt": "Vår årsrapport for 2024 viser imponerende resultater og vekst i alle våre kjerneområder.",
-        "image": "https://via.placeholder.com/400x200/D32F2F/FFFFFF?text=%C3%85rsrapport",
-        "readTime": "4 min",
-        "category": "Rapport"
+        "content": "Vi er stolte av å presentere vår årsrapport for 2024, som viser et år med betydelig vekst og positive resultater.\n\nNøkkeltall for 2024:\n• 847 deltakere på våre arrangementer\n• 12 gjennomførte ekspedisjoner\n• 156 aktive frivillige\n• 8 lokallag på landsbasis\n• 94% av deltakerne rapporterer økt livskvalitet\n\nÅret har vært preget av vekst og utvikling. Vi har etablert to nye lokallag (Trondheim og Stavanger), gjennomført vårt største Femundløpet noensinne, og styrket samarbeidet med flere viktige partnere.\n\nVi vil takke alle frivillige, støttespillere og samarbeidspartnere som gjør arbeidet vårt mulig.\n\nLast ned hele årsrapporten på vår nettside: medvandrerne.no/rapport2024",
+        "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop",
+        "readTime": "5 min",
+        "author": "Henrik Brenøe",
+        "tags": ["årsrapport", "2024", "resultater", "vekst"]
+    },
+    {
+        "id": 5,
+        "title": "Bli frivillig hos Medvandrerne",
+        "date": "2025-10-25",
+        "category": "Frivillig",
+        "excerpt": "Vi søker engasjerte frivillige til våre ekspedisjoner og lokallagsaktiviteter. Opplev gleden av å gjøre en forskjell!",
+        "content": "Ønsker du å gjøre en meningsfull forskjell i andres liv? Som frivillig hos Medvandrerne blir du en viktig del av et fellesskap som endrer liv gjennom naturopplevelser.\n\nHva innebærer det å være frivillig?\n\nSom frivillig kan du bidra på flere måter:\n• Delta som støtte på ekspedisjoner\n• Hjelpe til med lokallagsaktiviteter\n• Bidra med transport og logistikk\n• Være med på planlegging og gjennomføring\n\nHva får du tilbake?\n• Meningsfulle opplevelser i naturen\n• Et fantastisk nettverk\n• Opplæring og kursing\n• Mulighet til å gjøre en forskjell\n\nVi arrangerer jevnlig opplæringskurs for nye frivillige. Neste kurs er i Oslo 15.-16. januar.\n\nMeld din interesse på frivillig@medvandrerne.no",
+        "image": "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=800&h=400&fit=crop",
+        "gallery": [
+            "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400&h=300&fit=crop",
+            "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop",
+            "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400&h=300&fit=crop"
+        ],
+        "readTime": "3 min",
+        "author": "Siri Holmen",
+        "tags": ["frivillig", "rekruttering", "engasjement", "fellesskap"]
+    },
+    {
+        "id": 6,
+        "title": "Ny podcast-episode: Historier fra fjellet",
+        "date": "2025-10-20",
+        "category": "Annet",
+        "excerpt": "I vår nye podcast-episode deler tre tidligere deltakere sine sterke historier om veien tilbake til livet gjennom naturen.",
+        "content": "Vår podcast \"På tur med Medvandrerne\" er tilbake med en spesiell episode der tre tidligere deltakere deler sine historier.\n\nI denne episoden møter du:\n\n• Marius (32) - Om å finne styrke i fellesskapet på Femundløpet\n• Kari (45) - Fra isolasjon til å lede turer for andre\n• Thomas (28) - Hvordan hundekjøring ga nytt perspektiv\n\nDette er ærlige og rørende historier om kamp, håp og ny begynnelse. Episoden er også et innblikk i hva vårt arbeid faktisk betyr for de det gjelder.\n\nLytt på Spotify, Apple Podcasts eller vår nettside.\n\nDel gjerne episoden med noen du tror trenger å høre den.",
+        "image": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&h=400&fit=crop",
+        "readTime": "2 min",
+        "author": "Patrick Lie",
+        "tags": ["podcast", "historier", "deltakere", "inspirasjon"]
     }
 ]
-
