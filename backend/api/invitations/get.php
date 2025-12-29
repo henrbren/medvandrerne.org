@@ -16,15 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonResponse(['error' => 'Method not allowed'], 405);
 }
 
-// Get parameters
+// Get parameters - support matching by userId, phone, or email
 $userId = $_GET['userId'] ?? null;
+$userPhone = $_GET['phone'] ?? null;
+$userEmail = $_GET['email'] ?? null;
 $type = $_GET['type'] ?? 'received'; // received, sent, all
 $status = $_GET['status'] ?? null; // pending, accepted, declined, expired, or null for all
 $activityId = $_GET['activityId'] ?? null;
 
-if (!$userId) {
+if (!$userId && !$userPhone && !$userEmail) {
     http_response_code(400);
-    jsonResponse(['error' => 'User ID is required'], 400);
+    jsonResponse(['error' => 'User ID, phone, or email is required'], 400);
 }
 
 // Load invitations
@@ -48,11 +50,31 @@ foreach ($allInvitations as $invitation) {
         continue;
     }
     
+    // Check if this invitation is for the current user (match by userId, phone, or email)
+    $isRecipient = false;
+    $isSender = false;
+    
+    // Match recipient by userId, phone, or email
+    if ($userId && $invitation['recipientId'] === $userId) {
+        $isRecipient = true;
+    }
+    if ($userPhone && isset($invitation['recipientPhone']) && $invitation['recipientPhone'] === $userPhone) {
+        $isRecipient = true;
+    }
+    if ($userEmail && isset($invitation['recipientEmail']) && $invitation['recipientEmail'] === $userEmail) {
+        $isRecipient = true;
+    }
+    
+    // Match sender by userId
+    if ($userId && $invitation['senderId'] === $userId) {
+        $isSender = true;
+    }
+    
     // Categorize by received or sent
-    if ($invitation['recipientId'] === $userId) {
+    if ($isRecipient) {
         $result['received'][] = $invitation;
     }
-    if ($invitation['senderId'] === $userId) {
+    if ($isSender) {
         $result['sent'][] = $invitation;
     }
 }

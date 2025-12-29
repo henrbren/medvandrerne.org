@@ -1403,6 +1403,11 @@ export const useGamification = (stats) => {
       baseXP += stats.tripsXP;
     }
     
+    // XP from pedometer (steps walked)
+    if (stats.pedometerXP !== undefined && stats.pedometerXP !== null) {
+      baseXP += stats.pedometerXP;
+    }
+    
     // Ensure baseXP is never negative
     return Math.max(0, baseXP);
   };

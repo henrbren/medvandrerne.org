@@ -28,6 +28,7 @@ import { useActivityTracking } from '../hooks/useActivityTracking';
 import { useSkills, SKILLS } from '../hooks/useSkills';
 import { useGamification } from '../hooks/useGamification';
 import { useTripPlanner } from '../hooks/useTripPlanner';
+import { usePedometer } from '../hooks/usePedometer';
 import { SAMPLE_ACTIVITIES } from '../constants/data';
 import { getLevelColors, getLevelAnimationConfig, getLevelName, getAchievementMotivation } from '../utils/journeyUtils';
 import XPCelebration, { QuickXPPopup } from '../components/XPCelebration';
@@ -45,6 +46,17 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
   const { expeditions, environmentActions, getStats: getTrackingStats, loadData: loadTrackingData } = useActivityTracking();
   const { skills, completedSkills, toggleSkill, getStats: getSkillsStats, getTotalXPEarned, loadSkills } = useSkills();
   const { trips, getStats: getTripStats, loadData: loadTripData } = useTripPlanner();
+  const { 
+    isAvailable: pedometerAvailable,
+    todaySteps,
+    xpEarnedToday: pedometerXPToday,
+    totalXPFromSteps: pedometerTotalXP,
+    pendingXP: pedometerPendingXP,
+    claimPendingXP,
+    getStats: getPedometerStats,
+    STEPS_PER_XP,
+    MAX_XP_PER_DAY: MAX_PEDOMETER_XP_PER_DAY,
+  } = usePedometer();
   
   // Modal states
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
@@ -85,7 +97,10 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
     expertTrips: tripStats.expertTrips || 0,
     longestTrip: tripStats.longestTrip || 0,
     highestElevationTrip: tripStats.highestElevationTrip || 0,
-  }), [activityStats, masteryStats, trackingStats, skillsStats, skillsXP, tripStats]);
+    // Pedometer stats
+    pedometerXP: pedometerTotalXP || 0,
+    todaySteps: todaySteps || 0,
+  }), [activityStats, masteryStats, trackingStats, skillsStats, skillsXP, tripStats, pedometerTotalXP, todaySteps]);
   
   const {
     level,
@@ -451,6 +466,41 @@ export default function MyJourneyScreen({ navigation: navigationProp }) {
             <Text style={styles.statLabel}>Uker streak</Text>
           </View>
         </View>
+
+        {/* SECTION: Pedometer - Daily Steps */}
+        {pedometerAvailable && !isWeb && (
+          <View style={styles.pedometerCard}>
+            <View style={styles.pedometerHeader}>
+              <View style={styles.pedometerIconContainer}>
+                <Icon name="footsteps" size={22} color={theme.colors.success} />
+              </View>
+              <View style={styles.pedometerInfo}>
+                <Text style={styles.pedometerTitle}>Dagens skritt</Text>
+                <Text style={styles.pedometerSteps}>{todaySteps.toLocaleString()}</Text>
+              </View>
+              <View style={styles.pedometerXPBadge}>
+                <Icon name="star" size={12} color={theme.colors.warning} />
+                <Text style={styles.pedometerXPText}>+{pedometerXPToday} XP</Text>
+              </View>
+            </View>
+            <View style={styles.pedometerProgressContainer}>
+              <View style={styles.pedometerProgressBar}>
+                <LinearGradient
+                  colors={[theme.colors.success, '#4ADE80']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[
+                    styles.pedometerProgressFill,
+                    { width: `${Math.min((pedometerXPToday / MAX_PEDOMETER_XP_PER_DAY) * 100, 100)}%` }
+                  ]}
+                />
+              </View>
+              <Text style={styles.pedometerProgressText}>
+                {pedometerXPToday}/{MAX_PEDOMETER_XP_PER_DAY} XP i dag • {STEPS_PER_XP} skritt = 1 XP
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* SECTION: Achievements - Compact badge row */}
         {unlockedAchievements.length > 0 && (
@@ -990,6 +1040,76 @@ const styles = StyleSheet.create({
     width: 1,
     height: 32,
     backgroundColor: theme.colors.border,
+  },
+
+  // Pedometer Card
+  pedometerCard: {
+    backgroundColor: theme.colors.surface,
+    marginHorizontal: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    borderRadius: 16,
+    padding: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  pedometerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  pedometerIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: theme.colors.success + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pedometerInfo: {
+    flex: 1,
+    marginLeft: theme.spacing.md,
+  },
+  pedometerTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+  },
+  pedometerSteps: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: theme.colors.text,
+  },
+  pedometerXPBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: theme.colors.warning + '15',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  pedometerXPText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.warning,
+  },
+  pedometerProgressContainer: {
+    marginTop: theme.spacing.xs,
+  },
+  pedometerProgressBar: {
+    height: 6,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  pedometerProgressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  pedometerProgressText: {
+    fontSize: 11,
+    color: theme.colors.textTertiary,
+    marginTop: 6,
+    textAlign: 'center',
   },
 
   // Achievements

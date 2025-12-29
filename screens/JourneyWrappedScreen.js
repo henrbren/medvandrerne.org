@@ -123,15 +123,17 @@ const Slide = ({ data, index, levelColors, animConfig, isActive }) => {
       case 'xp':
         return (
           <View style={styles.slideContent}>
-            <Icon name="star" size={60} color={levelColors.glow || levelColors.primary} />
+            <Icon name="star" size={56} color={levelColors.glow || levelColors.primary} />
             <Text style={styles.statLabel}>Totalt opptjent</Text>
             {isActive && (
-              <AnimatedCounter
-                value={data.totalXP}
-                duration={2000}
-                suffix=" XP"
-                style={[styles.statValueHuge, { color: levelColors.glow || '#FFD700' }]}
-              />
+              <View style={styles.xpValueRow}>
+                <AnimatedCounter
+                  value={data.totalXP}
+                  duration={2000}
+                  style={[styles.xpValueLarge, { color: levelColors.glow || '#FFD700' }]}
+                />
+                <Text style={[styles.xpSuffix, { color: levelColors.glow || '#FFD700' }]}>XP</Text>
+              </View>
             )}
             <Text style={styles.statSubtext}>
               {data.totalXP >= 10000 ? '🔥 Imponerende!' : 
@@ -166,6 +168,37 @@ const Slide = ({ data, index, levelColors, animConfig, isActive }) => {
             {data.totalDistance >= 100 && (
               <Text style={styles.funFact}>
                 🌍 Du har gått {(data.totalDistance / 40075 * 100).toFixed(3)}% rundt jorden!
+              </Text>
+            )}
+          </View>
+        );
+
+      case 'steps':
+        return (
+          <View style={styles.slideContent}>
+            <Icon name="walk" size={60} color="#4ADE80" />
+            <Text style={styles.statLabel}>Skritt i dag</Text>
+            {isActive && (
+              <AnimatedCounter
+                value={data.todaySteps}
+                duration={2000}
+                style={styles.statValueHuge}
+              />
+            )}
+            <View style={styles.statRow}>
+              <View style={styles.statBox}>
+                <Text style={styles.statBoxValue}>{data.pedometerXP}</Text>
+                <Text style={styles.statBoxLabel}>XP fra skritt</Text>
+              </View>
+            </View>
+            {data.todaySteps >= 10000 && (
+              <Text style={styles.funFact}>
+                🏃 Du har nådd 10 000 skritt-målet! Fantastisk!
+              </Text>
+            )}
+            {data.todaySteps >= 5000 && data.todaySteps < 10000 && (
+              <Text style={styles.funFact}>
+                👟 Halvveis til 10 000 skritt! Fortsett sånn!
               </Text>
             )}
           </View>
@@ -341,6 +374,12 @@ export default function JourneyWrappedScreen({ route, navigation }) {
       totalDistance: stats.totalTripDistance || 0,
       totalElevation: stats.totalTripElevation || 0,
     },
+    // Only show pedometer slide if there are steps tracked
+    ...(stats.todaySteps > 0 || stats.pedometerXP > 0 ? [{
+      type: 'steps',
+      todaySteps: stats.todaySteps || 0,
+      pedometerXP: stats.pedometerXP || 0,
+    }] : []),
     {
       type: 'reflections',
       totalReflections: stats.totalReflections || 0,
@@ -586,10 +625,25 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   statValueHuge: {
-    fontSize: 80,
+    fontSize: 56,
     fontWeight: '900',
     color: '#fff',
-    marginVertical: 8,
+    marginVertical: 12,
+  },
+  xpValueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginVertical: 12,
+  },
+  xpValueLarge: {
+    fontSize: 64,
+    fontWeight: '900',
+  },
+  xpSuffix: {
+    fontSize: 32,
+    fontWeight: '800',
+    marginLeft: 8,
   },
   statSubtext: {
     fontSize: 20,

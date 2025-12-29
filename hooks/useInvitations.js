@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../services/api';
 
 const INVITATIONS_CACHE_KEY = '@medvandrerne_invitations_cache';
 const USER_ID_KEY = '@medvandrerne_user_id';
+const USER_DATA_KEY = '@medvandrerne_user_data';
 
 /**
  * Hook for managing activity invitations
@@ -15,33 +16,55 @@ export const useInvitations = () => {
   const [loading, setLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [userId, setUserId] = useState(null);
+  const [userPhone, setUserPhone] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
 
-  // Get user ID on mount
+  // Get user ID, phone, and email on mount
   useEffect(() => {
-    const getUserId = async () => {
+    const getUserData = async () => {
       const id = await AsyncStorage.getItem(USER_ID_KEY);
       setUserId(id);
+      
+      // Also get phone and email from user data
+      try {
+        const userData = await AsyncStorage.getItem(USER_DATA_KEY);
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          setUserPhone(parsed.phone || null);
+          setUserEmail(parsed.email || null);
+        }
+      } catch (error) {
+        console.error('Error getting user data for invitations:', error);
+      }
     };
-    getUserId();
+    getUserData();
   }, []);
 
   // Fetch invitations when user ID is available
   useEffect(() => {
-    if (userId) {
+    if (userId || userPhone || userEmail) {
       fetchInvitations();
     }
-  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, userPhone, userEmail]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Fetch all invitations for the current user
    */
   const fetchInvitations = useCallback(async () => {
-    if (!userId) return;
+    if (!userId && !userPhone && !userEmail) return;
 
     setLoading(true);
     try {
+      // Build query params - include userId, phone, and email for matching
+      const params = new URLSearchParams();
+      if (userId) params.append('userId', userId);
+      if (userPhone) params.append('phone', userPhone);
+      if (userEmail) params.append('email', userEmail);
+      params.append('type', 'all');
+      params.append('_t', Date.now().toString());
+      
       const response = await fetch(
-        `${API_BASE_URL}/invitations/get.php?userId=${userId}&type=all&_t=${Date.now()}`,
+        `${API_BASE_URL}/invitations/get.php?${params.toString()}`,
         {
           method: 'GET',
           headers: {
@@ -84,7 +107,7 @@ export const useInvitations = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, userPhone, userEmail]);
 
   /**
    * Send an invitation to a contact for an activity
@@ -95,6 +118,8 @@ export const useInvitations = () => {
     activityDate,
     recipientId,
     recipientName,
+    recipientPhone,
+    recipientEmail,
     senderName,
     senderLevel,
     message,
@@ -119,6 +144,8 @@ export const useInvitations = () => {
           senderLevel,
           recipientId,
           recipientName,
+          recipientPhone,
+          recipientEmail,
           message,
         }),
       });
